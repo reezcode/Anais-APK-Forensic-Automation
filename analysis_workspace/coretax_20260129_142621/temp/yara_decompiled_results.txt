@@ -1,5 +1,0 @@
-Android_Native_Protection_Shell /Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260129_142621/decompiled/smali/a/a.smali
-0x1af8:$lib_dpt: libdpt
-0x1f60:$lib_dpt: libdpt
-Android_Native_Protection_Shell /Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260129_142621/decompiled/smali/com/jx/shell/JniBridge.smali
-0xd9:$lib_dpt: libdpt

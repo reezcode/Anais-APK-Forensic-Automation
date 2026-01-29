@@ -1,5 +1,0 @@
-Android_Native_Protection_Shell coretax.apk
-0x239319a:$lib_dpt: libdpt
-0x23b051d:$lib_dpt: libdpt
-0x2cf5ce1:$lib_dpt: libdpt
-0x2cf5d30:$lib_dpt: libdpt

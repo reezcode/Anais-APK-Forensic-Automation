@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<vector android:height="108.0dip" android:width="108.0dip" android:viewportWidth="108.0" android:viewportHeight="108.0"
-  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt">
-    <path android:fillColor="@drawable/$jnibiuto__0" android:pathData="M27,5L81,5A22,22 0,0 1,103 27L103,81A22,22 0,0 1,81 103L27,103A22,22 0,0 1,5 81L5,27A22,22 0,0 1,27 5z" android:strokeColor="#00000000" android:strokeWidth="1.0" android:fillType="evenOdd" />
-</vector>

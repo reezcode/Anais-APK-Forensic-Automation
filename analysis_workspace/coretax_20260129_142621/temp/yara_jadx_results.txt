@@ -1,5 +1,0 @@
-Android_Native_Protection_Shell /Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260129_142621/jadx_output/sources/a/a.java
-0x1124:$lib_dpt: libdpt
-0x137b:$lib_dpt: libdpt
-Android_Native_Protection_Shell /Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260129_142621/jadx_output/sources/com/jx/shell/JniBridge.java
-0xe1:$lib_dpt: libdpt
