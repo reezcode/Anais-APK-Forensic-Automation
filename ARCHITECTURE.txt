@@ -1,0 +1,353 @@
+# Android Malware Analysis Framework
+## Complete Architecture & Module Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        ANDROID MALWARE ANALYSIS FRAMEWORK                   │
+│                              (Complete Solution)                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              ENTRY POINTS                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    │
+│  │   setup.sh       │    │ malware_        │    │  dynamic_        │    │
+│  │                  │    │ analyzer.sh     │    │  analysis_       │    │
+│  │ - Check deps     │    │                 │    │  helper.sh       │    │
+│  │ - Install pkgs   │    │ - Orchestrate   │    │                  │    │
+│  │ - Validate env   │    │ - Run modules   │    │ - Frida cmds     │    │
+│  │ - Setup dirs     │    │ - Generate rpt  │    │ - DEX dump       │    │
+│  └──────────────────┘    └──────────────────┘    └──────────────────┘    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ANALYSIS MODULES                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ 1. APK PROTECTION DETECTION & BYPASS                           │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  check_zip_encryption.py                                       │        │
+│  │  ├─ Check encryption flags                                     │        │
+│  │  ├─ Analyze local file headers                                 │        │
+│  │  ├─ Analyze central directory                                  │        │
+│  │  └─ Detect header manipulation                                 │        │
+│  │                                                                 │        │
+│  │  fix_apk_headers.py                                            │        │
+│  │  ├─ Remove encryption flags                                    │        │
+│  │  ├─ Fix local file headers                                     │        │
+│  │  ├─ Fix central directory headers                              │        │
+│  │  └─ Handle corrupted structures                                │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ 2. DECOMPILATION                                               │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  APKTool                      JADX                             │        │
+│  │  ├─ SMALI code               ├─ Java source                    │        │
+│  │  ├─ Resources                ├─ Deobfuscation                  │        │
+│  │  ├─ AndroidManifest          └─ Readable code                  │        │
+│  │  └─ Assets                                                      │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ 3. OBFUSCATION DETECTION                                       │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  detect_obfuscation.py                                         │        │
+│  │  ├─ DEX File Analysis                                          │        │
+│  │  │  ├─ Header validation                                       │        │
+│  │  │  ├─ DPT-Shell signature                                     │        │
+│  │  │  └─ Bangcle detection                                       │        │
+│  │  │                                                              │        │
+│  │  ├─ Native Library Check                                       │        │
+│  │  │  ├─ libdpt.so                                               │        │
+│  │  │  ├─ libprotect.so                                           │        │
+│  │  │  ├─ libjiagu.so                                             │        │
+│  │  │  └─ Other protection libs                                   │        │
+│  │  │                                                              │        │
+│  │  ├─ Manifest Indicators                                        │        │
+│  │  │  └─ Protection application classes                          │        │
+│  │  │                                                              │        │
+│  │  ├─ ProGuard/R8 Detection                                      │        │
+│  │  │  ├─ Short class names                                       │        │
+│  │  │  ├─ Short method names                                      │        │
+│  │  │  ├─ Package flattening                                      │        │
+│  │  │  └─ Obfuscation patterns                                    │        │
+│  │  │                                                              │        │
+│  │  └─ String Encryption                                          │        │
+│  │     └─ Crypto API usage patterns                               │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ 4. STATIC ANALYSIS (SAST)                                      │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  sast_scanner.py                                               │        │
+│  │  │                                                              │        │
+│  │  ├─ CRITICAL PATTERNS                                          │        │
+│  │  │  ├─ Root detection bypass                                   │        │
+│  │  │  ├─ Crypto wallet targeting                                 │        │
+│  │  │  ├─ C2 communication                                        │        │
+│  │  │  ├─ Data exfiltration                                       │        │
+│  │  │  ├─ Remote code execution                                   │        │
+│  │  │  └─ Accessibility abuse                                     │        │
+│  │  │                                                              │        │
+│  │  ├─ HIGH SEVERITY PATTERNS                                     │        │
+│  │  │  ├─ Insecure cryptography                                   │        │
+│  │  │  ├─ Hardcoded secrets                                       │        │
+│  │  │  ├─ Insecure network                                        │        │
+│  │  │  ├─ WebView vulnerabilities                                 │        │
+│  │  │  └─ Dynamic permissions                                     │        │
+│  │  │                                                              │        │
+│  │  ├─ MEDIUM SEVERITY PATTERNS                                   │        │
+│  │  │  ├─ Logging sensitive data                                  │        │
+│  │  │  ├─ Insecure storage                                        │        │
+│  │  │  └─ Intent vulnerabilities                                  │        │
+│  │  │                                                              │        │
+│  │  └─ SCANNING TARGETS                                           │        │
+│  │     ├─ SMALI files                                             │        │
+│  │     ├─ Java files                                              │        │
+│  │     ├─ Native libraries                                        │        │
+│  │     └─ Assets directory                                        │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ 5. ARTIFACT EXTRACTION                                         │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  apk_basic_info.py (Androguard)                                │        │
+│  │  ├─ Package info                                               │        │
+│  │  ├─ Permissions                                                │        │
+│  │  ├─ Components (Activity, Service, etc)                        │        │
+│  │  └─ Certificate details                                        │        │
+│  │                                                                 │        │
+│  │  manifest_analyzer.py                                          │        │
+│  │  ├─ Dangerous permissions                                      │        │
+│  │  ├─ Exported components                                        │        │
+│  │  ├─ Debuggable flag                                            │        │
+│  │  ├─ Backup allowed                                             │        │
+│  │  └─ Cleartext traffic                                          │        │
+│  │                                                                 │        │
+│  │  network_analyzer.py                                           │        │
+│  │  ├─ URL extraction                                             │        │
+│  │  ├─ Domain extraction                                          │        │
+│  │  ├─ IP addresses                                               │        │
+│  │  ├─ WebSocket detection                                        │        │
+│  │  ├─ Suspicious URL checking                                    │        │
+│  │  └─ C2 pattern matching                                        │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ 6. YARA SCANNING                                               │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  yara-test.yar (M-Pajak specific)                              │        │
+│  │  ├─ C2 infrastructure                                          │        │
+│  │  ├─ Wallet targeting                                           │        │
+│  │  └─ Campaign identifiers                                       │        │
+│  │                                                                 │        │
+│  │  yara_general_rules.yar                                        │        │
+│  │  ├─ General malware indicators                                 │        │
+│  │  ├─ Accessibility abuse                                        │        │
+│  │  ├─ SMS trojans                                                │        │
+│  │  ├─ Banking trojans                                            │        │
+│  │  ├─ Spyware                                                    │        │
+│  │  ├─ Crypto wallet stealers                                     │        │
+│  │  ├─ Data exfiltration                                          │        │
+│  │  ├─ C2 communication                                           │        │
+│  │  ├─ Native protection shells                                   │        │
+│  │  ├─ Screen recording                                           │        │
+│  │  └─ Anti-analysis techniques                                   │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ 7. REPORT GENERATION                                           │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  report_generator.py                                           │        │
+│  │  ├─ Executive Summary                                          │        │
+│  │  ├─ APK Information                                            │        │
+│  │  ├─ Protection Analysis                                        │        │
+│  │  ├─ Security Findings (by severity)                            │        │
+│  │  ├─ Manifest Analysis                                          │        │
+│  │  ├─ Network Analysis                                           │        │
+│  │  ├─ YARA Results                                               │        │
+│  │  ├─ Risk Scoring (0-100)                                       │        │
+│  │  ├─ Code Evidence (snippets)                                   │        │
+│  │  └─ Recommendations                                            │        │
+│  │                                                                 │        │
+│  │  Output Formats:                                               │        │
+│  │  ├─ Markdown (.md) - Human readable                            │        │
+│  │  └─ JSON (.json) - Machine readable                            │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DYNAMIC ANALYSIS TOOLS                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ Frida Scripts                                                  │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  frida_dex_dump.js                                             │        │
+│  │  ├─ Hook DexFile.openDexFile                                   │        │
+│  │  ├─ Hook DexClassLoader                                        │        │
+│  │  ├─ Hook PathClassLoader                                       │        │
+│  │  ├─ Monitor native library loading                             │        │
+│  │  ├─ Dump DEX to /sdcard/                                       │        │
+│  │  └─ Enumerate loaded classes                                   │        │
+│  │                                                                 │        │
+│  │  frida_hooks.js                                                │        │
+│  │  └─ General purpose hooks                                      │        │
+│  │                                                                 │        │
+│  │  frida_websocket_extractor.js                                  │        │
+│  │  └─ WebSocket traffic monitoring                               │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ Helper Commands                                                │        │
+│  ├────────────────────────────────────────────────────────────────┤        │
+│  │  dynamic_analysis_helper.sh                                    │        │
+│  │  ├─ install-frida  : Install Frida server                      │        │
+│  │  ├─ dex-dump       : Dump DEX from app                         │        │
+│  │  ├─ hook-crypto    : Hook crypto operations                    │        │
+│  │  ├─ hook-network   : Hook network operations                   │        │
+│  │  ├─ monitor-all    : Monitor all activities                    │        │
+│  │  └─ pull-dumps     : Pull dumped files                         │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          CONFIGURATION & DOCS                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  analyzer_config.json                                                      │
+│  ├─ Tool configuration                                                     │
+│  ├─ Analysis settings                                                      │
+│  ├─ SAST patterns                                                          │
+│  ├─ Risk thresholds                                                        │
+│  └─ Reporting options                                                      │
+│                                                                             │
+│  ANALYZER_README.md                                                        │
+│  └─ Comprehensive user guide                                               │
+│                                                                             │
+│  ANALYSIS_QUICK_REFERENCE.md                                               │
+│  └─ Quick reference & checklists                                           │
+│                                                                             │
+│  FRAMEWORK_SUMMARY.md                                                      │
+│  └─ Complete framework overview                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            DATA FLOW                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Input APK                                                                 │
+│      │                                                                      │
+│      ├──► Basic Info Extraction ──────────────────┐                        │
+│      │    (SHA256, MD5, Size)                    │                        │
+│      │                                             │                        │
+│      ├──► Protection Check ────────────────────┐  │                        │
+│      │    ├─ Encrypted? ──► Fix Headers        │  │                        │
+│      │    └─ Continue                           │  │                        │
+│      │                                           │  │                        │
+│      ├──► Decompilation ──────────────────────┐ │  │                        │
+│      │    ├─ APKTool (SMALI)                   │ │  │                        │
+│      │    └─ JADX (Java)                       │ │  │                        │
+│      │                                          │ │  │                        │
+│      ├──► Obfuscation Detection ──────────────┤ │  │                        │
+│      │    ├─ ProGuard/R8?                      │ │  │                        │
+│      │    ├─ DPT-Shell? ──► Dynamic Required   │ │  │                        │
+│      │    └─ Continue                          │ │  │                        │
+│      │                                          │ │  │                        │
+│      ├──► SAST Analysis ───────────────────────┼─┤  │                        │
+│      │    ├─ Pattern Matching                  │ │  │                        │
+│      │    ├─ Vulnerability Detection           │ │  │                        │
+│      │    └─ Code Extraction                   │ │  │                        │
+│      │                                          │ │  │                        │
+│      ├──► Manifest Analysis ───────────────────┼─┤  │                        │
+│      │    ├─ Permissions                       │ │  │                        │
+│      │    ├─ Components                        │ │  │                        │
+│      │    └─ Misconfigurations                 │ │  │                        │
+│      │                                          │ │  │                        │
+│      ├──► Network Analysis ────────────────────┼─┤  │                        │
+│      │    ├─ URL Extraction                    │ │  │                        │
+│      │    ├─ Domain Analysis                   │ │  │                        │
+│      │    └─ C2 Detection                      │ │  │                        │
+│      │                                          │ │  │                        │
+│      └──► YARA Scanning ───────────────────────┼─┤  │                        │
+│           ├─ APK Scan                          │ │  │                        │
+│           ├─ SMALI Scan                        │ │  │                        │
+│           └─ Java Scan                         │ │  │                        │
+│                                                 │ │  │                        │
+│                                                 ▼ ▼  ▼                        │
+│                                          ┌──────────────┐                    │
+│                                          │   Aggregate  │                    │
+│                                          │   Results    │                    │
+│                                          └──────┬───────┘                    │
+│                                                 │                            │
+│                                                 ▼                            │
+│                                          ┌──────────────┐                    │
+│                                          │   Report     │                    │
+│                                          │  Generator   │                    │
+│                                          └──────┬───────┘                    │
+│                                                 │                            │
+│                                   ┌─────────────┴─────────────┐              │
+│                                   ▼                           ▼              │
+│                            report.md                    report.json          │
+│                         (Human Readable)            (Machine Readable)       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DEPENDENCY TREE                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  System Requirements:                                                       │
+│  ├─ Python 3.8+                                                             │
+│  ├─ Java 8+                                                                 │
+│  ├─ APKTool 2.6+                                                            │
+│  ├─ JADX 1.4+                                                               │
+│  └─ YARA 4.0+                                                               │
+│                                                                             │
+│  Python Packages:                                                           │
+│  ├─ androguard       (APK analysis)                                         │
+│  ├─ yara-python      (YARA integration)                                     │
+│  ├─ requests         (Network operations)                                   │
+│  └─ cryptography     (Certificate analysis)                                 │
+│                                                                             │
+│  Optional (Dynamic Analysis):                                               │
+│  ├─ ADB (Android Debug Bridge)                                              │
+│  ├─ Frida & frida-tools                                                     │
+│  ├─ Rooted Android device/emulator                                          │
+│  └─ Network monitoring tools                                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        USAGE EXAMPLES                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  # Setup environment (first time)                                           │
+│  ./setup.sh                                                                 │
+│                                                                             │
+│  # Basic analysis                                                           │
+│  ./malware_analyzer.sh suspicious.apk                                       │
+│                                                                             │
+│  # Dynamic analysis (if DPT-Shell detected)                                 │
+│  ./dynamic_analysis_helper.sh install-frida                                 │
+│  ./dynamic_analysis_helper.sh dex-dump com.malware.app                      │
+│  ./dynamic_analysis_helper.sh pull-dumps                                    │
+│  ./malware_analyzer.sh ./dumps/dumped_dex_*.dex                             │
+│                                                                             │
+│  # View results                                                             │
+│  cat analysis_workspace/app_name_*/report.md                                │
+│  less analysis_workspace/app_name_*/report.json                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+                    Android Malware Analysis Framework v1.0
+                         Complete & Production Ready
+═══════════════════════════════════════════════════════════════════════════════

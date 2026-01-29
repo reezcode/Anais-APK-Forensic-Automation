@@ -1,0 +1,113 @@
+{
+  "analyzer": {
+    "version": "1.0",
+    "author": "Mobile CySec Expert",
+    "description": "Comprehensive Android Malware Analysis Framework"
+  },
+  "paths": {
+    "workspace": "./analysis_workspace",
+    "tools": "./analysis_tools",
+    "reports": "./analysis_workspace/reports",
+    "yara_rules": "./yara_general_rules.yar"
+  },
+  "tools": {
+    "apktool": {
+      "enabled": true,
+      "force": true,
+      "no_src": false,
+      "no_res": false
+    },
+    "jadx": {
+      "enabled": true,
+      "deobf": true,
+      "deobf_min": 3,
+      "deobf_max": 40,
+      "threads": 4
+    },
+    "yara": {
+      "enabled": true,
+      "recursive": true,
+      "scan_apk": true,
+      "scan_decompiled": true,
+      "scan_jadx": true
+    },
+    "androguard": {
+      "enabled": true,
+      "analyze_dex": true,
+      "extract_strings": true,
+      "analyze_manifest": true
+    }
+  },
+  "analysis": {
+    "check_protection": true,
+    "detect_obfuscation": true,
+    "run_sast": true,
+    "analyze_manifest": true,
+    "analyze_network": true,
+    "scan_native_libs": true,
+    "extract_strings": true,
+    "check_crypto": true
+  },
+  "protection_bypass": {
+    "fix_headers": true,
+    "remove_encryption_flags": true,
+    "max_attempts": 3
+  },
+  "sast": {
+    "max_files_to_scan": 1000,
+    "include_low_severity": false,
+    "deep_scan": true,
+    "scan_smali": true,
+    "scan_java": true,
+    "scan_native": true,
+    "scan_assets": true
+  },
+  "reporting": {
+    "format": ["markdown", "json"],
+    "include_code_snippets": true,
+    "max_snippet_length": 500,
+    "include_yara_results": true,
+    "detailed_findings": true
+  },
+  "patterns": {
+    "malware_indicators": [
+      "accessibility service abuse",
+      "crypto wallet targeting",
+      "c2 communication",
+      "data exfiltration",
+      "remote code execution",
+      "root detection bypass"
+    ],
+    "suspicious_tlds": [
+      ".top",
+      ".xyz",
+      ".tk",
+      ".ml",
+      ".ga",
+      ".cf",
+      ".gq",
+      ".pw"
+    ],
+    "suspicious_permissions": [
+      "BIND_ACCESSIBILITY_SERVICE",
+      "SYSTEM_ALERT_WINDOW",
+      "REQUEST_INSTALL_PACKAGES",
+      "READ_SMS",
+      "RECEIVE_SMS",
+      "READ_CONTACTS"
+    ]
+  },
+  "thresholds": {
+    "risk_score": {
+      "critical": 70,
+      "high": 40,
+      "medium": 20,
+      "low": 0
+    },
+    "obfuscation_confidence": {
+      "high": 80,
+      "medium": 50,
+      "low": 30
+    }
+  }
+}
