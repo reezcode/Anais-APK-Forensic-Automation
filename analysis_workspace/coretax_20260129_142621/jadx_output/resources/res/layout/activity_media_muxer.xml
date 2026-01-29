@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:background="0x7f050413"
+        android:paddingTop="0x7f0603ae"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <androidx.appcompat.widget.Toolbar
+            android:id="0x7f0802f2"
+            android:background="?unknown_attr_ref: 7f03023b"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"/>
+    </FrameLayout>
+    <Button
+        android:id="0x7f0801fe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="合成"/>
+    <TextView
+        android:textSize="13sp"
+        android:textColor="@android:color/black"
+        android:id="0x7f0801ff"
+        android:scrollbars="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="日志"
+        android:singleLine="false"/>
+</LinearLayout>

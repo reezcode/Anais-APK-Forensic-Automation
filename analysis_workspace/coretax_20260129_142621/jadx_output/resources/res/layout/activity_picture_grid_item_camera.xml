@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.olctg.mediacodec.widget.localmedia.views.SquareRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:background="0x7f05009f"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:id="0x7f08027e"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="0x7f0e000b"
+        android:layout_centerHorizontal="true"/>
+    <TextView
+        android:textColor="0x7f050413"
+        android:id="0x7f08027f"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="拍摄"
+        android:layout_below="0x7f08027e"
+        android:layout_centerHorizontal="true"/>
+</org.olctg.mediacodec.widget.localmedia.views.SquareRelativeLayout>

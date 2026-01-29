@@ -1,0 +1,8 @@
+Error decode arsc
+java.io.IOException: String pool expected, expected: 0x1, actual: 0x0, offset: 0xe
+	at jadx.core.xmlgen.ParserStream.throwException(ParserStream.java:119)
+	at jadx.core.xmlgen.ParserStream.checkInt16(ParserStream.java:111)
+	at jadx.core.xmlgen.CommonBinaryParser.parseStringPool(CommonBinaryParser.java:9)
+	at jadx.core.xmlgen.ResTableBinaryParser.decodeTableChunk(ResTableBinaryParser.java:109)
+	at jadx.core.xmlgen.ResTableBinaryParser.decode(ResTableBinaryParser.java:84)
+

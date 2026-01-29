@@ -1,0 +1,21 @@
+INFO  - loading ...
+ERROR - Failed to parse 'resources.pb'/'.arsc' file
+jadx.core.utils.exceptions.JadxException: Error decode: resources.arsc
+	at jadx.api.ResourcesLoader.decodeStream(ResourcesLoader.java:118)
+	at jadx.core.dex.nodes.RootNode.loadResources(RootNode.java:212)
+	at jadx.api.JadxDecompiler.load(JadxDecompiler.java:128)
+	at jadx.cli.JadxCLI.processAndSave(JadxCLI.java:59)
+	at jadx.cli.JadxCLI.execute(JadxCLI.java:37)
+	at jadx.cli.JadxCLI.main(JadxCLI.java:27)
+Caused by: java.io.IOException: String pool expected, expected: 0x1, actual: 0x0, offset: 0xe
+	at jadx.core.xmlgen.ParserStream.throwException(ParserStream.java:119)
+	at jadx.core.xmlgen.ParserStream.checkInt16(ParserStream.java:111)
+	at jadx.core.xmlgen.CommonBinaryParser.parseStringPool(CommonBinaryParser.java:9)
+	at jadx.core.xmlgen.ResTableBinaryParser.decodeTableChunk(ResTableBinaryParser.java:109)
+	at jadx.core.xmlgen.ResTableBinaryParser.decode(ResTableBinaryParser.java:84)
+	at jadx.api.ResourcesLoader.decodeTable(ResourcesLoader.java:173)
+	at jadx.core.dex.nodes.RootNode.lambda$loadResources$7(RootNode.java:212)
+	at jadx.api.ResourcesLoader.decodeStream(ResourcesLoader.java:113)
+	... 5 common frames omitted
+INFO  - processing ...
+INFO  - progress: 0 of 1493 (0%)INFO  - progress: 17 of 1493 (1%)INFO  - progress: 20 of 1493 (1%)INFO  - progress: 22 of 1493 (1%)INFO  - progress: 31 of 1493 (2%)INFO  - progress: 31 of 1493 (2%)INFO  - progress: 108 of 1493 (7%)INFO  - progress: 209 of 1493 (13%)INFO  - progress: 1051 of 1493 (70%)INFO  - progress: 1488 of 1493 (99%)                                                             INFO  - done

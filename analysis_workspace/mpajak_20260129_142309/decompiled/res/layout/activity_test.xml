@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout android:id="@id/root_layout" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <RelativeLayout android:id="@id/ad_web_actionbar_rl" android:background="@color/Grey_200" android:layout_width="fill_parent" android:layout_height="50.0dip" app:layout_constraintTop_toTopOf="parent">
+        <ImageView android:id="@id/ad_web_actionbar_left" android:padding="15.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@mipmap/return_icon" android:layout_alignParentLeft="true" android:layout_centerVertical="true" />
+        <TextView android:textSize="18.0sp" android:textColor="@color/black" android:ellipsize="middle" android:id="@id/ad_web_actionbar_center" android:padding="10.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="200.0dip" android:text="导入助记词" android:singleLine="true" android:layout_centerInParent="true" />
+    </RelativeLayout>
+    <ScrollView android:id="@id/ad_box_ll4" android:layout_width="fill_parent" android:layout_height="wrap_content" app:layout_constraintTop_toBottomOf="@id/ad_web_actionbar_rl">
+        <LinearLayout android:orientation="vertical" android:id="@id/ad_box_ll" android:layout_width="fill_parent" android:layout_height="wrap_content">
+            <EditText android:gravity="start|top" android:id="@id/et_input" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="16.0dip" android:hint="点击输入..." android:lines="10" android:inputType="textMultiLine" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+            <Button android:id="@id/btn_submit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16.0dip" android:text="提交" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/et_input" />
+            <Button android:id="@id/btn_cancel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16.0dip" android:text="取消" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/btn_submit" />
+        </LinearLayout>
+    </ScrollView>
+    <LinearLayout android:orientation="horizontal" android:id="@id/tips_view" android:background="#ffffc107" android:visibility="invisible" android:layout_width="fill_parent" android:layout_height="60.0dip" android:elevation="7.0dip" app:layout_constraintTop_toTopOf="parent">
+        <TextView android:textColor="#ff000000" android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="自定义悬浮View" android:layout_marginStart="16.0dip" />
+    </LinearLayout>
+    <LinearLayout android:orientation="horizontal" android:id="@id/floating_view" android:background="@color/Grey_200" android:visibility="visible" android:layout_width="fill_parent" android:layout_height="48.0dip" android:elevation="8.0dip" app:layout_constraintBottom_toBottomOf="parent">
+        <HorizontalScrollView android:layout_width="fill_parent" android:layout_height="fill_parent" android:fillViewport="true">
+            <LinearLayout android:orientation="horizontal" android:id="@id/words_ll" android:layout_width="fill_parent" android:layout_height="fill_parent">
+                <TextView android:textColor="@color/white" android:layout_gravity="center_vertical" android:background="@color/blue_100" android:padding="6.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="自定义" android:lines="1" android:layout_marginStart="8.0dip" />
+                <TextView android:textColor="@color/white" android:layout_gravity="center_vertical" android:background="@color/blue_100" android:padding="6.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="好吧" android:lines="1" android:layout_marginStart="8.0dip" />
+                <TextView android:textColor="@color/white" android:layout_gravity="center_vertical" android:background="@color/blue_100" android:padding="6.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="万事如意" android:lines="1" android:layout_marginStart="8.0dip" />
+                <TextView android:textColor="@color/white" android:layout_gravity="center_vertical" android:background="@color/blue_100" android:padding="6.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="方法" android:lines="1" android:layout_marginStart="8.0dip" />
+                <TextView android:textColor="@color/white" android:layout_gravity="center_vertical" android:background="@color/blue_100" android:padding="6.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="高富帅" android:lines="1" android:layout_marginStart="8.0dip" />
+                <TextView android:textColor="@color/white" android:layout_gravity="center_vertical" android:background="@color/blue_100" android:padding="6.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="广播" android:lines="1" android:layout_marginStart="8.0dip" />
+                <TextView android:textColor="@color/white" android:layout_gravity="center_vertical" android:background="@color/blue_100" android:padding="6.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="分三个非法手段" android:lines="1" android:layout_marginStart="8.0dip" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

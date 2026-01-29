@@ -1,0 +1,19 @@
+package androidx.room;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import kotlin.annotation.AnnotationRetention;
+import kotlin.annotation.AnnotationTarget;
+
+@Target({ElementType.TYPE})
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS})
+@Retention(RetentionPolicy.CLASS)
+@kotlin.annotation.Retention(AnnotationRetention.BINARY)
+/* loaded from: classes3.dex */
+public @interface DatabaseView {
+    String value() default "";
+
+    String viewName() default "";
+}

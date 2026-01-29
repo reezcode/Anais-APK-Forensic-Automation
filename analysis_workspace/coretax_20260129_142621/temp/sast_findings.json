@@ -1,0 +1,138 @@
+{
+  "critical": [
+    {
+      "category": "remote_code_execution",
+      "title": "Remote Code Execution",
+      "description": "Pattern detected: .dex",
+      "file": "sources/a/b.java",
+      "severity": "critical",
+      "line": 5,
+      "code": "\nimport android.app.AppComponentFactory;\n\n/* loaded from: classes.dex */\npublic abstract /* synthetic */ class b {\n    public static /* bridge */ /* synthetic */ AppComponentFactory a(Object obj) {\n        return (AppComponentFactory) obj;"
+    },
+    {
+      "category": "remote_code_execution",
+      "title": "Remote Code Execution",
+      "description": "Pattern detected: .dex",
+      "file": "sources/a/a.java",
+      "severity": "critical",
+      "line": 10,
+      "code": "import java.io.IOException;\nimport java.lang.reflect.Field;\n\n/* loaded from: classes.dex */\npublic abstract class a {\n\n    /* renamed from: a, reason: collision with root package name */"
+    },
+    {
+      "category": "remote_code_execution",
+      "title": "Remote Code Execution",
+      "description": "Pattern detected: .dex",
+      "file": "sources/com/jx/shell/JniBridge.java",
+      "severity": "critical",
+      "line": 7,
+      "code": "import android.content.Context;\nimport java.io.File;\n\n/* loaded from: classes.dex */\npublic class JniBridge {\n    public static void a(String str, String str2) {\n        String[] strArr = {\"libdpt.so\"};"
+    },
+    {
+      "category": "remote_code_execution",
+      "title": "Remote Code Execution",
+      "description": "Pattern detected: .dex",
+      "file": "sources/com/jx/shell/ProxyApplication.java",
+      "severity": "critical",
+      "line": 13,
+      "code": "import java.io.InputStream;\nimport java.util.Objects;\n\n/* loaded from: classes.dex */\npublic class ProxyApplication extends Application {\n\n    /* renamed from: a, reason: collision with root package name */"
+    },
+    {
+      "category": "remote_code_execution",
+      "title": "Remote Code Execution",
+      "description": "Pattern detected: .dex",
+      "file": "sources/com/jx/shell/ProxyComponentFactory.java",
+      "severity": "critical",
+      "line": 17,
+      "code": "import java.lang.reflect.Method;\nimport java.util.Objects;\n\n/* loaded from: classes.dex */\npublic class ProxyComponentFactory extends AppComponentFactory {\n\n    /* renamed from: a, reason: collision with root package name */"
+    },
+    {
+      "category": "remote_code_execution",
+      "title": "Remote Code Execution",
+      "description": "Pattern detected: .dex",
+      "file": "sources/com/qywl/znkj/MainActivity.java",
+      "severity": "critical",
+      "line": 7,
+      "code": "import android.os.Bundle;\nimport android.widget.TextView;\n\n/* loaded from: classes.dex */\npublic class MainActivity extends Activity {\n    @Override // android.app.Activity\n    public final void onCreate(Bundle bundle) {"
+    }
+  ],
+  "high": [
+    {
+      "category": "insecure_crypto",
+      "title": "Insecure Crypto",
+      "description": "Pattern detected: des",
+      "file": "resources/go/Seq.java",
+      "severity": "high",
+      "line": 102,
+      "code": "\tpublic static native void incGoRef(int refnum, GoObject ref);\n\n\t// Informs the Go ref tracker that Java is done with this refnum.\n\tstatic native void destroyRef(int refnum);\n\n\t// decRef is called from seq.FinalizeRef\n\tstatic void decRef(int refnum) {"
+    },
+    {
+      "category": "insecure_crypto",
+      "title": "Insecure Crypto",
+      "description": "Pattern detected: des",
+      "file": "resources/go/Seq.java",
+      "severity": "high",
+      "line": 121,
+      "code": "\t\tint incRefnum();\n\t}\n\t// A Proxy is a Java object that proxies a Go object. Proxies, unlike\n\t// GoObjects, are unwrapped to their Go counterpart when deserialized\n\t// in Go.\n\tpublic interface Proxy extends GoObject {}\n"
+    },
+    {
+      "category": "insecure_crypto",
+      "title": "Insecure Crypto",
+      "description": "Pattern detected: des",
+      "file": "resources/go/Seq.java",
+      "severity": "high",
+      "line": 268,
+      "code": "\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tGoRef ref = (GoRef)remove();\n\t\t\t\t\t\t\trefs.remove(ref);\n\t\t\t\t\t\t\tdestroyRef(ref.refnum);\n\t\t\t\t\t\t\tref.clear();\n\t\t\t\t\t\t} catch (InterruptedException e) {\n\t\t\t\t\t\t\t// Ignore"
+    }
+  ],
+  "medium": [
+    {
+      "category": "logging_sensitive_data",
+      "title": "Logging Sensitive Data",
+      "description": "Pattern detected: printStackTrace",
+      "file": "sources/a/a.java",
+      "severity": "medium",
+      "line": 22,
+      "code": "            try {\n                closeable.close();\n            } catch (IOException e) {\n                e.printStackTrace();\n            }\n        }\n    }"
+    },
+    {
+      "category": "logging_sensitive_data",
+      "title": "Logging Sensitive Data",
+      "description": "Pattern detected: printStackTrace",
+      "file": "sources/a/a.java",
+      "severity": "medium",
+      "line": 65,
+      "code": "            declaredField3.setAccessible(true);\n            return (ApplicationInfo) declaredField3.get(obj2);\n        } catch (Exception e) {\n            e.printStackTrace();\n            return null;\n        }\n    }"
+    },
+    {
+      "category": "logging_sensitive_data",
+      "title": "Logging Sensitive Data",
+      "description": "Pattern detected: printStackTrace",
+      "file": "sources/a/a.java",
+      "severity": "medium",
+      "line": 201,
+      "code": "            goto Lef\n        Leb:\n            r10 = move-exception\n            r10.printStackTrace()\n        Lef:\n            java.lang.System.currentTimeMillis()\n            return"
+    },
+    {
+      "category": "logging_sensitive_data",
+      "title": "Logging Sensitive Data",
+      "description": "Pattern detected: printStackTrace",
+      "file": "sources/com/jx/shell/ProxyApplication.java",
+      "severity": "medium",
+      "line": 51,
+      "code": "                    }\n                }\n            } catch (IOException e) {\n                e.printStackTrace();\n            }\n            this.f1a = byteArrayOutputStream.toString();\n            if (a.f0a) {"
+    }
+  ],
+  "low": [],
+  "info": [],
+  "summary": {
+    "total_findings": 13,
+    "by_severity": {
+      "critical": 6,
+      "high": 3,
+      "medium": 4,
+      "low": 0,
+      "info": 0
+    },
+    "risk_score": 83
+  }
+}

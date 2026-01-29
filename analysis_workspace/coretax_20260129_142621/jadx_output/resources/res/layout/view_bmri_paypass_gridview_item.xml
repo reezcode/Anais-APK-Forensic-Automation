@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <RelativeLayout
+        android:id="0x7f080091"
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+        <com.hjq.shape.view.ShapeButton
+            android:textSize="30dp"
+            android:textStyle="bold"
+            android:textColor="0x7f05002c"
+            android:gravity="center"
+            android:id="0x7f080090"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            app:shape_solidColor="0x7f050413"
+            app:shape_solidPressedColor="#ffe5e5e5"/>
+        <ImageView
+            android:id="0x7f080183"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="0x7f070194"
+            android:scaleType="centerCrop"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+</LinearLayout>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    android:orientation="vertical"
+    android:tag="layout/xpopup_bank_adapter_text_0"
+    android:background="?android:attr/selectableItemBackground"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xsi:schemaLocation="http://schemas.android.com/apk/res/android ">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="0x7f080021"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textSize="15dp"
+            android:textColor="0x7f050005"
+            android:gravity="center"
+            android:id="0x7f08034a"
+            android:tag="binding_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="15dp"/>
+    </LinearLayout>
+</LinearLayout>

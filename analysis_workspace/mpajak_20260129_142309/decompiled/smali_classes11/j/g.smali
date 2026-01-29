@@ -1,0 +1,359 @@
+.class public final Lj/g;
+.super Ljava/lang/Object;
+
+# interfaces
+.implements Lj/s;
+
+
+# instance fields
+.field public final a:Ljava/lang/Class;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "Ljava/lang/Class<",
+            "*>;"
+        }
+    .end annotation
+.end field
+
+.field public final b:[Ljava/lang/Enum;
+
+.field public final c:[Ljava/lang/Enum;
+
+.field public d:[J
+
+
+# direct methods
+.method public constructor <init>(Ljava/lang/Class;)V
+    .locals 9
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Ljava/lang/Class<",
+            "*>;)V"
+        }
+    .end annotation
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Lj/g;->a:Ljava/lang/Class;
+
+    invoke-virtual {p1}, Ljava/lang/Class;->getEnumConstants()[Ljava/lang/Object;
+
+    move-result-object p1
+
+    check-cast p1, [Ljava/lang/Enum;
+
+    iput-object p1, p0, Lj/g;->c:[Ljava/lang/Enum;
+
+    array-length v0, p1
+
+    new-array v1, v0, [J
+
+    array-length p1, p1
+
+    new-array p1, p1, [J
+
+    iput-object p1, p0, Lj/g;->d:[J
+
+    const/4 p1, 0x0
+
+    const/4 v2, 0x0
+
+    :goto_0
+    iget-object v3, p0, Lj/g;->c:[Ljava/lang/Enum;
+
+    array-length v4, v3
+
+    if-ge v2, v4, :cond_1
+
+    aget-object v3, v3, v2
+
+    invoke-virtual {v3}, Ljava/lang/Enum;->name()Ljava/lang/String;
+
+    move-result-object v3
+
+    const-wide v4, -0x340d631b7bdddcdbL    # -7.302176725335867E57
+
+    const/4 v6, 0x0
+
+    :goto_1
+    invoke-virtual {v3}, Ljava/lang/String;->length()I
+
+    move-result v7
+
+    if-ge v6, v7, :cond_0
+
+    invoke-virtual {v3, v6}, Ljava/lang/String;->charAt(I)C
+
+    move-result v7
+
+    int-to-long v7, v7
+
+    xor-long/2addr v4, v7
+
+    const-wide v7, 0x100000001b3L
+
+    mul-long v4, v4, v7
+
+    add-int/lit8 v6, v6, 0x1
+
+    goto :goto_1
+
+    :cond_0
+    aput-wide v4, v1, v2
+
+    iget-object v3, p0, Lj/g;->d:[J
+
+    aput-wide v4, v3, v2
+
+    add-int/lit8 v2, v2, 0x1
+
+    goto :goto_0
+
+    :cond_1
+    iget-object v2, p0, Lj/g;->d:[J
+
+    invoke-static {v2}, Ljava/util/Arrays;->sort([J)V
+
+    iget-object v2, p0, Lj/g;->c:[Ljava/lang/Enum;
+
+    array-length v2, v2
+
+    new-array v2, v2, [Ljava/lang/Enum;
+
+    iput-object v2, p0, Lj/g;->b:[Ljava/lang/Enum;
+
+    const/4 v2, 0x0
+
+    :goto_2
+    iget-object v3, p0, Lj/g;->d:[J
+
+    array-length v3, v3
+
+    if-ge v2, v3, :cond_4
+
+    const/4 v3, 0x0
+
+    :goto_3
+    if-ge v3, v0, :cond_3
+
+    iget-object v4, p0, Lj/g;->d:[J
+
+    aget-wide v5, v4, v2
+
+    aget-wide v7, v1, v3
+
+    cmp-long v4, v5, v7
+
+    if-nez v4, :cond_2
+
+    iget-object v4, p0, Lj/g;->b:[Ljava/lang/Enum;
+
+    iget-object v5, p0, Lj/g;->c:[Ljava/lang/Enum;
+
+    aget-object v3, v5, v3
+
+    aput-object v3, v4, v2
+
+    goto :goto_4
+
+    :cond_2
+    add-int/lit8 v3, v3, 0x1
+
+    goto :goto_3
+
+    :cond_3
+    :goto_4
+    add-int/lit8 v2, v2, 0x1
+
+    goto :goto_2
+
+    :cond_4
+    return-void
+.end method
+
+
+# virtual methods
+.method public final c(Li/a;Ljava/lang/reflect/Type;Ljava/lang/Object;)Ljava/lang/Object;
+    .locals 5
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "<T:",
+            "Ljava/lang/Object;",
+            ">(",
+            "Li/a;",
+            "Ljava/lang/reflect/Type;",
+            "Ljava/lang/Object;",
+            ")TT;"
+        }
+    .end annotation
+
+    :try_start_0
+    iget-object p2, p1, Li/a;->g:Li/c;
+
+    invoke-interface {p2}, Li/c;->q()I
+
+    move-result p3
+    :try_end_0
+    .catch Lf/d; {:try_start_0 .. :try_end_0} :catch_1
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0
+
+    const/4 v0, 0x2
+
+    const-string v1, " error, value : "
+
+    const-string v2, "parse enum "
+
+    const/16 v3, 0x10
+
+    if-ne p3, v0, :cond_1
+
+    :try_start_1
+    invoke-interface {p2}, Li/c;->I()I
+
+    move-result p1
+
+    invoke-interface {p2, v3}, Li/c;->Q(I)V
+
+    if-ltz p1, :cond_0
+
+    iget-object p2, p0, Lj/g;->c:[Ljava/lang/Enum;
+
+    array-length p3, p2
+
+    if-gt p1, p3, :cond_0
+
+    aget-object p1, p2, p1
+
+    return-object p1
+
+    :cond_0
+    new-instance p2, Lf/d;
+
+    new-instance p3, Ljava/lang/StringBuilder;
+
+    invoke-direct {p3}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {p3, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    iget-object v0, p0, Lj/g;->a:Ljava/lang/Class;
+
+    invoke-virtual {v0}, Ljava/lang/Class;->getName()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-virtual {p3, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p3, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p3, p1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p1
+
+    invoke-direct {p2, p1}, Lf/d;-><init>(Ljava/lang/String;)V
+
+    throw p2
+
+    :cond_1
+    const/4 v0, 0x4
+
+    const/4 v4, 0x0
+
+    if-ne p3, v0, :cond_3
+
+    invoke-interface {p2}, Li/c;->k0()Ljava/lang/String;
+
+    move-result-object p1
+
+    invoke-interface {p2, v3}, Li/c;->Q(I)V
+
+    invoke-virtual {p1}, Ljava/lang/String;->length()I
+
+    move-result p2
+
+    if-nez p2, :cond_2
+
+    return-object v4
+
+    :cond_2
+    iget-object p2, p0, Lj/g;->a:Ljava/lang/Class;
+
+    invoke-static {p2, p1}, Ljava/lang/Enum;->valueOf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+
+    move-result-object p1
+
+    return-object p1
+
+    :cond_3
+    const/16 v0, 0x8
+
+    if-ne p3, v0, :cond_4
+
+    invoke-interface {p2, v3}, Li/c;->Q(I)V
+
+    return-object v4
+
+    :cond_4
+    invoke-virtual {p1, v4}, Li/a;->w(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object p1
+
+    new-instance p2, Lf/d;
+
+    new-instance p3, Ljava/lang/StringBuilder;
+
+    invoke-direct {p3}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {p3, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    iget-object v0, p0, Lj/g;->a:Ljava/lang/Class;
+
+    invoke-virtual {v0}, Ljava/lang/Class;->getName()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-virtual {p3, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p3, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p3, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {p3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p1
+
+    invoke-direct {p2, p1}, Lf/d;-><init>(Ljava/lang/String;)V
+
+    throw p2
+    :try_end_1
+    .catch Lf/d; {:try_start_1 .. :try_end_1} :catch_1
+    .catch Ljava/lang/Exception; {:try_start_1 .. :try_end_1} :catch_0
+
+    :catch_0
+    move-exception p1
+
+    new-instance p2, Lf/d;
+
+    invoke-virtual {p1}, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;
+
+    move-result-object p3
+
+    invoke-direct {p2, p3, p1}, Lf/d;-><init>(Ljava/lang/String;Ljava/lang/Throwable;)V
+
+    throw p2
+
+    :catch_1
+    move-exception p1
+
+    throw p1
+.end method
+
+.method public final e()I
+    .locals 1
+
+    const/4 v0, 0x2
+
+    return v0
+.end method

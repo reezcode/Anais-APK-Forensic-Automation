@@ -1,0 +1,44 @@
+.class public final synthetic Lmarmojkfnf/dphnidckqxhm/b0$$ExternalSyntheticLambda5;
+.super Ljava/lang/Object;
+
+# interfaces
+.implements Ljava/lang/Runnable;
+
+
+# instance fields
+.field public final f$0:Lmarmojkfnf/huflnkmt/ncagri/jdtuadkc/Jehtxjp;
+
+.field public final f$1:Landroid/content/Intent;
+
+.field public final f$2:Landroid/content/Context;
+
+
+# direct methods
+.method public static constructor <clinit>()V
+    .locals 1
+
+    const/16 v0, 0x4a
+
+    invoke-static {v0}, Lfmfjq/twyvy/xjhbp;->classescxclcy(I)V
+
+    return-void
+.end method
+
+.method public synthetic constructor <init>(Lmarmojkfnf/huflnkmt/ncagri/jdtuadkc/Jehtxjp;Landroid/content/Intent;Landroid/content/Context;)V
+    .locals 0
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Lmarmojkfnf/dphnidckqxhm/b0$$ExternalSyntheticLambda5;->f$0:Lmarmojkfnf/huflnkmt/ncagri/jdtuadkc/Jehtxjp;
+
+    iput-object p2, p0, Lmarmojkfnf/dphnidckqxhm/b0$$ExternalSyntheticLambda5;->f$1:Landroid/content/Intent;
+
+    iput-object p3, p0, Lmarmojkfnf/dphnidckqxhm/b0$$ExternalSyntheticLambda5;->f$2:Landroid/content/Context;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final native run()V
+.end method

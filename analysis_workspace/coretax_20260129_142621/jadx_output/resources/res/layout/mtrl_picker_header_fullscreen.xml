@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_gravity="top|center_horizontal"
+        android:orientation="horizontal"
+        android:id="0x7f08013e"
+        android:paddingLeft="0x7f0602f6"
+        android:paddingTop="0x7f0602f6"
+        android:paddingRight="0x7f0602f6"
+        android:layout_width="match_parent"
+        android:layout_height="0x7f0602f9"
+        android:paddingStart="0x7f0602f6"
+        android:paddingEnd="0x7f0602f6"
+        style="?unknown_attr_ref: 7f03046c">
+        <com.google.android.material.button.MaterialButton
+            android:gravity="center"
+            android:layout_gravity="top"
+            android:id="0x7f0800a1"
+            android:padding="12dp"
+            android:layout_width="0x7f060339"
+            android:layout_height="0x7f060339"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:contentDescription="0x7f110279"
+            app:icon="0x7f070153"
+            style="?unknown_attr_ref: 7f030469"/>
+        <FrameLayout
+            android:id="0x7f0801f2"
+            android:paddingLeft="0x7f0602fb"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:paddingStart="0x7f0602fb">
+            <TextView
+                android:gravity="start|bottom"
+                android:layout_gravity="start|top"
+                android:id="0x7f0801f7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:firstBaselineToTopHeight="0x7f06030c"
+                style="?unknown_attr_ref: 7f03046e"/>
+            <TextView
+                android:gravity="start|bottom"
+                android:layout_gravity="start|top"
+                android:id="0x7f0801f1"
+                android:paddingBottom="0x7f060305"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:firstBaselineToTopHeight="0x7f060306"
+                app:lineHeight="0x7f0602fa"
+                style="?unknown_attr_ref: 7f03046d"/>
+        </FrameLayout>
+        <LinearLayout
+            android:orientation="0x7f090032"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <com.google.android.material.button.MaterialButton
+                android:layout_gravity="end|top"
+                android:id="0x7f0800c3"
+                android:layout_width="wrap_content"
+                android:layout_height="0x7f060339"
+                android:text="0x7f11028c"
+                android:contentDescription="0x7f11028c"
+                style="?unknown_attr_ref: 7f03046a"/>
+            <include layout="0x7f0b00ae"/>
+        </LinearLayout>
+    </LinearLayout>
+    <View
+        android:layout_gravity="bottom"
+        android:layout_width="match_parent"
+        android:layout_height="0x7f0602f7"
+        style="?unknown_attr_ref: 7f03046b"/>
+</merge>

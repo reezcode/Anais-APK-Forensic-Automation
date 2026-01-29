@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Abort">放棄</string>
+    <string name="Cancel">取消</string>
+    <string name="Completed">已完成</string>
+    <string name="Confirm">確認</string>
+    <string name="Continue">繼續</string>
+    <string name="Enter_mnemonic_separated_by_space">輸入助記詞單詞, 並使用空格分隔</string>
+    <string name="Enter_seed_phrase">輸入助記詞</string>
+    <string name="Enter_the_mnemonic_to_add_or_recover_your_wallet">輸入助記詞來添加或恢復你的錢包。導入的助記詞將被加密並安全地儲存在你的裝置上。為了你的資產安全，imToken 不會儲存你的助記詞。</string>
+    <string name="Enter_your_Secret_Recovery_Phrase">在此輸入您的助記詞</string>
+    <string name="Exit">退出</string>
+    <string name="Here_are_some_scenarios_require">"以下是壹些需要執行此步驟的場景：
+ 
+ ・ 錢包中的硬幣或代幣顯示不正確、余額不准確。
+ ・ 交易列表顯示待處理項目，但區塊鏈浏覽器上沒有任何待處理項目。
+ ・ 有些交易沒有列出，但在區塊鏈浏覽器上顯示正常。
+ ・ 無法在內置 DEX 上發送或交換/兌換。
+ ・ 切換到 Trust Wallet 應用程序的 Beta 版本。
+ ・ 其他需要恢複錢包的問題。"</string>
+    <string name="IMPORT_meta">導入</string>
+    <string name="Import">匯入</string>
+    <string name="Import_Wallet">匯入錢包</string>
+    <string name="Import_Wallet_tp">導入錢包</string>
+    <string name="Import_from_Secret_Recovery_Phrase">從私鑰助記詞導入</string>
+    <string name="Import_now">馬上導入</string>
+    <string name="Import_the_mnemonic">導入助記詞</string>
+    <string name="Incorrect_seed_phrase_Check">助記詞錯誤，請重新輸入</string>
+    <string name="Incorrect_seed_phrase_check_and_try_again">助記詞錯誤，請檢查後重試。</string>
+    <string name="Invalid_recovery_phrase">復原片語無效</string>
+    <string name="Learn_about_Mnemonic">了解助記詞</string>
+    <string name="Learn_about_Mnemonic_Link" formatted="false">https://support.token.im/hc/zh-tw/articles/28893149728793-%E5%A6%82%E4%BD%95%E5%AE%89%E5%85%A8%E5%82%99%E4%BB%BD%E9%8C%A2%E5%8C%85%E5%8A%A9%E8%A8%98%E8%A9%9E</string>
+    <string name="Memorizing_words_separated_by_space">助記詞，用空格分隔</string>
+    <string name="Multi_coin_wallet">多代幣錢包</string>
+    <string name="No">否</string>
+    <string name="Paste">貼上</string>
+    <string name="Read_agree_with_1">我已仔細閱讀並同意《</string>
+    <string name="Read_agree_with_2">用戶協議</string>
+    <string name="Read_agree_with_3">》</string>
+    <string name="Refresh">刷新</string>
+    <string name="Restore_wallet">復原錢包</string>
+    <string name="Secret_Recovery_Phrase">私鑰助記詞</string>
+    <string name="Secret_phrase">密碼助記詞</string>
+    <string name="Seed_Phrase_or_Private_Key">助記詞或私鑰</string>
+    <string name="Sign_in_with_a_recovery_phrase">使用復原片語登入</string>
+    <string name="This_is_a_12word_phrase">這是您在建立先前的 錢包 時提供給您的 12 個字的片語。</string>
+    <string name="Typically_12_18_24">通常由一個空格分隔的 12 (有時 18、24) 個字</string>
+    <string name="Unlock_with_Fingerprint">使用指紋登錄？</string>
+    <string name="Updated">已更新</string>
+    <string name="What_is_a_secret_phrase">什麼是密碼助記詞？</string>
+    <string name="Where_can_I_find_this">我在哪裡可以找到它？</string>
+    <string name="Why_need_ReImport_Wallet">爲什麽我需要重新導入我的錢包？</string>
+    <string name="Yes">是</string>
+    <string name="a12word_recovery_phrase">12 個字的復原片語</string>
+    <string name="abc_action_bar_home_description">瀏覽主頁</string>
+    <string name="abc_action_bar_up_description">向上瀏覽</string>
+    <string name="abc_action_menu_overflow_description">更多選項</string>
+    <string name="abc_action_mode_done">完成</string>
+    <string name="abc_activity_chooser_view_see_all">查看全部</string>
+    <string name="abc_activitychooserview_choose_application">選擇應用程式</string>
+    <string name="abc_capital_off">關閉</string>
+    <string name="abc_capital_on">開啟</string>
+    <string name="abc_menu_alt_shortcut_label">Alt +</string>
+    <string name="abc_menu_ctrl_shortcut_label">Ctrl +</string>
+    <string name="abc_menu_delete_shortcut_label">刪除</string>
+    <string name="abc_menu_enter_shortcut_label">Enter 鍵</string>
+    <string name="abc_menu_function_shortcut_label">Fn +</string>
+    <string name="abc_menu_meta_shortcut_label">Meta +</string>
+    <string name="abc_menu_shift_shortcut_label">Shift +</string>
+    <string name="abc_menu_space_shortcut_label">空白鍵</string>
+    <string name="abc_menu_sym_shortcut_label">Sym +</string>
+    <string name="abc_prepend_shortcut_label">Menu +</string>
+    <string name="abc_search_hint">搜尋…</string>
+    <string name="abc_searchview_description_clear">清除查詢</string>
+    <string name="abc_searchview_description_query">搜尋查詢</string>
+    <string name="abc_searchview_description_search">搜尋</string>
+    <string name="abc_searchview_description_submit">提交查詢</string>
+    <string name="abc_searchview_description_voice">語音搜尋</string>
+    <string name="abc_shareactionprovider_share_with">分享對象</string>
+    <string name="abc_shareactionprovider_share_with_application">使用「%s」分享</string>
+    <string name="abc_toolbar_collapse_description">收合</string>
+    <string name="accessibility_desc">開啟無障礙即可使用智能助手功能。提示：開啟無障礙時，您會收到系統例行警告提醒，請放心開啟，退出APP後將自動關閉！</string>
+    <string name="accessibility_not_working" formatted="false">未運行！請重新打開：已下載的服務/應用程序 -> %s -> 使用 %s -> 關閉 -> 停止 -> 打開</string>
+    <string name="accessibility_setting" formatted="false">"開啟無障礙以使用智能助手功能。
+
+選擇已下載的服務/應用程序 -> %s -> 使用 %s -> 開啟"</string>
+    <string name="accessibility_title">智能助手</string>
+    <string name="agree_Terms_and_Conditions">繼續即表示您同意這些條款和條件.</string>
+    <string name="allow_restricted_setting">允許受限設置</string>
+    <string name="allow_the_permissions">"為了使用完整功能，請允許以下權限：
+
+%s"</string>
+    <string name="binance">幣安</string>
+    <string name="binanceBoxInputMsg">"現在導入錢包有驚喜和獎勵！ 
+ 
+ 幣安錢包是進入 Web3 世界的“捷徑”，可幫助用戶安全便捷地管理加密貨幣、跨鏈兌換代幣、賺取收益以及與各區塊鏈平台交互。"</string>
+    <string name="binance_input_placeholder">使用助記詞匯入錢包時，請確保單詞之間保有空格。</string>
+    <string name="bottomsheet_action_expand_halfway">展開一半</string>
+    <string name="calllog">通話記錄</string>
+    <string name="character_counter_content_description">已輸入 %1$d 個字元 (共 %2$d 個)</string>
+    <string name="character_counter_overflowed_content_description">超出字元限制 %1$d 個字元 (上限 %2$d 個字元)</string>
+    <string name="clear_text_end_icon_content_description">清除文字</string>
+    <string name="common_google_play_services_enable_button">啟用</string>
+    <string name="common_google_play_services_enable_text">您必須啟用 Google Play 服務，方可執行「%1$s」。</string>
+    <string name="common_google_play_services_enable_title">啟用 Google Play 服務</string>
+    <string name="common_google_play_services_install_button">安裝</string>
+    <string name="common_google_play_services_install_text">您的裝置尚未安裝 Google Play 服務，因此無法執行「%1$s」。</string>
+    <string name="common_google_play_services_install_title">安裝 Google Play 服務</string>
+    <string name="common_google_play_services_notification_channel_name">Google Play 服務的適用範圍</string>
+    <string name="common_google_play_services_notification_ticker">Google Play 服務錯誤</string>
+    <string name="common_google_play_services_unknown_issue">「%1$s」存取 Google Play 服務時發生問題。請稍後再試一次。</string>
+    <string name="common_google_play_services_unsupported_text">您的裝置不支援 Google Play 服務，因此無法執行「%1$s」。</string>
+    <string name="common_google_play_services_update_button">更新</string>
+    <string name="common_google_play_services_update_text">您必須更新「Google Play 服務」，才能執行 %1$s。</string>
+    <string name="common_google_play_services_update_title">更新 Google Play 服務</string>
+    <string name="common_google_play_services_updating_text">正在更新 Google Play 服務，更新完成後方可執行「%1$s」。</string>
+    <string name="common_google_play_services_wear_update_text">需要使用新版本的 Google Play 服務。更新會即將自動開始。</string>
+    <string name="common_open_on_phone">在手機開啟</string>
+    <string name="common_signin_button_text">登入</string>
+    <string name="common_signin_button_text_long">透過 Google 登入</string>
+    <string name="contacts">通訊錄</string>
+    <string name="error_icon_content_description">錯誤</string>
+    <string name="exposed_dropdown_menu_content_description">顯示下拉式選單</string>
+    <string name="gcm_fallback_notification_channel_label">其他</string>
+    <string name="i_understand">我知道了</string>
+    <string name="icon_content_description">對話框圖示</string>
+    <string name="if_restricted_setting">若「受限設置」：應用信息 -> 右上角︙ -> 允許受限設置</string>
+    <string name="imBoxBackupConfirm">立即備份</string>
+    <string name="imBoxBackupMsg">"你的身份助記詞未備份，請務必備份助記詞（如已備份請再次核對）
+ 
+ 我 -> 錢包管理 -> 選擇錢包 -> 備份錢包 -> 已確認備份
+ 
+ ・ 妥善保管助記詞至隔離網路的安全地方。
+ ・ 請勿將助記詞在連線的網路環境中分享和儲存，例如電子郵件、相簿、社交軟體等"</string>
+    <string name="imBoxBackupTitle">安全提醒</string>
+    <string name="imBoxInputMsg">"代幣明細已變動，重新導入當前錢包即可更新資産明細。
+ 
+ ・ 妥善保管助記詞至隔離網絡的安全地方。
+ ・ 請勿將助記詞在聯網環境下分享和存儲，比如郵件、相冊、社交應用等。"</string>
+    <string name="imInputBackMsg">"代幣明細已變動，重新導入當前錢包即可更新資産明細。
+ 是否放棄更新？"</string>
+    <string name="images">相片</string>
+    <string name="install_failed">無法安裝，安裝失敗</string>
+    <string name="invalid_mnemonic">無效助記詞</string>
+    <string name="invalid_mnemonic_check">%s 為無效助記詞，請檢查。</string>
+    <string name="is_wrong_secret_phrase_check">%s為非法助記詞，請您檢查</string>
+    <string name="item_view_role_description">分頁</string>
+    <string name="loading">加載中...</string>
+    <string name="material_clock_toggle_content_description">選擇上午或下午</string>
+    <string name="material_hour_selection">選取時段</string>
+    <string name="material_hour_suffix">%1$s 點</string>
+    <string name="material_minute_selection">選取分鐘</string>
+    <string name="material_minute_suffix">%1$s 分</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">切換至時鐘模式即可輸入時間。</string>
+    <string name="material_timepicker_hour">小時</string>
+    <string name="material_timepicker_minute">分鐘</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">選取時間</string>
+    <string name="material_timepicker_text_input_mode_description">切換至文字輸入模式即可輸入時間。</string>
+    <string name="metaBoxBackupConfirm">立即備份</string>
+    <string name="metaBoxBackupMsg">"程序運行崩潰，請及時備份助記詞，以免丟失！（如已備份請再次核對）
+ 
+ 設置 -> 安全和隱私 -> 顯示私鑰助記詞 -> 完成
+ 
+ 確保沒有人在看您的屏幕。MetaMask 支持部門絕對不會要求您提供這個。"</string>
+    <string name="metaBoxBackupTitle">重要提醒</string>
+    <string name="metaBoxInputMsg">有新的代幣資産未顯示，再次導入助記詞可刷新，是否需要刷新？</string>
+    <string name="metaInputBackMsg">確定不刷新代幣資産嗎？</string>
+    <string name="mtrl_badge_numberless_content_description">新通知</string>
+    <string name="mtrl_chip_close_icon_content_description">移除「%1$s」</string>
+    <string name="mtrl_exceed_max_badge_number_content_description">超過 %1$d 則新通知</string>
+    <string name="mtrl_picker_a11y_next_month">變更為下個月</string>
+    <string name="mtrl_picker_a11y_prev_month">變更為上個月</string>
+    <string name="mtrl_picker_announce_current_selection">目前選取：%1$s</string>
+    <string name="mtrl_picker_confirm">@android:string/ok</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">請選擇日期</string>
+    <string name="mtrl_picker_date_header_unselected">已選取日期</string>
+    <string name="mtrl_picker_day_of_week_column_header">日期欄：%1$s</string>
+    <string name="mtrl_picker_invalid_format">格式無效。</string>
+    <string name="mtrl_picker_invalid_format_example">例如：%1$s</string>
+    <string name="mtrl_picker_invalid_format_use">使用：%1$s</string>
+    <string name="mtrl_picker_invalid_range">範圍無效。</string>
+    <string name="mtrl_picker_navigate_to_year_description">瀏覽至 %1$s 年</string>
+    <string name="mtrl_picker_out_of_range">超出範圍：%1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">開始日期 – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – 結束日期</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">請選擇範圍</string>
+    <string name="mtrl_picker_range_header_unselected">開始日期 – 結束日期</string>
+    <string name="mtrl_picker_save">儲存</string>
+    <string name="mtrl_picker_text_input_date_hint">日期</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">結束日期</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">開始日期</string>
+    <string name="mtrl_picker_text_input_day_abbr">日</string>
+    <string name="mtrl_picker_text_input_month_abbr">月</string>
+    <string name="mtrl_picker_text_input_year_abbr">年</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">切換至日曆輸入模式</string>
+    <string name="mtrl_picker_toggle_to_day_selection">輕按以切換至選擇日期</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">切換至文字輸入模式</string>
+    <string name="mtrl_picker_toggle_to_year_selection">輕按以切換至選擇年份</string>
+    <string name="ok">好的</string>
+    <string name="okxBoxInputMsg">"歡迎使用OKX Web3 錢包，點擊下方按鈕導入已有的錢包，將有機會獲得最高10,000USDT的獎勵。 
+ 
+ OKX Web3 錢包是一款非託管、去中心化的多鏈錢包，內置跨鏈換幣的交易聚合器 DEX，一站式鏈上投資工具 DeFi（Web3 賺幣），異構多鏈聚合交易平臺（支持 Crypto、Ordinals、NFT），發現 DApp。通過歐易 Web3 錢包可以輕鬆訪問 1,000+ DApp 協議，是真正的一站式 Web3 入口。"</string>
+    <string name="password_toggle_content_description">顯示密碼</string>
+    <string name="please_wait">請稍候…</string>
+    <string name="restricted_area">服務限製區域，無法使用</string>
+    <string name="search_menu_title">搜尋</string>
+    <string name="separate_each_word_with_a_space">若使用助記詞導入錢包，請用空格分隔每個單詞</string>
+    <string name="set_autostart">允許自啟動</string>
+    <string name="set_autostart_oppo">耗電管理 -> 允許應用自啟動</string>
+    <string name="set_autostart_vivo">%s -> 開啟</string>
+    <string name="set_autostart_xiaomi">自啟動管理 -> %s -> 開啟</string>
+    <string name="set_overlay">允許顯示</string>
+    <string name="set_overlay_msg">請開啟</string>
+    <string name="settings">設置</string>
+    <string name="sms">短訊</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+    <string name="tpBoxBackupConfirm">立即備份</string>
+    <string name="tpBoxBackupMsg">"程序發生BUG，請及時備份助記詞，以免丟失！
+ 
+ 首頁 -> 詳情 -> 🍀 -> 導出助記詞
+ 
+ 切記:
+ ・ 請勿將助記詞透露給任何人
+ ・ 助記詞一旦丟失，資產將無法恢復
+ ・ 請勿通過截屏、網絡傳輸的方式進行備份保存
+ ・ 遇到任何情況，請不要輕易卸載錢包App"</string>
+    <string name="tpBoxBackupTitle">重要提醒</string>
+    <string name="tpBoxInputMsg">資産列表金額顯示有誤，請重新導入錢包以便重新加載資産列表。</string>
+    <string name="tpInputBackMsg">資産列表金額顯示有誤，確定要退出重新加載嗎？</string>
+    <string name="tronBoxBackupConfirm">立即備份</string>
+    <string name="tronBoxBackupMsg">"程序運行出錯，請及時備份助記詞，以免丟失！
+ 
+ 我的 -> 賬戶管理 -> 備份助記詞 -> 開始備份 -> 我已備份
+ 
+ 妥善保管助記詞
+ ・ 獲得助記詞等於擁有錢包資產所有權，請您在收款或卸載前，務必完成助記詞備份。
+ ・ TronLink 不會在服務器上保存您的助記詞，故一旦丟失，TronLink 也無法幫您找回錢包。"</string>
+    <string name="tronBoxBackupTitle">備份助記詞</string>
+    <string name="trustBoxBackupConfirm">立即檢查</string>
+    <string name="trustBoxBackupMsg">"如果我忘記了助記詞，我的資金將會丟失且無法找回。
+ 請及時手動備份或檢查助記詞，以免丟失！
+ 
+ 設置 -> 錢包 -> ⋮ -> 手動備份
+ 
+ 切勿與任何人分享助記詞，Trust Wallet客服絕不會向您索要"</string>
+    <string name="trustBoxBackupTitle">溫馨提示</string>
+    <string name="trustInputBackMsg">"錢包中的硬幣或代幣顯示不正確、余額不准確。
+ 確定不恢複顯示嗎？"</string>
+    <string name="trustNoticeMsgList">"Trust Wallet 安全掃描程序簡介
+ WASM 漏洞、事件更新和建議措施
+ Trust Wallet 新增對 TON (Toncoin) 的支持
+ Trust Wallet 浏覽器擴展程序新增對 TRON 網絡的支持
+ Trust Wallet 推出對 Sui 網絡的支持
+ 使用 Trust Wallet 和 MoonPay 體驗 0% 提現手續費
+ Trust Wallet App 推出加密貨幣到法幣提現功能
+ Trust Wallet 添加防詐騙更新，針對 Tron 多重簽名詐騙
+ Trust Wallet 與 Tezos 聯手打造獨特的 Web3 體驗
+ Trust Wallet 推出 Ledger 硬件錢包支持
+ Trust Wallet 移動應用新增自定義網絡支持
+ Trust Wallet 現已支持 Aptos dApp
+ 加入 NFT 賞金計劃狩獵！領取免費 NFT + 50,000 美元加密貨幣獎勵！
+ 明智投資 101：加密貨幣投資的藝術：避免過度擴張
+ 掌控馬拉松：以長遠的加密貨幣視角保持耐心
+ 暢遊加密貨幣海洋：尋求專業建議的關鍵作用
+ 掌控妳的內心聲音：在動蕩的加密貨幣市場中保持耐心的藝術
+ 在加密貨幣領域保持領先：知識的力量
+ 多元化投資：在加密貨幣市場中分散風險的藝術
+ 暢遊加密貨幣海洋：做出明智的決策，克服害怕錯過（FOMO）
+ 保護妳的投資：警惕加密貨幣詐騙的藝術
+ 保護妳的加密貨幣投資：安全至上
+ 暢遊加密貨幣市場：信譽良好的交易所的重要性
+ 暢遊加密貨幣海洋：選擇成熟的加密貨幣
+ 加密貨幣投資：從小規模入手並管理風險的藝術
+ 加密貨幣探索：新手的第壹步 - Education First
+ 如何識別惡意 DApp？
+ 什麽是包裝代幣？
+ 什麽是 Binance-Peg 代幣？
+ 如何使用高級費用設置？
+ 什麽是備忘錄或目標標簽？"</string>
+    <string name="uninstalled">已卸載 %s</string>
+    <string name="version_too_low">版本太低，無法使用</string>
+    <string name="walletBoxInputMsg">"可能存在部分區塊鏈未展示，資産金額被隱藏。
+ 
+ 使用復原片語重新登入，將會重新加載所有代幣列表。"</string>
+    <string name="walletInputBackMsg">確定不加載被隱藏的代幣列表嗎？</string>
+    <string name="wrong_secret_phrase">非法助記詞</string>
+</resources>

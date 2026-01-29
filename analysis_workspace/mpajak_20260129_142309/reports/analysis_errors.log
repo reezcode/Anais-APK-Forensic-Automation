@@ -1,0 +1,749 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; print(json.load(open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_072600/temp/basic_info.json')).get('package_name', ''))
+                                 ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_072600/temp/basic_info.json'
+[2026-01-23 07:26:21] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak_fixed.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 48 encrypted payload(s)
+[2026-01-23 07:26:21] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:26:22] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:26:22] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 07:26:22] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+Traceback (most recent call last):
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/analysis_tools/report_generator.py", line 499, in <module>
+    main()
+    ~~~~^^
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/analysis_tools/report_generator.py", line 489, in main
+    generator.generate_markdown(args.output)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/analysis_tools/report_generator.py", line 93, in generate_markdown
+    with open(output_file, 'w') as f:
+         ~~~~^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_072600/reports/report.md'
+[2026-01-23 07:27:59] [ERROR] Report generation failed (check /Volumes/SSD/Cysec/M-Pajak/anais/analysis_errors.log for details)
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_073109/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_073109/temp/basic_info.json'
+[2026-01-23 07:31:32] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak_fixed.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 48 encrypted payload(s)
+[2026-01-23 07:31:32] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:31:33] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:31:33] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 07:31:33] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_074343/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_074343/temp/basic_info.json'
+[2026-01-23 07:44:04] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak_fixed.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 48 encrypted payload(s)
+[2026-01-23 07:44:04] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:44:04] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:44:05] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 07:44:05] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/flygaruda_20260123_074444/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/flygaruda_20260123_074444/temp/basic_info.json'
+[2026-01-23 07:44:47] [dex_payload_hunter_file] [INFO] Analyzing APK: flygaruda.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 40 encrypted payload(s)
+🔍 Found 6 .so file(s) with zip references
+[2026-01-23 07:44:48] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:44:48] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 07:44:48] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 07:44:48] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+[2026-01-23 07:44:48] [WARNING] Advanced protection detected: dpt-shell
+[2026-01-23 07:44:48] [WARNING] AndroidManifest.xml not found
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_083758/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_083758/temp/basic_info.json'
+[2026-01-23 08:38:22] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak_fixed.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 48 encrypted payload(s)
+[2026-01-23 08:38:22] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 08:38:22] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 08:38:23] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 08:38:23] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_085759/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_085759/temp/basic_info.json'
+[2026-01-23 08:58:02] [dex_payload_hunter_file] [INFO] Analyzing APK: coretax.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 40 encrypted payload(s)
+🔍 Found 6 .so file(s) with zip references
+[2026-01-23 08:58:03] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 08:58:03] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 08:58:03] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 08:58:03] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+[2026-01-23 08:58:03] [WARNING] Advanced protection detected: dpt-shell
+[2026-01-23 08:58:04] [WARNING] AndroidManifest.xml not found
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_090417/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_090417/temp/basic_info.json'
+[2026-01-23 09:04:20] [dex_payload_hunter_file] [INFO] Analyzing APK: coretax.apk
+[2026-01-23 09:04:20] [dex_payload_hunter_file] [INFO] DPT-shell detected in assets/vwwwwwvwww/arm/libdpt.so with 4 artifact types
+[2026-01-23 09:04:20] [dex_payload_hunter_file] [INFO] DPT-shell detected in assets/vwwwwwvwww/arm64/libdpt.so with 4 artifact types
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 40 encrypted payload(s)
+🔍 Found 6 .so file(s) with zip references
+[2026-01-23 09:04:21] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:04:21] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:04:21] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 09:04:21] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+[2026-01-23 09:04:21] [WARNING] Advanced protection detected: dpt-shell
+[2026-01-23 09:04:21] [WARNING] AndroidManifest.xml not found
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_091049/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_091049/temp/basic_info.json'
+[2026-01-23 09:10:53] [dex_payload_hunter_file] [INFO] Analyzing APK: coretax.apk
+[2026-01-23 09:10:53] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm/libdpt.so with 7 artifact types
+[2026-01-23 09:10:53] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm64/libdpt.so with 7 artifact types
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 40 encrypted payload(s)
+🔍 Found 6 .so file(s) with zip references
+[2026-01-23 09:10:53] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:10:54] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:10:54] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 09:10:54] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+[2026-01-23 09:10:54] [WARNING] Advanced protection detected: dpt-shell
+[2026-01-23 09:10:54] [WARNING] AndroidManifest.xml not found
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_093244/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_093244/temp/basic_info.json'
+[2026-01-23 09:32:47] [dex_payload_hunter_file] [INFO] Analyzing APK: coretax.apk
+[2026-01-23 09:32:47] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm/libdpt.so with 7 artifact types
+[2026-01-23 09:32:47] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm64/libdpt.so with 7 artifact types
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 40 encrypted payload(s)
+🔍 Found 6 .so file(s) with zip references
+[2026-01-23 09:32:48] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:32:48] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:32:48] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 09:32:48] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+[2026-01-23 09:32:48] [WARNING] Advanced protection detected: dpt-shell
+[2026-01-23 09:32:48] [WARNING] AndroidManifest.xml not found
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_095643/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_095643/temp/basic_info.json'
+[2026-01-23 09:57:06] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak_fixed.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 48 encrypted payload(s)
+[2026-01-23 09:57:07] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:57:07] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 09:57:07] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 09:57:07] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_100020/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/coretax_20260123_100020/temp/basic_info.json'
+[2026-01-23 10:00:24] [dex_payload_hunter_file] [INFO] Analyzing APK: coretax.apk
+[2026-01-23 10:00:24] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm/libdpt.so with 7 artifact types
+[2026-01-23 10:00:24] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm64/libdpt.so with 7 artifact types
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 40 encrypted payload(s)
+🔍 Found 6 .so file(s) with zip references
+[2026-01-23 10:00:25] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 10:00:25] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 10:00:25] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 10:00:25] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+[2026-01-23 10:00:25] [WARNING] Advanced protection detected: dpt-shell
+[2026-01-23 10:00:25] [WARNING] AndroidManifest.xml not found
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_103632/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_fixed_20260123_103632/temp/basic_info.json'
+[2026-01-23 10:36:54] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak_fixed.apk
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 48 encrypted payload(s)
+[2026-01-23 10:36:54] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 10:36:54] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 10:36:55] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 10:36:55] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/flygaruda_20260123_104709/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/flygaruda_20260123_104709/temp/basic_info.json'
+[2026-01-23 10:47:13] [dex_payload_hunter_file] [INFO] Analyzing APK: flygaruda.apk
+[2026-01-23 10:47:13] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm/libdpt.so with 7 artifact types
+[2026-01-23 10:47:13] [dex_payload_hunter_file] [INFO] 🚨 DPT-shell CRITICAL binary detected: assets/vwwwwwvwww/arm64/libdpt.so with 7 artifact types
+⚠️  Stub DEX detected - real DEX is hidden
+🔒 Found 40 encrypted payload(s)
+🔍 Found 6 .so file(s) with zip references
+[2026-01-23 10:47:13] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 10:47:13] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-23 10:47:13] [WARNING] 🔒 ENCRYPTED DEX DETECTED!
+[2026-01-23 10:47:13] [WARNING] Real DEX is NOT in the APK - it will be unpacked at runtime
+[2026-01-23 10:47:13] [WARNING] Advanced protection detected: dpt-shell
+[2026-01-23 10:47:14] [WARNING] AndroidManifest.xml not found
+[2026-01-26 16:22:57] [WARNING] APK appears to be corrupted or encrypted
+[2026-01-26 16:22:57] [WARNING] Attempting to fix ZIP headers...
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_20260126_161934/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_20260126_161934/temp/basic_info.json'
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak.apk
+[ERROR] Error analyzing DEX files
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing DEX files
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes4.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing DebugProbesKt.bin
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing DebugProbesKt.bin
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'DebugProbesKt.bin' is encrypted, password required for extraction
+[ERROR] Error analyzing classes4.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes4.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes4.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes5.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes5.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes5.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes3.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes3.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes3.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes2.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes2.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes2.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes6.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes6.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes6.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes20.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes20.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes20.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes21.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes21.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes21.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes19.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes19.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes19.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes17.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes17.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes17.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes18.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes18.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes18.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes25.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes25.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes25.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes24.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes24.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes24.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes22.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes22.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes22.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes23.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes23.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes23.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes10.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes10.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes10.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes11.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes11.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes11.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes9.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes9.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes9.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes7.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes7.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes7.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes8.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes8.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes8.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes15.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes15.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes15.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes16.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes16.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes16.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes14.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes14.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes14.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes12.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes12.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes12.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes13.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing classes13.dex
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'classes13.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing assets/dexopt/baseline.prof
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing assets/dexopt/baseline.prof
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'assets/dexopt/baseline.prof' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook_nothing.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libmy_hook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing assets/english.txt
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing assets/english.txt
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'assets/english.txt' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libshadowhook_nothing.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libshadowhook_nothing.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libshadowhook_nothing.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook_nothing.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libmy_hook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-26 16:23:27] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhumruj.so' is encrypted, password required for extraction
+[2026-01-26 16:23:27] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-26 16:23:27] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-29 14:22:19] [WARNING] androguard not installed (pip3 install androguard)
+[2026-01-29 14:22:19] [WARNING] yara-python not installed (pip3 install yara-python)
+[2026-01-29 14:22:19] [WARNING] requests not installed (pip3 install requests)
+[2026-01-29 14:22:30] [WARNING] APK appears to be corrupted or encrypted
+[2026-01-29 14:22:30] [WARNING] Attempting to fix ZIP headers...
+[2026-01-29 14:23:12] [WARNING] APK appears to be corrupted or encrypted
+[2026-01-29 14:23:12] [WARNING] Attempting to fix ZIP headers...
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; f=open('/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_20260129_142309/temp/basic_info.json'); print(json.load(f).get('package_name', ''))
+                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/SSD/Cysec/M-Pajak/anais/analysis_workspace/mpajak_20260129_142309/temp/basic_info.json'
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [INFO] Analyzing APK: mpajak.apk
+[ERROR] Error analyzing DEX files
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing DEX files
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes4.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing DebugProbesKt.bin
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing DebugProbesKt.bin
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'DebugProbesKt.bin' is encrypted, password required for extraction
+[ERROR] Error analyzing classes4.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes4.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes4.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes5.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes5.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes5.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes3.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes3.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes3.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes2.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes2.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes2.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes6.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes6.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes6.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes20.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes20.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes20.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes21.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes21.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes21.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes19.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes19.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes19.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes17.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes17.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes17.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes18.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes18.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes18.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes25.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes25.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes25.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes24.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes24.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes24.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes22.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes22.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes22.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes23.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes23.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes23.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes10.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes10.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes10.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes11.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes11.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes11.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes9.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes9.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes9.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes7.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes7.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes7.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes8.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes8.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes8.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes15.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes15.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes15.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes16.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes16.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes16.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes14.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes14.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes14.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes12.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes12.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes12.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing classes13.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing classes13.dex
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'classes13.dex' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing assets/dexopt/baseline.prof
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing assets/dexopt/baseline.prof
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'assets/dexopt/baseline.prof' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook_nothing.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libmy_hook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing assets/english.txt
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing assets/english.txt
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'assets/english.txt' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/armeabi-v7a/libshadowhook_nothing.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/armeabi-v7a/libshadowhook_nothing.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/armeabi-v7a/libshadowhook_nothing.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libshadowhook_nothing.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libshadowhook_nothing.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libhumruj.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/arm64-v8a/libmy_hook.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/arm64-v8a/libmy_hook.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/lib6700b7c.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/lib6700b7c.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libpl_droidsonroids_gif.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libpl_droidsonroids_gif.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhexymsb.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhexymsb.so' is encrypted, password required for extraction
+[ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error analyzing lib/x86_64/libhumruj.so
+[2026-01-29 14:23:36] [dex_payload_hunter_file] [ERROR] Error details: File 'lib/x86_64/libhumruj.so' is encrypted, password required for extraction
+[2026-01-29 14:23:36] [detect_obfuscation_file] [INFO] APKiD not found, skipping enhanced detection
+[WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin
+[2026-01-29 14:23:36] [detect_obfuscation_file] [WARNING] APKiD warning: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/SSD/Cysec/M-Pajak/anais/apkid/main.py", lin

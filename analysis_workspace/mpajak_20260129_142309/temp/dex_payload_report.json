@@ -1,0 +1,65 @@
+{
+  "stub_dex_detected": false,
+  "encrypted_payloads": [],
+  "suspicious_files": [],
+  "likely_unpack_locations": [
+    {
+      "path": "/data/data/<package>/code_cache/",
+      "description": "Code cache directory (DPT-shell stores encrypted zip here)",
+      "priority": "HIGH"
+    },
+    {
+      "path": "/data/data/<package>/app_dex/",
+      "description": "Common DEX cache directory",
+      "priority": "HIGH"
+    },
+    {
+      "path": "/data/data/<package>/files/",
+      "description": "App files directory",
+      "priority": "HIGH"
+    },
+    {
+      "path": "/data/data/<package>/cache/",
+      "description": "App cache directory",
+      "priority": "MEDIUM"
+    },
+    {
+      "path": "/data/data/<package>/lib/",
+      "description": "Native libraries directory",
+      "priority": "MEDIUM"
+    },
+    {
+      "path": "/data/data/<package>/app_xxx/",
+      "description": "Custom app directory (xxx = variant name)",
+      "priority": "HIGH"
+    },
+    {
+      "path": "/data/data/<package>/databases/",
+      "description": "Sometimes used for hidden storage",
+      "priority": "LOW"
+    },
+    {
+      "path": "/sdcard/Android/data/<package>/",
+      "description": "External storage (less common)",
+      "priority": "LOW"
+    },
+    {
+      "path": "/data/local/tmp/",
+      "description": "Temporary directory (requires root)",
+      "priority": "LOW"
+    }
+  ],
+  "protection_indicators": [],
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "action": "Setup Runtime Monitoring",
+      "details": "Monitor predicted unpack locations during app execution"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Use Frida DEX Dumper",
+      "details": "Run frida_dex_dump.js to capture unpacked DEX from memory"
+    }
+  ]
+}

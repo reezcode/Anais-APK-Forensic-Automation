@@ -1,0 +1,213 @@
+# 🌐 Network Analysis
+
+**Analysis Date:** 2026-01-29 14:25:29
+
+**APK:** mpajak.apk
+
+
+[← Back to Main Report](./report.md)
+
+
+---
+
+### 🚨 Suspicious URLs
+
+- `{'url': 'https://thumbsnap.com/api/upload', 'reason': 'Suspicious keyword: api', 'file': 'sources/k3/b.java'}`
+- `{'url': 'https://api.ipquery.io/?format=json', 'reason': 'Suspicious keyword: api', 'file': 'sources/k3/c.java'}`
+- `{'url': 'https://api.ip.sb/geoip/', 'reason': 'Suspicious keyword: api', 'file': 'sources/k3/c.java'}`
+- `{'url': 'https://api.ipbase.com/v1/json', 'reason': 'Suspicious keyword: api', 'file': 'sources/k3/c.java'}`
+- `{'url': 'https://api.db-ip.com/v2/free/self', 'reason': 'Suspicious keyword: api', 'file': 'sources/k3/c.java'}`
+- `{'url': 'https://ipapi.co/json', 'reason': 'Suspicious keyword: api', 'file': 'sources/k3/c.java'}`
+- `{'url': 'https://api.ip2location.io/', 'reason': 'Suspicious keyword: api', 'file': 'sources/k3/c.java'}`
+- `{'url': 'https://api.whatsapp.com/send', 'reason': 'Suspicious keyword: api', 'file': 'sources/i3/z.java'}`
+- `{'url': 'https://api.whatsapp.com/send', 'reason': 'Suspicious keyword: api', 'file': 'sources/i3/g.java'}`
+- `{'url': 'https://api.whatsapp.com/send', 'reason': 'Suspicious keyword: api', 'file': 'sources/i3/k.java'}`
+- `{'url': 'https://api.ip.sb/geoip/', 'reason': 'Suspicious keyword: api', 'file': 'sources/com/superbock/App.java'}`
+- `{'url': 'https://api.ip2location.io/', 'reason': 'Suspicious keyword: api', 'file': 'sources/com/superbock/App.java'}`
+- `{'url': 'https://ipapi.co/json', 'reason': 'Suspicious keyword: api', 'file': 'sources/com/superbock/App.java'}`
+- `{'url': 'https://api.db-ip.com/v2/free/self', 'reason': 'Suspicious keyword: api', 'file': 'sources/com/superbock/App.java'}`
+- `{'url': 'https://api.ipbase.com/v1/json', 'reason': 'Suspicious keyword: api', 'file': 'sources/com/superbock/App.java'}`
+- `{'url': 'https://api.ipquery.io/?format=json', 'reason': 'Suspicious keyword: api', 'file': 'sources/com/superbock/App.java'}`
+- `{'url': 'https://api.whatsapp.com/send', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes20/i3/g.smali'}`
+- `{'url': 'https://thumbsnap.com/api/upload', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes18/k3/b.smali'}`
+- `{'url': 'wss://', 'reason': 'WebSocket connection', 'file': 'smali_classes16/k/j0.smali'}`
+- `{'url': 'wss://', 'reason': 'WebSocket connection', 'file': 'smali_classes9/f3/i.smali'}`
+- `{'url': 'https://api.ipquery.io/?format=json', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes14/k3/c$a.smali'}`
+- `{'url': 'https://api.ip.sb/geoip/', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes14/k3/c$a.smali'}`
+- `{'url': 'https://api.ipbase.com/v1/json', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes14/k3/c$a.smali'}`
+- `{'url': 'https://api.db-ip.com/v2/free/self', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes14/k3/c$a.smali'}`
+- `{'url': 'https://ipapi.co/json', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes14/k3/c$a.smali'}`
+- `{'url': 'https://api.ip2location.io/', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes14/k3/c$a.smali'}`
+- `{'url': 'https://api.whatsapp.com/send', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes4/i3/k.smali'}`
+- `{'url': 'https://api.whatsapp.com/send', 'reason': 'Suspicious keyword: api', 'file': 'smali_classes2/i3/z.smali'}`
+- `{'url': 'https://api.ip.sb/geoip/', 'reason': 'Suspicious keyword: api', 'file': 'smali/com/superbock/App.smali'}`
+- `{'url': 'https://api.ip2location.io/', 'reason': 'Suspicious keyword: api', 'file': 'smali/com/superbock/App.smali'}`
+- `{'url': 'https://ipapi.co/json', 'reason': 'Suspicious keyword: api', 'file': 'smali/com/superbock/App.smali'}`
+- `{'url': 'https://api.db-ip.com/v2/free/self', 'reason': 'Suspicious keyword: api', 'file': 'smali/com/superbock/App.smali'}`
+- `{'url': 'https://api.ipbase.com/v1/json', 'reason': 'Suspicious keyword: api', 'file': 'smali/com/superbock/App.smali'}`
+- `{'url': 'https://api.ipquery.io/?format=json', 'reason': 'Suspicious keyword: api', 'file': 'smali/com/superbock/App.smali'}`
+
+### URLs Found (33)
+
+- `https://api.ip2location.io/`
+- `https://m-pajak.club`
+- `https://api.db-ip.com/v2/free/self`
+- `https://issuetracker.google.com/issues/new?component=413107&template=1096568`
+- `https://log.tbs.qq.com/ajax?c=pu&tk=`
+- `https://plus.google.com/`
+- `https://thumbsnap.com/api/upload`
+- `https://ipapi.co/json`
+- `https://cfg.imtt.qq.com/tbs?v=2&mk=`
+- `https://ipwhois.app/json/?format=json`
+- `http://`
+- `https://debugtbs.qq.com`
+- `https://api.ipquery.io/?format=json`
+- `https://mdc.html5.qq.com/mh?channel_id=50079&u=`
+- `http://ns.adobe.com/xap/1.0/\u0000`
+- `https://mdc.html5.qq.com/d/directdown.jsp?channel_id=50079`
+- `https://log.tbs.qq.com/ajax?c=pu&v=2&k=`
+- `https://t.me/`
+- `https://wa.me/`
+- `https://api.ipbase.com/v1/json`
+- `https://debugtbs.qq.com?10000\`
+- `https://log.tbs.qq.com/ajax?c=ul&v=2&k=`
+- `https://debugx5.qq.com`
+- `http://schemas.android.com/apk/res-auto`
+- `https://api.whatsapp.com/send`
+- `https://tbs.imtt.qq.com/plugin/DebugPlugin_v2.tbs`
+- `https://log.tbs.qq.com/ajax?c=dl&k=`
+- `http://schemas.android.com/apk/res/android`
+- `http://xml.apache.org/xslt`
+- `https://`
+- `https://pms.mb.qq.com/rsp204`
+- `https://api.ip.sb/geoip/`
+- `wss://`
+
+### Unique Domains (126)
+
+- `insets.top`
+- `args.id`
+- `android.intent.extra.shortcut.ID`
+- `System.in`
+- `api.ipbase.com`
+- `kotlin.io`
+- `api.ip2location.io`
+- `log.tbs.qq.com`
+- `findAnimation.mY`
+- `www.qq.com`
+- `fontMetricsInt3.top`
+- `mdc.html5.qq.com`
+- `t.me`
+- `workInfoPojo.id`
+- `fontMetricsInt2.top`
+- `ipwhois.app`
+- `rectF2.top`
+- `z3.b.NO`
+- `debugtbs.qq.com`
+- `recoverAnimation.mY`
+- `r11.top`
+- `r4.top`
+- `mDecorInsets.top`
+- `rectF5.top`
+- `com.tencent.smtt.net`
+- `logger5.info`
+- `itemDecorInsetsForChild.top`
+- `style.id`
+- `imtt.qq.com`
+- `rectF4.top`
+- `api.whatsapp.com`
+- `api.ipquery.io`
+- `floatRect.top`
+- `acquireTempRect2.top`
+- `opticalBounds.top`
+- `rect.top`
+- `androidx.fragment.app`
+- `solverVariable2.id`
+- `dVar.id`
+- `xml.apache.org`
+- `com.google.android.wearable.app`
+- `solverVariable.id`
+- `pms.mb.qq.com`
+- `workSpec.id`
+- `com.binance.dev`
+- `debugx5.qq.com`
+- `R.integer.app`
+- `workSpec2.id`
+- `tencent.com`
+- `rectF.top`
+- `schemas.android.com`
+- `R.string.app`
+- `closeIconTouchBounds.top`
+- `idAndState.id`
+- `opticalInsets.top`
+- `R.string.No`
+- `r7.id`
+- `api24mi3xjun7ao.a2decxd8syw7k.top`
+- `issuetracker.google.com`
+- `cfg.imtt.qq.com`
+- `newWorkSpec.id`
+- `im.token.app`
+- `rectF3.top`
+- `widgetFrame3.top`
+- `logger.info`
+- `r1.top`
+- `javax.persistence.Id`
+- `fontMetricsInt.top`
+- `androidx.appcompat.app`
+- `x5.tencent.com`
+- `plus.google.com`
+- `constantPadding.top`
+- `x2.b.a.INFO`
+- `variable.id`
+- `acquireTempRect3.top`
+- `insets2.top`
+- `itemHolderInfo.top`
+- `bounds.top`
+- `rect2.top`
+- `tbs.imtt.qq.com`
+- `androidx.core.net`
+- `r3.top`
+- `com.superbock.App`
+- `logger2.info`
+- `wa.me`
+- `android.os.Build.ID`
+- `r0.top`
+- `other.id`
+- `thumbsnap.com`
+- `logger4.info`
+- `android.support.v4.app`
+- `constraintWidget.mY`
+- `widgetGroup.id`
+- `ro.vivo.os.build.display.id`
+- `floatRect2.top`
+- `rect3.top`
+- `bVar.f720a.top`
+- `api.db-ip.com`
+- `pivotCandidate.id`
+- `widgetFrame.top`
+- `android.com`
+- `androidx.work.util.id`
+- `ipapi.co`
+- `WorkSpec.id`
+- `ns.adobe.com`
+- `browserInfo.vn`
+- `b.a.INFO`
+- `rectF6.top`
+- `viewState.top`
+- `www.baidu.com`
+- `google.com`
+- `solverVariable3.id`
+- `cVar.f938a.f929a.top`
+- `androidx.loader.app`
+- `widgetFrame2.top`
+- `acquireTempRect.top`
+- `org.apache.commons.io`
+- `x5.tbs.org`
+- `tbs.org`
+- `ro.build.rom.id`
+- `acquireSolverVariable.id`
+- `logger6.info`
+- `logger3.info`
+- `androidx.core.app`
+- `itemHolderInfo2.top`
+- `android.R.attr.id`

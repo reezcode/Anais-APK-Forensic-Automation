@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="center"
+    android:id="0x7f08005e"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    class="androidx.appcompat.widget.ActivityChooserView$InnerLayout"
+    style="?unknown_attr_ref: 7f030028">
+    <FrameLayout
+        android:layout_gravity="center"
+        android:id="0x7f08011b"
+        android:background="?unknown_attr_ref: 7f030004"
+        android:paddingLeft="12dp"
+        android:paddingTop="2dp"
+        android:paddingRight="12dp"
+        android:paddingBottom="2dp"
+        android:focusable="true"
+        android:addStatesFromChildren="true"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <ImageView
+            android:layout_gravity="center"
+            android:id="0x7f080167"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"/>
+    </FrameLayout>
+    <FrameLayout
+        android:layout_gravity="center"
+        android:id="0x7f0800de"
+        android:background="?unknown_attr_ref: 7f030004"
+        android:paddingLeft="12dp"
+        android:paddingTop="2dp"
+        android:paddingRight="12dp"
+        android:paddingBottom="2dp"
+        android:focusable="true"
+        android:addStatesFromChildren="true"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <ImageView
+            android:layout_gravity="center"
+            android:id="0x7f080167"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"/>
+    </FrameLayout>
+</view>

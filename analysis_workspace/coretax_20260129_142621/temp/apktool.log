@@ -1,0 +1,14 @@
+I: Using Apktool 2.12.1 on coretax.apk with 8 threads
+I: Baksmaling classes.dex...
+I: Loading resource table...
+W: Skipping unknown chunk data of size 264
+W: Multiple types detected! plurals ignored!
+Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index 65616 out of bounds for length 6
+	at brut.androlib.res.data.value.ResPluralsValue.<init>(SourceFile:39)
+	at brut.androlib.res.decoder.ARSCDecoder.readResourceTable(SourceFile:97)
+	at brut.androlib.res.decoder.ARSCDecoder.decode(SourceFile:82)
+	at brut.androlib.res.data.ResTable.loadResPackagesFromApk(SourceFile:109)
+	at brut.androlib.res.ResourcesDecoder.decodeResources(SourceFile:78)
+	at brut.androlib.ApkDecoder.decodeResources(SourceFile:214)
+	at brut.androlib.ApkDecoder.decode(SourceFile:84)
+	at brut.apktool.Main.main(SourceFile:532)

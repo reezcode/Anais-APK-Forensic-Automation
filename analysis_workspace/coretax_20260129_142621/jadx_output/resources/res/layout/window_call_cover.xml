@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.lzf.easyfloat.widget.ParentFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="0x7f08023f"
+    android:tag="layout/window_call_cover_0"
+    android:background="0x7f05002c"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <io.ekesg.pmafr.widget.FloatFrame
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:background="#003300ff"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </io.ekesg.pmafr.widget.FloatFrame>
+</com.lzf.easyfloat.widget.ParentFrameLayout>

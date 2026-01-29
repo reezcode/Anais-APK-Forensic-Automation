@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Abort">بندول</string>
+    <string name="Cancel">لغوه کړئ</string>
+    <string name="Completed">بشپړ شو</string>
+    <string name="Confirm">تایید کړه</string>
+    <string name="Exit">وتل</string>
+    <string name="Import_Wallet_tp">خرچندو دراندل</string>
+    <string name="Memorizing_words_separated_by_space">کلمات به یاد سپرده شده، با فاصله جدا شده</string>
+    <string name="No">نه</string>
+    <string name="Paste">پیست</string>
+    <string name="Refresh">تازه کړئ</string>
+    <string name="Updated">تازه شوی</string>
+    <string name="Yes">هو</string>
+    <string name="is_wrong_secret_phrase_check">%s غلط خفیه بیايازی کلید دی، مهرباني وکړئ په چک کړئ</string>
+    <string name="tpBoxBackupConfirm">اوس بیک اپ کړئ</string>
+    <string name="tpBoxBackupMsg">که په برنامه کې بګ رامینځته شي ، نو مهرباني وکړئ د یادولو جملې په وخت کې بیک اپ کړئ ترڅو د دې له لاسه ورکولو څخه مخنیوی وشي!\n \n مخکنۍ پاڼه -&gt; جزئیات -&gt; �� -&gt; صادر کردن عبارت بازیابی رازی\n \n په یاد ولرئ:\n ・خپل یادونی عبارت هیچا ته مه ښکاره کوئ\n ・ یوځل چې د یادولو جمله ورکه شي ، شتمنۍ نشي بیرته ترلاسه کیدی\n ・ مهرباني وکړئ بیک اپ مه کوئ او د سکرین شاټونو یا شبکې لیږد له لارې خوندي کړئ.\n ・که تاسو د کوم حالت سره مخ شئ، نو مهرباني وکړئ د والټ اپلیکیشن په اسانۍ سره غیر نصب مه کوئ</string>
+    <string name="tpBoxBackupTitle">مهم یادونه</string>
+    <string name="tpBoxInputMsg">د شتمنیو په لیست کې ښودل شوي مقدار غلط دی. مهرباني وکړئ د شتمنیو لیست بیا پورته کولو لپاره والټ بیا وارد کړئ.</string>
+    <string name="tpInputBackMsg">د شتمنیو په لیست کې ښودل شوي مقدار غلط دی. ایا تاسو ډاډه یاست چې تاسو د بیا بارولو څخه وتل غواړئ؟</string>
+    <string name="wrong_secret_phrase">د پټو رغولو غلطه جمله</string>
+</resources>

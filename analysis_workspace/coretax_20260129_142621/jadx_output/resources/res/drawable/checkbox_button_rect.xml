@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <vector
+            android:height="14dp"
+            android:width="14dp"
+            android:viewportWidth="14"
+            android:viewportHeight="14">
+            <path
+                android:fillColor="#ff56c43a"
+                android:pathData="M2,0.5L12,0.5A1.5,1.5 0,0 1,13.5 2L13.5,12A1.5,1.5 0,0 1,12 13.5L2,13.5A1.5,1.5 0,0 1,0.5 12L0.5,2A1.5,1.5 0,0 1,2 0.5z"
+                android:strokeColor="#ff71df56"
+                android:strokeWidth="1"/>
+            <path
+                android:fillColor="#00000000"
+                android:pathData="M3,6.5L6,9.5L11,4.5"
+                android:strokeColor="#ffffffff"
+                android:strokeWidth="1"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"/>
+        </vector>
+    </item>
+    <item android:state_selected="true">
+        <vector
+            android:height="14dp"
+            android:width="14dp"
+            android:viewportWidth="14"
+            android:viewportHeight="14">
+            <path
+                android:fillColor="#ff56c43a"
+                android:pathData="M2,0.5L12,0.5A1.5,1.5 0,0 1,13.5 2L13.5,12A1.5,1.5 0,0 1,12 13.5L2,13.5A1.5,1.5 0,0 1,0.5 12L0.5,2A1.5,1.5 0,0 1,2 0.5z"
+                android:strokeColor="#ff71df56"
+                android:strokeWidth="1"/>
+            <path
+                android:fillColor="#00000000"
+                android:pathData="M3,6.5L6,9.5L11,4.5"
+                android:strokeColor="#ffffffff"
+                android:strokeWidth="1"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"/>
+        </vector>
+    </item>
+    <item>
+        <shape>
+            <stroke
+                android:width="1dp"
+                android:color="#ff4a423e"/>
+            <corners android:radius="2dp"/>
+            <size
+                android:height="14dp"
+                android:width="14dp"/>
+        </shape>
+    </item>
+</selector>
