@@ -2,7 +2,7 @@
   "analyzer": {
     "version": "1.0",
     "author": "Mobile CySec Expert",
-    "description": "Comprehensive Android Malware Analysis Framework"
+    "description": "Comprehensive Anais Static Core"
   },
   "paths": {
     "workspace": "./analysis_workspace",

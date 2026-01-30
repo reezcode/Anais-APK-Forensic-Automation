@@ -1,9 +1,9 @@
-# Android Malware Analysis Framework
+# Anais Static Core
 ## Complete Architecture & Module Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        ANDROID MALWARE ANALYSIS FRAMEWORK                   │
+│                        Anais Static Core                   │
 │                              (Complete Solution)                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -348,6 +348,6 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════════════════════
-                    Android Malware Analysis Framework v1.0
+                    Anais Static Core v1.0
                          Complete & Production Ready
 ═══════════════════════════════════════════════════════════════════════════════

@@ -15,7 +15,7 @@ NC='\033[0m'
 
 echo -e "${BLUE}"
 echo "╔════════════════════════════════════════════╗"
-echo "║  Android Malware Analysis Framework Setup ║"
+echo "║  Anais Static Core Setup ║"
 echo "╚════════════════════════════════════════════╝"
 echo -e "${NC}"
 

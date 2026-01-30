@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #################################################
-# Android Malware Analysis Framework
+# Anais Static Core
 # Author: Mobile CySec Expert
 # Date: 2026-01-23
 # Description: Comprehensive APK analysis with multiple protection bypass techniques
@@ -32,7 +32,7 @@ ERROR_LOG="${SCRIPT_DIR}/analysis_errors.log"
 print_banner() {
     echo -e "${CYAN}"
     echo "╔═══════════════════════════════════════════════════════════╗"
-    echo "║   Android Malware Analysis Framework v1.0                 ║"
+    echo "║   Anais Static Core v1.0                 ║"
     echo "║   Comprehensive APK Security Analysis & SAST              ║"
     echo "╚═══════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -402,6 +402,40 @@ for loc in data.get('likely_unpack_locations', [])[:3]:
     fi
 }
 
+# Run entropy analysis
+run_entropy_analysis() {
+    log_section "Running Entropy Analysis"
+    
+    local apk_path="$1"
+    
+    log_info "Analyzing file entropy to detect encrypted/obfuscated regions..."
+    
+    if python3 "${TOOLS_DIR}/entropy_analyzer.py" \
+        "$apk_path" \
+        "${TEMP_DIR}/entropy_analysis.json" \
+        --chunk-size 2048 2>> "$ERROR_LOG"; then
+        
+        log_success "Entropy analysis completed"
+        
+        # Check for highly suspicious files
+        if [ -f "${TEMP_DIR}/entropy_analysis.json" ]; then
+            local critical_count=$(python3 -c "import json; d=json.load(open('${TEMP_DIR}/entropy_analysis.json')); print(len(d.get('summary', {}).get('highly_suspicious', [])))" 2>/dev/null || echo "0")
+            local suspicious_count=$(python3 -c "import json; d=json.load(open('${TEMP_DIR}/entropy_analysis.json')); print(len(d.get('summary', {}).get('suspicious', [])))" 2>/dev/null || echo "0")
+            
+            if [ "$critical_count" -gt 0 ]; then
+                log_warning "🔴 ${critical_count} highly encrypted file(s) detected!"
+                log_info "High entropy indicates encrypted payloads - check entropy charts in report"
+            fi
+            
+            if [ "$suspicious_count" -gt 0 ]; then
+                log_info "🟡 ${suspicious_count} suspicious file(s) with elevated entropy"
+            fi
+        fi
+    else
+        log_warning "Entropy analysis encountered issues (check error log)"
+    fi
+}
+
 # Run YARA rules
 run_yara_scan() {
     log_section "Running YARA Rules"
@@ -431,6 +465,26 @@ run_yara_scan() {
     fi
     
     log_success "YARA scan completed"
+    
+    # Process YARA results with enhanced analyzer
+    log_info "Processing YARA results..."
+    if python3 "${TOOLS_DIR}/yara_enhanced_analyzer.py" \
+        "$TEMP_DIR" \
+        "${TEMP_DIR}/yara_enhanced.json" 2>> "$ERROR_LOG"; then
+        
+        # Show summary
+        if [ -f "${TEMP_DIR}/yara_enhanced.json" ]; then
+            local total_rules=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/yara_enhanced.json'))['summary']['total_rules_checked'])" 2>/dev/null || echo "0")
+            local matched_rules=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/yara_enhanced.json'))['summary']['rules_matched'])" 2>/dev/null || echo "0")
+            local critical=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/yara_enhanced.json'))['summary']['critical_findings'])" 2>/dev/null || echo "0")
+            local high=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/yara_enhanced.json'))['summary']['high_severity'])" 2>/dev/null || echo "0")
+            
+            log_success "YARA analysis complete"
+            log_info "Rules: ${matched_rules}/${total_rules} matched | 🔴 ${critical} Critical | 🟠 ${high} High"
+        fi
+    else
+        log_warning "YARA result processing had issues"
+    fi
 }
 
 # Static Application Security Testing (SAST)
@@ -534,10 +588,11 @@ generate_report() {
         
         log_success "Main report: $REPORT_FILE"
         log_success "Detailed reports in: $REPORTS_DIR/"
+        log_success "  - entropy_analysis.md (🆕 Encrypted Payload Detection)"
         log_success "  - sast_findings.md"
         log_success "  - manifest_analysis.md"
         log_success "  - network_analysis.md"
-        log_success "  - yara_results.md"
+        log_success "  - yara_results.md (🆕 Enhanced with Categorization)"
         log_success "  - recommendations.md"
     else
         log_error "Report generation failed (check $ERROR_LOG for details)"
@@ -581,6 +636,9 @@ main() {
         
         # Detect obfuscation
         detect_obfuscation
+        
+        # Run entropy analysis (especially useful for protected APKs)
+        run_entropy_analysis "$APK_TO_ANALYZE"
         
         # Security analysis
         run_yara_scan "$APK_TO_ANALYZE"

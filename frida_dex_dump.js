@@ -1,7 +1,6 @@
-"""
-Frida script untuk dump DEX dari memory saat runtime
-Berguna untuk bypass DPT - Shell, DexProtector, dan proteksi lainnya
-"""
+
+// Frida script untuk dump DEX dari memory saat runtime
+// Berguna untuk bypass DPT - Shell, DexProtector, dan proteksi lainnya
 
 Java.perform(function () {
     console.log("[*] Starting DEX Dump Script...");

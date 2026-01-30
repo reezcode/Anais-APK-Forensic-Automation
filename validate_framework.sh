@@ -5,7 +5,7 @@
 set -e
 
 echo "═══════════════════════════════════════════════════════════"
-echo "  Android Malware Analysis Framework - Validation Test"
+echo "  Anais Static Core - Validation Test"
 echo "═══════════════════════════════════════════════════════════"
 echo ""
 

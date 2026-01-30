@@ -33,6 +33,8 @@ class ModularReportGenerator:
             'obfuscation': 'obfuscation_report.json',
             'dex_payload': 'dex_payload_report.json',
             'so_strings': 'so_strings.json',
+            'entropy': 'entropy_analysis.json',
+            'yara': 'yara_enhanced.json',
             'sast': 'sast_findings.json',
             'manifest': 'manifest_findings.json',
             'network': 'network_findings.json',
@@ -69,6 +71,7 @@ class ModularReportGenerator:
         md.append("- 🔗 [Security Findings (SAST)](./sast_findings.md)")
         md.append("- 🔗 [AndroidManifest Analysis](./manifest_analysis.md)")
         md.append("- 🔗 [Network Analysis](./network_analysis.md)")
+        md.append("- 🔗 [Entropy Analysis](./entropy_analysis.md) - **Encrypted Payload Detection**")
         md.append("- 🔗 [YARA Scan Results](./yara_results.md)")
         md.append("- 🔗 [Detailed Recommendations](./recommendations.md)")
         md.append("")
@@ -93,7 +96,8 @@ class ModularReportGenerator:
         md.append("- 📄 **[Security Findings (SAST)](./sast_findings.md)** - Complete vulnerability analysis")
         md.append("- 📄 **[Manifest Analysis](./manifest_analysis.md)** - Permission and component security")
         md.append("- 📄 **[Network Analysis](./network_analysis.md)** - Network artifacts and C2 indicators")
-        md.append("- 📄 **[YARA Results](./yara_results.md)** - Malware pattern matching")
+        md.append("- 📄 **[Entropy Analysis](./entropy_analysis.md)** - Encrypted payload detection & visualization")
+        md.append("- 📄 **[YARA Results](./yara_results.md)** - Malware pattern matching with detailed categorization")
         md.append("- 📄 **[Recommendations](./recommendations.md)** - Actionable security guidance")
         md.append("")
         
@@ -105,6 +109,7 @@ class ModularReportGenerator:
         self._generate_sast_report()
         self._generate_manifest_report()
         self._generate_network_report()
+        self._generate_entropy_report()
         self._generate_yara_report()
         self._generate_recommendations_report()
     
@@ -138,6 +143,26 @@ class ModularReportGenerator:
             lines.append(f"\n**🌐 Network Artifacts:**")
             lines.append(f"- URLs found: {urls}")
             lines.append(f"- Suspicious URLs: {suspicious}")
+        
+        # Entropy Summary
+        entropy = self.results.get('entropy', {})
+        if entropy and 'summary' in entropy:
+            summary = entropy['summary']
+            lines.append(f"\n**📊 Entropy Analysis:**")
+            lines.append(f"- Highly suspicious files: {len(summary.get('highly_suspicious', []))}")
+            lines.append(f"- Suspicious files: {len(summary.get('suspicious', []))}")
+        
+        # YARA Summary
+        yara = self.results.get('yara', {})
+        if yara and 'statistics' in yara:
+            stats = yara['statistics']
+            lines.append(f"\n**🎯 YARA Matches:**")
+            lines.append(f"- Total matches: {stats.get('total_matches', 0)}")
+            by_sev = stats.get('by_severity', {})
+            if by_sev.get('CRITICAL', 0) > 0:
+                lines.append(f"- 🔴 Critical: {by_sev['CRITICAL']}")
+            if by_sev.get('HIGH', 0) > 0:
+                lines.append(f"- 🟠 High: {by_sev['HIGH']}")
         
         return '\n'.join(lines)
     
@@ -188,6 +213,23 @@ class ModularReportGenerator:
         
         # Add network findings
         self._add_network_findings(md)
+        
+        with open(output_file, 'w') as f:
+            f.write('\n'.join(md))
+    
+    def _generate_entropy_report(self):
+        """Generate detailed entropy analysis report"""
+        output_file = self.report_dir / 'entropy_analysis.md'
+        
+        md = []
+        md.append("# 📊 Entropy Analysis - Encrypted Payload Detection\n")
+        md.append(f"**Analysis Date:** {self.timestamp}\n")
+        md.append(f"**APK:** {self.apk_name}\n")
+        md.append("\n[← Back to Main Report](./report.md)\n")
+        md.append("\n---\n")
+        
+        # Add entropy findings
+        self._add_entropy_findings(md)
         
         with open(output_file, 'w') as f:
             f.write('\n'.join(md))
@@ -513,43 +555,265 @@ class ModularReportGenerator:
                 md.append(f"- `{ip}`")
             md.append("")
     
-    def _add_yara_results(self, md):
-        """Add YARA scan results"""
+    def _add_entropy_findings(self, md):
+        """Add entropy analysis findings"""
+        entropy = self.results.get('entropy', {})
         
+        if not entropy or 'files' not in entropy:
+            md.append("⚠️ Entropy analysis data not available\n")
+            return
+        
+        summary = entropy.get('summary', {})
+        files = entropy.get('files', [])
+        
+        md.append("## Overview\n")
+        md.append("Entropy analysis identifies encrypted or heavily obfuscated regions in APK files.")
+        md.append("High entropy (>7.0) typically indicates encryption, while low entropy (<5.0) suggests plaintext.\n")
+        md.append(f"**Files Analyzed:** {summary.get('total_files', len(files))}\n")
+        
+        # Highly suspicious files
+        highly_suspicious = summary.get('highly_suspicious', [])
+        if highly_suspicious:
+            md.append(f"\n## 🔴 Highly Suspicious Files ({len(highly_suspicious)})\n")
+            md.append("These files show characteristics of strong encryption - likely encrypted payloads.\n")
+            
+            for file_entry in highly_suspicious:
+                filename = file_entry['filename']
+                entropy_val = file_entry['entropy']
+                ratio = file_entry['high_entropy_ratio']
+                
+                md.append(f"\n### `{filename}`\n")
+                md.append(f"- **Overall Entropy:** {entropy_val:.2f}/8.0")
+                md.append(f"- **High Entropy Ratio:** {ratio:.1%}")
+                md.append(f"- **Assessment:** Likely encrypted payload - dynamic analysis required\n")
+                
+                # Find and display chart if available
+                file_data = next((f for f in files if f.get('filename') == filename), None)
+                if file_data and 'chart' in file_data:
+                    md.append("**Entropy Distribution:**\n")
+                    md.append("```")
+                    md.append(file_data['chart'])
+                    md.append("```\n")
+                
+                if file_data and 'assessment' in file_data:
+                    md.append(f"**Recommendation:** {file_data['assessment'].get('recommendation', 'N/A')}\n")
+        
+        # Suspicious files
+        suspicious = summary.get('suspicious', [])
+        if suspicious:
+            md.append(f"\n## 🟡 Suspicious Files ({len(suspicious)})\n")
+            md.append("These files contain elevated entropy regions - may contain compressed or partially encrypted data.\n")
+            
+            for file_entry in suspicious:
+                filename = file_entry['filename']
+                entropy_val = file_entry['entropy']
+                ratio = file_entry['high_entropy_ratio']
+                
+                md.append(f"\n### `{filename}`\n")
+                md.append(f"- **Overall Entropy:** {entropy_val:.2f}/8.0")
+                md.append(f"- **High Entropy Ratio:** {ratio:.1%}\n")
+        
+        # Normal files
+        normal = summary.get('normal', [])
+        if normal:
+            md.append(f"\n## 🟢 Normal Files ({len(normal)})\n")
+            md.append("These files show low entropy - mostly plaintext or uncompressed code.\n")
+        
+        md.append("\n## Interpretation Guide\n")
+        md.append("| Entropy Range | Interpretation |")
+        md.append("|--------------|----------------|")
+        md.append("| 7.5 - 8.0 | Heavily encrypted - likely encrypted payload |")
+        md.append("| 7.0 - 7.5 | Strong encryption/compression detected |")
+        md.append("| 6.0 - 7.0 | Moderate obfuscation or compression |")
+        md.append("| 5.0 - 6.0 | Some obfuscation, mostly normal code |")
+        md.append("| 0.0 - 5.0 | Low entropy - plaintext or uncompressed |")
+        md.append("")
+    
+    def _add_yara_results(self, md):
+        """Add YARA scan results with detailed rule information"""
+        yara_data = self.results.get('yara', {})
+        
+        # If no enhanced results, try to parse raw YARA files
+        if not yara_data or 'summary' not in yara_data:
+            md.append("## Overview\n")
+            md.append("⚠️ Enhanced YARA analysis not available. Showing raw results:\n")
+            self._add_raw_yara_results(md)
+            return
+        
+        summary = yara_data.get('summary', {})
+        findings = yara_data.get('findings', [])
+        rules_checked = yara_data.get('rules_checked', [])
+        categories = yara_data.get('categories', {})
+        scan_details = yara_data.get('scan_details', {})
+        
+        # Summary section
+        md.append("## Overview\n")
+        md.append(f"- **Rules Checked:** {summary.get('total_rules_checked', 0)}")
+        md.append(f"- **Rules Matched:** {summary.get('rules_matched', 0)}/{summary.get('total_rules_checked', 0)}")
+        md.append(f"- **Total Matches:** {summary.get('total_matches', 0)}")
+        md.append(f"- **Files Scanned:** {summary.get('files_scanned', 0)}\n")
+        
+        # Scan coverage
+        md.append("### Scan Coverage\n")
+        md.append("| Scan Type | Files | Matches |")
+        md.append("|-----------|-------|---------|")
+        for scan_name, scan_info in scan_details.items():
+            scan_label = scan_name.replace('_scan', '').replace('_', ' ').title()
+            files = len(scan_info.get('files', []))
+            matches = scan_info.get('matches', 0)
+            md.append(f"| {scan_label} | {files} | {matches} |")
+        md.append("")
+        
+        # Severity breakdown
+        md.append("### Severity Distribution\n")
+        md.append("| Severity | Count |")
+        md.append("|----------|-------|")
+        critical = summary.get('critical_findings', 0)
+        high = summary.get('high_severity', 0)
+        medium = summary.get('medium_severity', 0)
+        low = summary.get('low_severity', 0)
+        
+        if critical > 0:
+            md.append(f"| 🔴 CRITICAL | {critical} |")
+        if high > 0:
+            md.append(f"| 🟠 HIGH | {high} |")
+        if medium > 0:
+            md.append(f"| 🟡 MEDIUM | {medium} |")
+        if low > 0:
+            md.append(f"| 🔵 LOW | {low} |")
+        md.append("")
+        
+        # Rules checked table
+        if rules_checked:
+            md.append("\n## All Rules Checked\n")
+            md.append("Complete list of YARA rules that were executed during the scan.\n")
+            md.append("| Rule Name | Category | Severity | Status | Matches |")
+            md.append("|-----------|----------|----------|--------|---------|")
+            
+            for rule in rules_checked:
+                name = rule['name']
+                category = rule['category']
+                severity = rule['severity']
+                matched = "✓ Matched" if rule['matched'] else "✗ No Match"
+                match_count = rule['match_count']
+                
+                # Add emoji based on status
+                emoji = "🔍"
+                if rule['matched']:
+                    if severity == 'CRITICAL':
+                        emoji = "🔴"
+                    elif severity == 'HIGH':
+                        emoji = "🟠"
+                    elif severity == 'MEDIUM':
+                        emoji = "🟡"
+                    else:
+                        emoji = "🔵"
+                
+                md.append(f"| {emoji} `{name}` | {category} | {severity} | {matched} | {match_count} |")
+            md.append("")
+        
+        # Detailed findings by severity
+        if findings:
+            md.append("\n## Detailed Findings\n")
+            
+            for severity in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']:
+                severity_findings = [f for f in findings if f['severity'] == severity]
+                if not severity_findings:
+                    continue
+                
+                emoji = {'CRITICAL': '🔴', 'HIGH': '🟠', 'MEDIUM': '🟡', 'LOW': '🔵'}
+                md.append(f"\n### {emoji[severity]} {severity} Severity ({len(severity_findings)} matches)\n")
+                
+                # Group by rule
+                from collections import defaultdict
+                by_rule = defaultdict(list)
+                for finding in severity_findings:
+                    by_rule[finding['rule_name']].append(finding)
+                
+                for rule_name, rule_findings in by_rule.items():
+                    md.append(f"\n#### `{rule_name}` ({len(rule_findings)} occurrences)\n")
+                    
+                    # Rule details
+                    first = rule_findings[0]
+                    md.append(f"**Category:** {first['category']}")
+                    md.append(f"**Description:** {first['description']}")
+                    md.append(f"**Recommendation:** {first['recommendation']}\n")
+                    
+                    md.append("**Affected Files:**\n")
+                    for i, finding in enumerate(rule_findings, 1):
+                        file_path = finding['file']
+                        scan_type = finding['scan_type']
+                        
+                        md.append(f"{i}. `{file_path}` _(from {scan_type} scan)_")
+                        
+                        # Show matched strings if available
+                        matched_strings = finding.get('matched_strings', [])
+                        if matched_strings:
+                            md.append(f"   - **Matched Patterns:** {len(matched_strings)}")
+                            for j, string_match in enumerate(matched_strings[:3], 1):
+                                offset = string_match['offset']
+                                identifier = string_match['identifier']
+                                content = string_match['content'][:60]
+                                md.append(f"     {j}. `{identifier}` at {offset}: `{content}...`")
+                            if len(matched_strings) > 3:
+                                md.append(f"     ... and {len(matched_strings) - 3} more")
+                        md.append("")
+                    
+                    md.append("---\n")
+    
+    def _add_raw_yara_results(self, md):
+        """Fallback method to display raw YARA scan results"""
         yara_files = [
             ('yara_apk_results.txt', 'APK Scan'),
             ('yara_decompiled_results.txt', 'Decompiled Files'),
             ('yara_jadx_results.txt', 'JADX Sources'),
         ]
         
+        has_results = False
         for filename, title in yara_files:
             filepath = self.temp_dir / filename
             if filepath.exists():
-                md.append(f"\n### {title}\n")
-                md.append("```")
                 try:
                     content = filepath.read_text(errors='ignore')
                     if content.strip():
-                        md.append(content[:5000])  # Limit to 5000 chars
-                        if len(content) > 5000:
-                            md.append("\n... (output truncated)")
-                    else:
-                        md.append("No matches found")
+                        has_results = True
+                        md.append(f"\n### {title}\n")
+                        md.append("```")
+                        lines = content.strip().split('\n')
+                        for line in lines[:100]:  # Limit to 100 lines per file
+                            md.append(line)
+                        if len(lines) > 100:
+                            md.append(f"\n... ({len(lines) - 100} more lines)")
+                        md.append("```\n")
                 except Exception as e:
-                    md.append(f"Error reading results: {e}")
-                md.append("```\n")
+                    md.append(f"Error reading {filename}: {e}\n")
+        
+        if not has_results:
+            md.append("✅ No YARA matches found\n")
     
     def _add_recommendations(self, md):
         """Add security recommendations"""
         
         obf = self.results.get('obfuscation', {})
         sast = self.results.get('sast', {})
+        entropy = self.results.get('entropy', {})
+        yara = self.results.get('yara', {})
         
         md.append("### Based on Protection Type\n")
         obf_recs = obf.get('recommendations', [])
         for rec in obf_recs:
             md.append(f"{rec}  ")
         md.append("")
+        
+        # Entropy-based recommendations
+        if entropy and entropy.get('summary', {}).get('highly_suspicious'):
+            md.append("### Based on Entropy Analysis\n")
+            md.append("🔴 **High entropy files detected:**")
+            md.append("1. These files are likely encrypted and cannot be analyzed statically")
+            md.append("2. **REQUIRED:** Dynamic analysis to capture unpacked DEX files")
+            md.append("3. Install APK on rooted device/emulator")
+            md.append("4. Use Frida scripts to dump DEX from memory at runtime")
+            md.append("5. Monitor file system for unpacked payloads\n")
         
         md.append("### Based on SAST Findings\n")
         critical_count = sast.get('summary', {}).get('critical', 0)
