@@ -1,0 +1,57 @@
+# Development files
+node_modules/
+*.log
+*.tgz
+
+# Source TypeScript (we include dist/)
+src/**/*.ts
+!src/**/*.d.ts
+
+# Testing & Analysis output
+test/
+coverage/
+analysis_workspace/
+analysis_errors.log
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Build artifacts from analysis tools
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist-py/
+build/
+*.spec
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Documentation (keep main README.md)
+README.txt
+
+# Legacy CLI folder if it still exists
+anais-apk-forensic-cli/

@@ -1,6 +1,32 @@
+# Analysis output
 /analysis_workspace
-/anais-apk-forensic-cli/node_modules
+analysis_errors.log
+
+# Dependencies
+/node_modules
+
+# IDE
 /.vscode
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Environment & logs
 .env
 *.log
+
+# Build artifacts
+/dist
+*.tgz
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/

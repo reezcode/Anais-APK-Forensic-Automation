@@ -28,10 +28,19 @@ export function ensureWorkspaceExists(): void {
 }
 
 /**
- * Get the project root directory (parent of anais-apk-forensic-cli)
+ * Get the project root directory (where package is installed)
+ * When installed via npm, __dirname will be in node_modules/anais-apk-forensic/dist/utils
+ * We need to go up to the package root
  */
 export function getProjectRoot(): string {
-  return path.resolve(__dirname, "../../..");
+  // Check if we're in node_modules (installed via npm)
+  const currentDir = path.resolve(__dirname, "../..");
+  if (currentDir.includes("node_modules")) {
+    // Go up to node_modules/anais-apk-forensic/
+    return path.resolve(__dirname, "../..");
+  }
+  // Otherwise we're in development mode (dist/utils -> root)
+  return path.resolve(__dirname, "../..");
 }
 
 /**

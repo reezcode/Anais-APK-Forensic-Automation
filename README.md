@@ -2,7 +2,8 @@
 
 > Comprehensive APK security analysis and SAST scanner for Android applications
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/reezcode/Anais-APK-Forensic-Automation)
+[![npm version](https://img.shields.io/npm/v/anais-apk-forensic.svg)](https://www.npmjs.com/package/anais-apk-forensic)
+[![Node.js Version](https://img.shields.io/node/v/anais-apk-forensic.svg)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## 🔍 Overview
@@ -25,9 +26,13 @@ Anais is an automated APK forensic analysis framework designed for mobile securi
 Anais/
 ├── anais.sh                      # Main analysis orchestrator
 ├── analyzer_config.json          # Configuration file
+├── package.json                  # npm package configuration
 ├── README.md                     # This file
-├── anais-apk-forensic-cli/       # TypeScript CLI wrapper
-│   ├── bin/anais                 # CLI executable
+├── bin/anais                     # CLI executable
+├── src/                          # TypeScript CLI source
+│   ├── cli.ts                    # CLI entry point
+│   ├── index.ts                  # Main logic
+│   └── utils/                    # Utility functions
 │   └── src/                      # CLI source code
 ├── analysis_tools/               # Python analysis modules
 │   ├── apk_basic_info.py         # APK information extractor
@@ -60,11 +65,31 @@ Anais/
 - **macOS/Linux** operating system
 - **Python 3.8+** with pip
 - **Java JDK 8+**
-- **Node.js 14+** (for CLI)
+- **Node.js 14+**
 - **Android SDK Platform Tools** (for dynamic analysis)
 - **Frida** (optional, for dynamic analysis)
 
+**Required Tools:**
+
+- [APKTool](https://ibotpeaches.github.io/Apktool/) - APK decompilation
+- [JADX](https://github.com/skylot/jadx) - DEX to Java decompiler
+- [YARA](https://virustotal.github.io/yara/) - Malware pattern matching
+
 ### Installation
+
+#### Option 1: Install via npm (Recommended)
+
+```bash
+npm install -g anais-apk-forensic
+```
+
+Then run:
+
+```bash
+anais /path/to/app.apk
+```
+
+#### Option 2: Install from Source
 
 1. **Clone the repository**
 
@@ -73,13 +98,21 @@ Anais/
    cd Anais-APK-Forensic-Automation
    ```
 
-2. **Run setup script**
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   npm run build
+   npm link
+   ```
+
+3. **Run setup script**
 
    ```bash
    ./scripts/setup.sh
    ```
 
-3. **Validate installation**
+4. **Validate installation**
    ```bash
    ./scripts/validate_framework.sh
    ```

@@ -2,7 +2,7 @@
 
 #################################################
 # Anais Static Core
-# Author: Mobile CySec Expert
+# Author: Reezcode24
 # Date: 2026-01-23
 # Description: Comprehensive APK analysis with multiple protection bypass techniques
 #################################################
