@@ -1,226 +1,97 @@
 # Anais APK Forensic Automation
 
-> Comprehensive APK security analysis and SAST scanner for Android applications
+Automated security analysis tool for Android APK files. Built for security researchers, malware analysts, and penetration testers.
 
 [![npm version](https://img.shields.io/npm/v/anais-apk-forensic.svg)](https://www.npmjs.com/package/anais-apk-forensic)
-[![Node.js Version](https://img.shields.io/node/v/anais-apk-forensic.svg)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## 🔍 Overview
+## What it does
 
-Anais is an automated APK forensic analysis framework designed for mobile security researchers, penetration testers, and malware analysts. It provides comprehensive static and dynamic analysis capabilities with support for various protection bypass techniques.
+Anais analyzes APK files and generates detailed security reports. It can detect malware, identify vulnerabilities, and help you understand what an Android app is doing under the hood.
 
-### Key Features
+**Features:**
 
-- 🛡️ **Advanced Obfuscation Detection** - ProGuard, R8, DPT-Shell, DexProtector, and more
-- 🔬 **Multi-Tool Integration** - APKTool, JADX, YARA, Androguard
-- 🎯 **SAST Engine** - Static Application Security Testing with pattern matching
-- 📊 **Detailed Reporting** - Markdown and JSON formatted analysis reports
-- 🔄 **Dynamic Analysis** - Frida-based runtime analysis and DEX dumping
-- 🌐 **Network Analysis** - Traffic pattern detection and URL extraction
-- 🔐 **Crypto Detection** - Weak cryptography and security vulnerability identification
+- Decompiles APKs with APKTool and JADX
+- Scans for malware with YARA rules
+- Detects obfuscation (ProGuard, R8, DPT-Shell, DexProtector, Bangcle)
+- Runs static security analysis (SAST)
+- Analyzes network behavior and manifest permissions
+- Identifies encrypted payloads through entropy analysis
+- Supports dynamic analysis with Frida
 
-## 📁 Project Structure
+## Installation
 
-```
-Anais/
-├── anais.sh                      # Main analysis orchestrator
-├── analyzer_config.json          # Configuration file
-├── package.json                  # npm package configuration
-├── README.md                     # This file
-├── bin/anais                     # CLI executable
-├── src/                          # TypeScript CLI source
-│   ├── cli.ts                    # CLI entry point
-│   ├── index.ts                  # Main logic
-│   └── utils/                    # Utility functions
-│   └── src/                      # CLI source code
-├── analysis_tools/               # Python analysis modules
-│   ├── apk_basic_info.py         # APK information extractor
-│   ├── detect_obfuscation.py     # Obfuscation detector
-│   ├── sast_scanner.py           # SAST engine
-│   ├── manifest_analyzer.py      # Manifest analyzer
-│   ├── network_analyzer.py       # Network traffic analyzer
-│   └── report_generator.py       # Report generator
-├── scripts/                      # Utility scripts
-│   ├── setup.sh                  # Environment setup
-│   ├── validate_framework.sh     # Framework validation
-│   ├── dynamic_analysis_helper.sh # Dynamic analysis helper
-│   └── frida/                    # Frida scripts
-│       ├── frida_dex_dump.js     # DEX dumper
-│       ├── frida_hooks.js        # General hooks
-│       └── dpt_dex_dumper.js     # DPT shell dumper
-├── rules/                        # YARA rules
-│   └── yara_general_rules.yar    # General malware detection rules
-├── apkid/                        # APKiD integration
-└── docs/                         # Documentation
-    ├── ARCHITECTURE.txt          # Architecture documentation
-    ├── Workflow and Reference.md # Workflow reference
-    └── DECRYPT_DPT_SHELL.md      # DPT shell decryption guide
-```
+**Prerequisites:**
 
-## 🚀 Quick Start
+- Python 3.8+
+- Java 8+
+- Node.js 14+
+- APKTool, JADX, and YARA
 
-### Prerequisites
-
-- **macOS/Linux** operating system
-- **Python 3.8+** with pip
-- **Java JDK 8+**
-- **Node.js 14+**
-- **Android SDK Platform Tools** (for dynamic analysis)
-- **Frida** (optional, for dynamic analysis)
-
-**Required Tools:**
-
-- [APKTool](https://ibotpeaches.github.io/Apktool/) - APK decompilation
-- [JADX](https://github.com/skylot/jadx) - DEX to Java decompiler
-- [YARA](https://virustotal.github.io/yara/) - Malware pattern matching
-
-### Installation
-
-#### Option 1: Install via npm (Recommended)
+**Install via npm:**
 
 ```bash
 npm install -g anais-apk-forensic
 ```
 
-Then run:
+**Or from source:**
 
 ```bash
-anais /path/to/app.apk
-```
-
-#### Option 2: Install from Source
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/reezcode/Anais-APK-Forensic-Automation.git
-   cd Anais-APK-Forensic-Automation
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   npm run build
-   npm link
-   ```
-
-3. **Run setup script**
-
-   ```bash
-   ./scripts/setup.sh
-   ```
-
-4. **Validate installation**
-   ```bash
-   ./scripts/validate_framework.sh
-   ```
-
-### Basic Usage
-
-**Analyze an APK file:**
-
-```bash
-./anais.sh /path/to/app.apk
-```
-
-**Using the CLI wrapper:**
-
-```bash
-cd anais-apk-forensic-cli
+git clone https://github.com/reezcode/Anais-APK-Forensic-Automation.git
+cd Anais-APK-Forensic-Automation
 npm install
-npm link
+npm run build
+./scripts/setup.sh
+```
+
+## Usage
+
+Basic analysis:
+
+```bash
 anais /path/to/app.apk
 ```
 
-**View the generated report:**
+Reports are saved to `~/Documents/Anais-Reports/` in both Markdown and JSON formats.
+
+**Dynamic analysis:**
 
 ```bash
-cat ~/Documents/Anais-Reports/app_name_*/report.md
-```
-
-## 📖 Usage Examples
-
-### Static Analysis
-
-```bash
-# Full static analysis
-./anais.sh suspicious.apk
-
-# View JSON report for programmatic access
-cat ~/Documents/Anais-Reports/suspicious_*/report.json
-```
-
-### Dynamic Analysis
-
-```bash
-# Install Frida on device
+# Install Frida server
 ./scripts/dynamic_analysis_helper.sh install-frida
 
 # Dump DEX from running app
 ./scripts/dynamic_analysis_helper.sh dex-dump com.package.name
 
-# Hook crypto functions
+# Hook crypto operations
 ./scripts/dynamic_analysis_helper.sh hook-crypto com.package.name
-
-# Pull dumped files
-./scripts/dynamic_analysis_helper.sh pull-dumps
 ```
 
-## 🔧 Configuration
+## Configuration
 
-Edit `analyzer_config.json` to customize:
+Edit `analyzer_config.json` to customize analysis behavior, enable/disable tools, or change output paths.
 
-- **Paths** - Workspace, tools, and reports locations
-- **Tools** - Enable/disable APKTool, JADX, YARA
-- **Analysis** - Toggle specific analysis modules
-- **YARA** - Configure rule scanning options
+## Report Output
 
-## 📊 Report Output
+Each analysis generates:
 
-Analysis reports are saved to `~/Documents/Anais-Reports/` with:
+- **report.md** - Human-readable report with findings and recommendations
+- **report.json** - Machine-readable data for automation
+- Decompiled source code (APKTool and JADX output)
+- YARA scan results
+- SAST findings
+- Network and manifest analysis
 
-- **report.md** - Human-readable Markdown report
-- **report.json** - Machine-readable JSON report
-- **Detailed findings** - SAST, YARA, entropy, manifest, network analysis
-- **Recommendations** - Security improvement suggestions
+**Severity levels:**
 
-### Severity Levels
+- 🔴 CRITICAL (70-100): Confirmed malicious, take immediate action
+- 🟠 HIGH (40-69): Suspicious, needs investigation
+- 🟡 MEDIUM (20-39): Security concerns worth reviewing
+- 🟢 LOW (0-19): Minor issues
 
-| Level       | Score  | Description                                             |
-| ----------- | ------ | ------------------------------------------------------- |
-| 🔴 CRITICAL | 70-100 | Confirmed malicious activity, immediate action required |
-| 🟠 HIGH     | 40-69  | Suspicious patterns detected, investigation needed      |
-| 🟡 MEDIUM   | 20-39  | Security concerns, review recommended                   |
-| 🟢 LOW      | 0-19   | Minor issues, informational                             |
+## Contributing
 
-## 🛠️ Advanced Features
-
-### Supported Protection Types
-
-- **ProGuard/R8** - Basic obfuscation (static analysis)
-- **DPT-Shell** - Native DEX encryption (dynamic unpacking required)
-- **DexProtector** - Control flow obfuscation (memory dump)
-- **Bangcle** - Application wrapper (runtime analysis)
-
-### YARA Rules
-
-Custom YARA rules in `rules/yara_general_rules.yar` for detecting:
-
-- Malware families
-- Suspicious behaviors
-- Known exploits
-- Privacy violations
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+Pull requests welcome. Please fork the repo, create a feature branch, and submit a PR. 4. Submit a pull request
 
 ## 📝 License
 
@@ -232,18 +103,16 @@ This tool is intended for security research and educational purposes only. Alway
 
 ## 👤 Author
 
-**Mobile CySec Expert**
+**Reezcode24**
 
-- GitHub: [@reezcode](https://github.com/reezcode)
+## License
 
-## 🙏 Acknowledgments
+MIT License - see [LICENSE](LICENSE) for details.
 
-- APKTool
-- JADX
-- YARA
-- Androguard
-- Frida
+## Author
 
----
+[@reezcode](https://github.com/reezcode)
 
-**Anais Static Core v1.0** | Comprehensive APK Security Analysis & SAST
+## Disclaimer
+
+This tool is for authorized security testing and research only. Don't analyze apps you don't own without permission.
