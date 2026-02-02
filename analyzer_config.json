@@ -5,10 +5,10 @@
     "description": "Comprehensive Anais Static Core"
   },
   "paths": {
-    "workspace": "./analysis_workspace",
+    "workspace": "~/Documents/Anais-Reports",
     "tools": "./analysis_tools",
-    "reports": "./analysis_workspace/reports",
-    "yara_rules": "./yara_general_rules.yar"
+    "reports": "~/Documents/Anais-Reports/reports",
+    "yara_rules": "./rules/yara_general_rules.yar"
   },
   "tools": {
     "apktool": {

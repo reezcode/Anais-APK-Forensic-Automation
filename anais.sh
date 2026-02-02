@@ -23,10 +23,15 @@ NC='\033[0m' # No Color
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORK_DIR="${SCRIPT_DIR}/analysis_workspace"
+WORK_DIR="${HOME}/Documents/Anais-Reports"
 TOOLS_DIR="${SCRIPT_DIR}/analysis_tools"
 CONFIG_FILE="${SCRIPT_DIR}/analyzer_config.json"
 ERROR_LOG="${SCRIPT_DIR}/analysis_errors.log"
+
+# Ensure workspace directory exists
+if [ ! -d "$WORK_DIR" ]; then
+    mkdir -p "$WORK_DIR/reports"
+fi
 
 # Banner
 print_banner() {
@@ -386,7 +391,7 @@ for loc in data.get('likely_unpack_locations', [])[:3]:
 " 2>/dev/null
                 
                 log_info "  4. Use Frida to dump DEX from memory:"
-                log_info "     frida -U -l frida_dex_dump.js -f <package>"
+                log_info "     frida -U -l scripts/frida/frida_dex_dump.js -f <package>"
                 log_info "  5. Pull dumped DEX files for re-analysis"
                 log_info ""
                 echo "$obf_type" > "${TEMP_DIR}/protection_type.txt"
@@ -443,16 +448,16 @@ run_yara_scan() {
     local apk_path="$1"
     
     # Scan original APK
-    if [ -f "${SCRIPT_DIR}/yara_general_rules.yar" ]; then
+    if [ -f "${SCRIPT_DIR}/rules/yara_general_rules.yar" ]; then
         log_info "Scanning with yara_general_rules.yar..."
-        yara -s "${SCRIPT_DIR}/yara_general_rules.yar" "$apk_path" > "${TEMP_DIR}/yara_apk_results.txt" 2>&1 || true
+        yara -s "${SCRIPT_DIR}/rules/yara_general_rules.yar" "$apk_path" > "${TEMP_DIR}/yara_apk_results.txt" 2>&1 || true
     fi
     
     # Scan decompiled directory
     if [ -d "$DECOMPILED_DIR" ]; then
         log_info "Scanning decompiled files..."
         find "$DECOMPILED_DIR" -type f -name "*.smali" -o -name "*.xml" | while read file; do
-            yara -s "${SCRIPT_DIR}/yara_general_rules.yar" "$file" 2>/dev/null || true
+            yara -s "${SCRIPT_DIR}/rules/yara_general_rules.yar" "$file" 2>/dev/null || true
         done > "${TEMP_DIR}/yara_decompiled_results.txt"
     fi
     
@@ -460,7 +465,7 @@ run_yara_scan() {
     if [ -d "$JADX_OUTPUT" ]; then
         log_info "Scanning JADX sources..."
         find "$JADX_OUTPUT" -type f -name "*.java" | while read file; do
-            yara -s "${SCRIPT_DIR}/yara_general_rules.yar" "$file" 2>/dev/null || true
+            yara -s "${SCRIPT_DIR}/rules/yara_general_rules.yar" "$file" 2>/dev/null || true
         done > "${TEMP_DIR}/yara_jadx_results.txt"
     fi
     

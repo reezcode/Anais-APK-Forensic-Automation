@@ -525,7 +525,7 @@ class ObfuscationDetector:
                 '3. Run the application to trigger DEX unpacking',
                 '4. Dump decrypted DEX from memory:',
                 '   - frida-dexdump -U -f <package_name>',
-                '   - Or use frida -U -f <package_name> -l frida_dex_dump.js',
+                '   - Or use frida -U -f <package_name> -l scripts/frida/frida_dex_dump.js',
                 '5. Analyze dumped DEX files with JADX/APKTool',
                 '6. Alternative: Use FART, DexHunter, or ZjDroid',
                 '7. Monitor native library loading with Frida hooks',
@@ -537,8 +537,8 @@ class ObfuscationDetector:
             if self.results['type'] == 'dpt-shell':
                 self.results['recommendations'].extend([
                     '- DPT-Shell unpacker tools',
-                    '- Frida script: frida_dex_dump.js (included)',
-                    '- FRIDA command: frida -U -f com.package.name -l frida_dex_dump.js --no-pause',
+                    '- Frida script: scripts/frida/frida_dex_dump.js (included)',
+                    '- FRIDA command: frida -U -f com.package.name -l scripts/frida/frida_dex_dump.js --no-pause',
                     '- Monitor JniBridge and libdpt.so loading',
                     '- Hook ProxyApplication.attachBaseContext()',
                 ])

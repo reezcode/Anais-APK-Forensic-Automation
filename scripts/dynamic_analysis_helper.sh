@@ -7,6 +7,9 @@
 
 set -e
 
+# Get the parent directory (Anais root)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -110,7 +113,7 @@ dex_dump() {
     fi
     
     # Run Frida script
-    frida -U -f "$package" -l frida_dex_dump.js --no-pause
+    frida -U -f "$package" -l "${SCRIPT_DIR}/frida/frida_dex_dump.js" --no-pause
     
     echo -e "${GREEN}[+] DEX dump complete${NC}"
     echo "[*] Check device /sdcard/ for dumped_dex_*.dex files"

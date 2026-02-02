@@ -578,7 +578,7 @@ class DEXPayloadHunter:
         recs.append({
             'priority': 'MEDIUM',
             'action': 'Use Frida DEX Dumper',
-            'details': 'Run frida_dex_dump.js to capture unpacked DEX from memory'
+            'details': 'Run scripts/frida/frida_dex_dump.js to capture unpacked DEX from memory'
         })
         
         self.results['recommendations'] = recs

@@ -136,7 +136,7 @@ fi
 # Make scripts executable
 echo -e "\n${YELLOW}[*] Setting execute permissions...${NC}"
 chmod +x malware_analyzer.sh
-chmod +x dynamic_analysis_helper.sh
+chmod +x scripts/dynamic_analysis_helper.sh
 
 if [ -d "analysis_tools" ]; then
     chmod +x analysis_tools/*.py
@@ -146,22 +146,14 @@ echo -e "${GREEN}[+] Scripts are now executable${NC}"
 
 # Create necessary directories
 echo -e "\n${YELLOW}[*] Creating directories...${NC}"
-mkdir -p analysis_workspace
-mkdir -p analysis_workspace/reports
-echo -e "${GREEN}[+] Directories created${NC}"
+mkdir -p "${HOME}/Documents/Anais-Reports"
+mkdir -p "${HOME}/Documents/Anais-Reports/reports"
+echo -e "${GREEN}[+] Directories created in ${HOME}/Documents/Anais-Reports${NC}"
 
 # Validate YARA rules
 echo -e "\n${YELLOW}[*] Validating YARA rules...${NC}"
-if [ -f "yara_general_rules.yar" ]; then
-    if yara -w yara_general_rules.yar yara_general_rules.yar >/dev/null 2>&1; then
-        echo -e "${GREEN}[+] yara_general_rules.yar is valid${NC}"
-    else
-        echo -e "${YELLOW}[!] yara_general_rules.yar has warnings${NC}"
-    fi
-fi
-
-if [ -f "yara_general_rules.yar" ]; then
-    if yara -w yara_general_rules.yar yara_general_rules.yar >/dev/null 2>&1; then
+if [ -f "rules/yara_general_rules.yar" ]; then
+    if yara -w rules/yara_general_rules.yar rules/yara_general_rules.yar >/dev/null 2>&1; then
         echo -e "${GREEN}[+] yara_general_rules.yar is valid${NC}"
     else
         echo -e "${YELLOW}[!] yara_general_rules.yar has warnings${NC}"
@@ -180,7 +172,7 @@ echo "  1. Analyze an APK:"
 echo "     ./malware_analyzer.sh /path/to/app.apk"
 echo ""
 echo "  2. Dynamic analysis (with device connected):"
-echo "     ./dynamic_analysis_helper.sh dex-dump com.package.name"
+echo "     ./scripts/dynamic_analysis_helper.sh dex-dump com.package.name"
 echo ""
 echo "  3. View documentation:"
 echo "     cat ANALYZER_README.md"

@@ -12,9 +12,9 @@ echo ""
 # Test 1: Check all scripts exist
 echo "[TEST 1] Checking script files..."
 files=(
-    "malware_analyzer.sh"
-    "dynamic_analysis_helper.sh"
-    "setup.sh"
+    "anais.sh"
+    "scripts/dynamic_analysis_helper.sh"
+    "scripts/setup.sh"
     "analysis_tools/check_zip_encryption.py"
     "analysis_tools/fix_apk_headers.py"
     "analysis_tools/detect_obfuscation.py"
@@ -45,7 +45,7 @@ echo ""
 
 # Test 2: Check permissions
 echo "[TEST 2] Checking execute permissions..."
-if [ -x "malware_analyzer.sh" ] && [ -x "dynamic_analysis_helper.sh" ] && [ -x "setup.sh" ]; then
+if [ -x "anais.sh" ] && [ -x "scripts/dynamic_analysis_helper.sh" ] && [ -x "scripts/setup.sh" ]; then
     echo "✓ Main scripts are executable"
 else
     echo "✗ Scripts not executable. Run: chmod +x *.sh"
@@ -76,19 +76,11 @@ echo ""
 # Test 4: Check YARA rules
 echo "[TEST 4] Validating YARA rules..."
 if command -v yara >/dev/null 2>&1; then
-    if [ -f "yara_general_rules.yar" ]; then
-        if yara -w yara_general_rules.yar yara_general_rules.yar >/dev/null 2>&1; then
-            echo "  ✓ yara_general_rules.yar"
+    if [ -f "rules/yara_general_rules.yar" ]; then
+        if yara -w rules/yara_general_rules.yar rules/yara_general_rules.yar >/dev/null 2>&1; then
+            echo "  ✓ rules/yara_general_rules.yar"
         else
-            echo "  ⚠ yara_general_rules.yar (has warnings)"
-        fi
-    fi
-    
-    if [ -f "yara_general_rules.yar" ]; then
-        if yara -w yara_general_rules.yar yara_general_rules.yar >/dev/null 2>&1; then
-            echo "  ✓ yara_general_rules.yar"
-        else
-            echo "  ⚠ yara_general_rules.yar (has warnings)"
+            echo "  ⚠ rules/yara_general_rules.yar (has warnings)"
         fi
     fi
     echo "✓ YARA rules validated"
@@ -100,10 +92,9 @@ echo ""
 # Test 5: Check documentation
 echo "[TEST 5] Checking documentation files..."
 docs=(
-    "ANALYZER_README.md"
-    "ANALYSIS_QUICK_REFERENCE.md"
-    "FRAMEWORK_SUMMARY.md"
-    "ARCHITECTURE.txt"
+    "README.md"
+    "docs/ARCHITECTURE.txt"
+    "docs/Workflow and Reference.md"
     "analyzer_config.json"
 )
 
@@ -124,10 +115,28 @@ else
     echo "  ✗ analysis_tools/ (MISSING)"
 fi
 
-if [ -d "analysis_workspace" ]; then
-    echo "  ✓ analysis_workspace/"
+if [ -d "scripts" ]; then
+    echo "  ✓ scripts/"
 else
-    echo "  ⚠ analysis_workspace/ (will be created on first run)"
+    echo "  ✗ scripts/ (MISSING)"
+fi
+
+if [ -d "rules" ]; then
+    echo "  ✓ rules/"
+else
+    echo "  ✗ rules/ (MISSING)"
+fi
+
+if [ -d "docs" ]; then
+    echo "  ✓ docs/"
+else
+    echo "  ✗ docs/ (MISSING)"
+fi
+
+if [ -d "${HOME}/Documents/Anais-Reports" ]; then
+    echo "  ✓ ~/Documents/Anais-Reports/"
+else
+    echo "  ⚠ ~/Documents/Anais-Reports/ (will be created on first run)"
 fi
 echo ""
 
@@ -197,13 +206,13 @@ if [ $missing -eq 0 ] && [ $python_errors -eq 0 ]; then
     echo "Framework is ready to use!"
     echo ""
     echo "Quick Start:"
-    echo "  1. Run setup (if not done): ./setup.sh"
-    echo "  2. Analyze an APK: ./malware_analyzer.sh app.apk"
+    echo "  1. Run setup (if not done): ./scripts/setup.sh"
+    echo "  2. Analyze an APK: ./anais.sh app.apk"
     echo ""
     
     if [ $deps_missing -gt 0 ] || [ $pkgs_missing -gt 0 ]; then
         echo "⚠️  Some dependencies are missing. The framework will work with"
-        echo "   limited functionality. Run ./setup.sh for details."
+        echo "   limited functionality. Run ./scripts/setup.sh for details."
     fi
 else
     echo "❌ FRAMEWORK VALIDATION FAILED"
