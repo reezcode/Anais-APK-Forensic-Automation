@@ -5,12 +5,33 @@
 # Author: Reezcode24
 # Date: 2026-01-23
 # Description: Comprehensive APK analysis with multiple protection bypass techniques
+# Supports: macOS, Linux, Windows (WSL/Git Bash)
 #################################################
 
 set -e
 
 # Suppress Python warnings globally
 export PYTHONWARNINGS="ignore"
+
+# Detect OS
+detect_os() {
+    case "$(uname -s)" in
+        Darwin*)
+            echo "macos"
+            ;;
+        Linux*)
+            echo "linux"
+            ;;
+        CYGWIN*|MINGW*|MSYS*)
+            echo "windows"
+            ;;
+        *)
+            echo "unknown"
+            ;;
+    esac
+}
+
+OS_TYPE=$(detect_os)
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,7 +58,7 @@ fi
 print_banner() {
     echo -e "${CYAN}"
     echo "╔═══════════════════════════════════════════════════════════╗"
-    echo "║   Anais Static Core v1.0                 ║"
+    echo "║   Anais Static Core v1.0                                  ║"
     echo "║   Comprehensive APK Security Analysis & SAST              ║"
     echo "╚═══════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -99,11 +120,29 @@ check_dependencies() {
     
     if [ ${#missing_deps[@]} -ne 0 ]; then
         log_error "Missing dependencies: ${missing_deps[*]}"
-        log_info "Install using: brew install ${missing_deps[*]} (macOS) or apt-get install ${missing_deps[*]} (Linux)"
+        
+        # OS-specific installation instructions
+        case "$OS_TYPE" in
+            macos)
+                log_info "Install using: brew install ${missing_deps[*]}"
+                ;;
+            linux)
+                log_info "Install using: sudo apt-get install ${missing_deps[*]} (Debian/Ubuntu)"
+                log_info "Or: sudo yum install ${missing_deps[*]} (RedHat/CentOS)"
+                ;;
+            windows)
+                log_info "Windows detected - ensure you're running in WSL or Git Bash"
+                log_info "Install using package manager in your environment"
+                ;;
+            *)
+                log_info "Install the missing dependencies using your system's package manager"
+                ;;
+        esac
         exit 1
     fi
     
     log_success "All core dependencies satisfied"
+    log_info "Running on: $OS_TYPE"
 }
 
 # Initialize workspace
@@ -130,10 +169,22 @@ extract_basic_info() {
     
     local apk_path="$1"
     
-    # File hash
-    SHA256=$(shasum -a 256 "$apk_path" | awk '{print $1}')
-    MD5=$(md5 -q "$apk_path")
-    FILE_SIZE=$(stat -f%z "$apk_path" 2>/dev/null || stat -c%s "$apk_path")
+    # File hash (cross-platform)
+    SHA256=$(shasum -a 256 "$apk_path" 2>/dev/null || sha256sum "$apk_path" | awk '{print $1}')
+    
+    # MD5 (cross-platform)
+    if [ "$OS_TYPE" = "macos" ]; then
+        MD5=$(md5 -q "$apk_path")
+    else
+        MD5=$(md5sum "$apk_path" | awk '{print $1}')
+    fi
+    
+    # File size (cross-platform)
+    if [ "$OS_TYPE" = "macos" ]; then
+        FILE_SIZE=$(stat -f%z "$apk_path")
+    else
+        FILE_SIZE=$(stat -c%s "$apk_path")
+    fi
     
     log_info "SHA256: $SHA256"
     log_info "MD5: $MD5"

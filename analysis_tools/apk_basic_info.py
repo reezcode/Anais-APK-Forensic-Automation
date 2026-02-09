@@ -8,9 +8,9 @@ import json
 from pathlib import Path
 
 try:
-    from androguard.core.bytecodes.apk import APK
+    from androguard.core.apk import APK
 except ImportError:
-    print("Warning: androguard not installed. Run: pip3 install androguard")
+    print("Warning: androguard not installed or wrong version. Run: pip3 install --upgrade androguard")
     sys.exit(0)
 
 def extract_apk_info(apk_path):

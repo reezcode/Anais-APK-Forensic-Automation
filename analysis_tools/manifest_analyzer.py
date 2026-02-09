@@ -2,21 +2,28 @@
 """
 AndroidManifest.xml Analyzer
 Detects security issues and misconfigurations in manifest
+Supports binary AXML format conversion
 """
 
 import sys
 import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
+import subprocess
+import os
 
 class ManifestAnalyzer:
     def __init__(self, manifest_path):
         self.manifest_path = Path(manifest_path)
         self.findings = []
         self.info = {}
+        self.converted = False
+        
+        # Check if manifest is binary AXML and convert if needed
+        manifest_to_parse = self._handle_binary_manifest(manifest_path)
         
         try:
-            self.tree = ET.parse(manifest_path)
+            self.tree = ET.parse(manifest_to_parse)
             self.root = self.tree.getroot()
         except Exception as e:
             self.findings.append({
@@ -26,6 +33,75 @@ class ManifestAnalyzer:
             })
             self.tree = None
             self.root = None
+    
+    def _is_binary_axml(self, filepath):
+        """Check if file is binary AXML format"""
+        try:
+            with open(filepath, 'rb') as f:
+                # Binary AXML files start with specific magic bytes
+                header = f.read(4)
+                # Check for AXML magic number (0x00080003 or 0x03000800)
+                if header in [b'\x03\x00\x08\x00', b'\x00\x08\x00\x03']:
+                    return True
+                
+                # Also check if file starts with XML declaration
+                f.seek(0)
+                first_bytes = f.read(100)
+                if b'<?xml' not in first_bytes and b'<manifest' not in first_bytes:
+                    return True
+                    
+        except Exception:
+            pass
+        return False
+    
+    def _convert_binary_to_xml(self, binary_path):
+        """Convert binary AXML to readable XML using axml2xml Node.js tool"""
+        output_path = binary_path.parent / f"{binary_path.stem}_converted.xml"
+        
+        try:
+            # Find the axml converter script
+            script_dir = Path(__file__).parent.parent
+            axml_converter = script_dir / "axml" / "convert_axml.js"
+            
+            if not axml_converter.exists():
+                print(f"[ERROR] AXML converter not found at: {axml_converter}")
+                return str(binary_path)
+            
+            # Run the Node.js converter
+            result = subprocess.run(
+                ['node', str(axml_converter), str(binary_path), str(output_path)],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0 and output_path.exists():
+                print(f"[INFO] Converted binary AXML to XML successfully")
+                return str(output_path)
+            else:
+                error_msg = result.stderr if result.stderr else result.stdout
+                print(f"[ERROR] AXML conversion failed: {error_msg}")
+                return str(binary_path)
+                
+        except FileNotFoundError:
+            print(f"[ERROR] Node.js not found. Install Node.js to convert binary AXML files")
+            return str(binary_path)
+        except subprocess.TimeoutExpired:
+            print(f"[ERROR] AXML conversion timeout")
+            return str(binary_path)
+        except Exception as e:
+            print(f"[ERROR] Failed to convert binary AXML: {e}")
+            return str(binary_path)
+    
+    def _handle_binary_manifest(self, manifest_path):
+        """Check and convert binary manifest if needed"""
+        if self._is_binary_axml(manifest_path):
+            print(f"[WARNING] Binary AXML detected, converting to readable XML...")
+            self.converted = True
+            converted_path = self._convert_binary_to_xml(Path(manifest_path))
+            return converted_path
+        
+        return manifest_path
     
     def check_dangerous_permissions(self):
         """Check for dangerous permissions"""
@@ -189,10 +265,19 @@ class ManifestAnalyzer:
         self.check_backup_allowed()
         self.check_cleartext_traffic()
         
-        return {
+        results = {
             'info': self.info,
             'findings': self.findings
         }
+        
+        # Add conversion info if manifest was binary
+        if self.converted:
+            results['info']['manifest_format'] = 'binary_axml_converted'
+            results['info']['conversion_note'] = 'Original manifest was in binary AXML format and has been converted to readable XML'
+        else:
+            results['info']['manifest_format'] = 'xml'
+        
+        return results
 
 def main():
     if len(sys.argv) < 3:
