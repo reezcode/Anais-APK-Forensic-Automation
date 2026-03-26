@@ -1,6 +1,6 @@
 {
   "name": "anais-apk-forensic",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Comprehensive APK security analysis and forensic investigation tool for Android applications",
   "main": "dist/index.js",
   "bin": {
