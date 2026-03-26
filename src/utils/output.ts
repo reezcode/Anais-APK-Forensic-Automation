@@ -39,7 +39,7 @@ export function printBanner(): void {
     `\n${colors.cyan}╔═══════════════════════════════════════════════════════════╗${colors.reset}`,
   );
   console.log(
-    `${colors.cyan}║   Anais APK Forensic Automation - CLI v1.0.0            ║${colors.reset}`,
+    `${colors.cyan}║   Anais APK Forensic Automation - CLI v1.1.0            ║${colors.reset}`,
   );
   console.log(
     `${colors.cyan}║   Comprehensive APK Security Analysis & SAST             ║${colors.reset}`,
