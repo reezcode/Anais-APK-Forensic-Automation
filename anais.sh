@@ -58,7 +58,7 @@ fi
 print_banner() {
     echo -e "${CYAN}"
     echo "╔═══════════════════════════════════════════════════════════╗"
-    echo "║   Anais Static Core v1.0                                  ║"
+    echo "║   Anais Static Core v1.1                                  ║"
     echo "║   Comprehensive APK Security Analysis & SAST              ║"
     echo "╚═══════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
