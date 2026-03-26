@@ -11,9 +11,11 @@ import re
 from datetime import datetime
 
 
-def analyze_yara_results(temp_dir, output_file):
+def analyze_yara_results(temp_dir, output_file, rule_files=None):
     """Enhanced YARA results analyzer with categorization and severity scoring"""
-    
+    if rule_files is None:
+        rule_files = []
+        
     results = {
         'summary': {
             'total_matches': 0,
@@ -35,12 +37,10 @@ def analyze_yara_results(temp_dir, output_file):
         }
     }
     
-    # Get all rules from YARA file to show what was checked
-    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    yara_rules_file = os.path.join(script_dir, 'yara_general_rules.yar')
-    
-    if os.path.exists(yara_rules_file):
-        extract_rules_info(yara_rules_file, results)
+    # Process multiple rule files
+    for yara_rules_file in rule_files:
+        if os.path.exists(yara_rules_file):
+            extract_rules_info(yara_rules_file, results)
     
     # Parse results from different scans
     yara_files = [
@@ -308,13 +308,14 @@ def get_recommendation(rule_name):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: yara_enhanced_analyzer.py <temp_dir> <output_file>")
+        print("Usage: yara_enhanced_analyzer.py <temp_dir> <output_file> [rule_files...]")
         sys.exit(1)
     
     temp_dir = sys.argv[1]
     output_file = sys.argv[2]
+    rule_files = sys.argv[3:]
     
-    results = analyze_yara_results(temp_dir, output_file)
+    results = analyze_yara_results(temp_dir, output_file, rule_files=rule_files)
     
     print(f"\n✓ Enhanced YARA analysis complete")
     print(f"  Rules Checked: {results['summary']['total_rules_checked']}")

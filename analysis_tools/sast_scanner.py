@@ -101,6 +101,21 @@ class SASTScanner:
                 r'secret\s*=\s*["\'][\w]+["\']',
                 r'token\s*=\s*["\'][\w]{20,}["\']',
             ],
+            'api_keys': [
+                r'AIza[0-9A-Za-z\-_]{35}',                                              # Google API Key / GCP
+                r'AKIA[0-9A-Z]{16}',                                                    # AWS Access Key
+                r'amzn\.mws\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', # Amazon MWS
+                r'EAACEdEose0cBA[0-9A-Za-z]+',                                          # Facebook Access Token
+                r'sk_live_[0-9a-zA-Z]{24}',                                             # Stripe Standard
+                r'rk_live_[0-9a-zA-Z]{24}',                                             # Stripe Restricted
+                r'sq0atp-[0-9A-Za-z\-_]{22}',                                           # Square
+                r'SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}',                          # SendGrid
+                r'key-[0-9a-zA-Z]{32}',                                                 # Mailgun
+                r'SK[0-9a-fA-F]{32}',                                                   # Twilio
+                r'xox[baprs]-[0-9]{12}-[0-9]{12}-[a-zA-Z0-9]{24}',                      # Slack Token
+                r'https://hooks\.slack\.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}', # Slack Webhook
+                r'https://[a-z0-9-]+\.firebaseio\.com',                                 # Firebase URL
+            ],
             'insecure_network': [
                 r'setHostnameVerifier.*ALLOW_ALL',
                 r'TrustAllCertificates',
@@ -249,7 +264,7 @@ class SASTScanner:
                 continue
     
     def scan_native_libraries(self):
-        """Scan native libraries for suspicious strings"""
+        """Scan native libraries for suspicious strings and API keys"""
         if not self.decompiled_dir:
             return
         
@@ -277,10 +292,10 @@ class SASTScanner:
             try:
                 # Read as binary and search for strings
                 with open(so_file, 'rb') as f:
-                    content = f.read()
+                    content_bytes = f.read()
                     
                     for susp_str in suspicious_strings:
-                        if susp_str.encode() in content:
+                        if susp_str.encode() in content_bytes:
                             self.add_finding(
                                 'medium',
                                 'native_code',
@@ -289,6 +304,24 @@ class SASTScanner:
                                 so_file.relative_to(self.decompiled_dir),
                                 code_snippet=f'String: {susp_str}'
                             )
+                    
+                    # Also scan for API keys by decoding to string (ignoring errors)
+                    content_str = content_bytes.decode('utf-8', errors='ignore')
+                    if 'api_keys' in self.high_patterns:
+                        for pattern in self.high_patterns['api_keys']:
+                            matches = list(re.finditer(pattern, content_str, re.IGNORECASE))
+                            if matches:
+                                # Ensure uniqueness using set
+                                unique_matches = set(m.group(0) for m in matches)
+                                for match_str in list(unique_matches)[:3]:  # Limit to 3 uniques per file
+                                    self.add_finding(
+                                        'high',
+                                        'api_keys',
+                                        'API Key in Native Library',
+                                        f'Found hardcoded API Key: {match_str[:50]}...',
+                                        so_file.relative_to(self.decompiled_dir),
+                                        code_snippet=f'Match: {match_str}'
+                                    )
                             
             except Exception:
                 continue
@@ -328,6 +361,61 @@ class SASTScanner:
                         'Binary or encoded file in assets',
                         asset_file.relative_to(self.decompiled_dir)
                     )
+
+    def scan_xml_resources(self):
+        """Scan XML resources (AndroidManifest, strings.xml) for secrets and API keys"""
+        if not self.decompiled_dir:
+            return
+            
+        print("Scanning XML resources...")
+        
+        target_files = []
+        manifest_path = self.decompiled_dir / 'AndroidManifest.xml'
+        if manifest_path.exists():
+            target_files.append(manifest_path)
+            
+        # Target all XMLs in res/values/
+        res_values_dir = self.decompiled_dir / 'res' / 'values'
+        if res_values_dir.exists():
+            target_files.extend(list(res_values_dir.rglob('*.xml')))
+            
+        for xml_file in target_files:
+            try:
+                content = xml_file.read_text(errors='ignore')
+                
+                patterns_to_check = {
+                    'critical': {
+                        'c2_communication': self.critical_patterns.get('c2_communication', [])
+                    },
+                    'high': {
+                        'hardcoded_secrets': self.high_patterns.get('hardcoded_secrets', []),
+                        'api_keys': self.high_patterns.get('api_keys', [])
+                    }
+                }
+                
+                for severity, pattern_dict in patterns_to_check.items():
+                    for category, patterns in pattern_dict.items():
+                        for pattern in patterns:
+                            matches = list(re.finditer(pattern, content, re.IGNORECASE))
+                            if matches:
+                                for match in matches[:3]: # Limit to avoid spam
+                                    line_num = content[:match.start()].count('\n') + 1
+                                    snippet = self.extract_snippet(content, match.start(), match.end(), context_lines=2)
+                                    
+                                    # Ensure findings are unique via simple deduplication
+                                    # SAST analyzer doesn't have built-in dedup for the same line/content easily without checking the array,
+                                    # so we just add it
+                                    self.add_finding(
+                                        severity,
+                                        category,
+                                        f'{category.replace("_", " ").title()} in XML',
+                                        f'Pattern detected: {match.group(0)[:100]}',
+                                        xml_file.relative_to(self.decompiled_dir),
+                                        line_num,
+                                        snippet
+                                    )
+            except Exception:
+                continue
     
     def extract_snippet(self, content, start, end, context_lines=2):
         """Extract code snippet with context"""
@@ -381,6 +469,7 @@ class SASTScanner:
         self.scan_java_files()
         self.scan_native_libraries()
         self.scan_assets()
+        self.scan_xml_resources()
         
         self.generate_summary()
         

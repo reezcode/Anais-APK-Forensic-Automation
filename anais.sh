@@ -201,8 +201,8 @@ extract_basic_info() {
 
 # Check if APK is encrypted/password protected
 check_apk_protection() {
-    log_section "Checking APK Protection Mechanisms"
-    
+    log_section "Checking APK Protection Mechanisms" 
+
     local apk_path="$1"
     
     # Test unzip
@@ -498,17 +498,31 @@ run_yara_scan() {
     
     local apk_path="$1"
     
-    # Scan original APK
-    if [ -f "${SCRIPT_DIR}/rules/yara_general_rules.yar" ]; then
-        log_info "Scanning with yara_general_rules.yar..."
-        yara -s "${SCRIPT_DIR}/rules/yara_general_rules.yar" "$apk_path" > "${TEMP_DIR}/yara_apk_results.txt" 2>&1 || true
+    # Build YARA command array
+    local yara_args=()
+    for rule in "${YARA_RULES[@]}"; do
+        if [ -f "$rule" ]; then
+            yara_args+=("$rule")
+            log_info "Using YARA rules: $rule"
+        else
+            log_warning "YARA rule file not found: $rule"
+        fi
+    done
+    
+    if [ ${#yara_args[@]} -eq 0 ]; then
+        log_warning "No valid YARA rules found. Skipping YARA scan."
+        return 1
     fi
+    
+    # Scan original APK
+    log_info "Scanning original APK..."
+    yara -s "${yara_args[@]}" "$apk_path" > "${TEMP_DIR}/yara_apk_results.txt" 2>&1 || true
     
     # Scan decompiled directory
     if [ -d "$DECOMPILED_DIR" ]; then
         log_info "Scanning decompiled files..."
         find "$DECOMPILED_DIR" -type f -name "*.smali" -o -name "*.xml" | while read file; do
-            yara -s "${SCRIPT_DIR}/rules/yara_general_rules.yar" "$file" 2>/dev/null || true
+            yara -s "${yara_args[@]}" "$file" 2>/dev/null || true
         done > "${TEMP_DIR}/yara_decompiled_results.txt"
     fi
     
@@ -516,7 +530,7 @@ run_yara_scan() {
     if [ -d "$JADX_OUTPUT" ]; then
         log_info "Scanning JADX sources..."
         find "$JADX_OUTPUT" -type f -name "*.java" | while read file; do
-            yara -s "${SCRIPT_DIR}/rules/yara_general_rules.yar" "$file" 2>/dev/null || true
+            yara -s "${yara_args[@]}" "$file" 2>/dev/null || true
         done > "${TEMP_DIR}/yara_jadx_results.txt"
     fi
     
@@ -526,7 +540,8 @@ run_yara_scan() {
     log_info "Processing YARA results..."
     if python3 "${TOOLS_DIR}/yara_enhanced_analyzer.py" \
         "$TEMP_DIR" \
-        "${TEMP_DIR}/yara_enhanced.json" 2>> "$ERROR_LOG"; then
+        "${TEMP_DIR}/yara_enhanced.json" \
+        "${yara_args[@]}" 2>> "$ERROR_LOG"; then
         
         # Show summary
         if [ -f "${TEMP_DIR}/yara_enhanced.json" ]; then
@@ -660,15 +675,35 @@ main() {
     print_banner
     
     if [ $# -lt 1 ]; then
-        echo "Usage: $0 <path_to_apk>"
+        echo "Usage: $0 [-y|--yara <yara_file>] <path_to_apk>"
         echo ""
         echo "Options:"
         echo "  -h, --help     Show this help message"
+        echo "  -y, --yara     Specify custom YARA rule file (can be used multiple times)"
         echo ""
         exit 1
     fi
     
-    APK_PATH="$1"
+    YARA_RULES=()
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            -y|--yara) YARA_RULES+=("$2"); shift ;;
+            -h|--help)
+                echo "Usage: $0 [-y|--yara <yara_file>] <path_to_apk>"
+                echo ""
+                echo "Options:"
+                echo "  -h, --help     Show this help message"
+                echo "  -y, --yara     Specify custom YARA rule file (can be used multiple times)"
+                exit 0
+                ;;
+            *) APK_PATH="$1" ;;
+        esac
+        shift
+    done
+    
+    if [ ${#YARA_RULES[@]} -eq 0 ]; then
+        YARA_RULES=("${SCRIPT_DIR}/rules/yara_general_rules.yar")
+    fi
     
     if [ ! -f "$APK_PATH" ]; then
         log_error "APK file not found: $APK_PATH"
