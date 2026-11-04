@@ -51,6 +51,19 @@ export function getAnaisScriptPath(): string {
 }
 
 /**
+ * Read the package version from package.json (single source of truth)
+ */
+export function getVersion(): string {
+  try {
+    const pkgPath = path.join(getProjectRoot(), "package.json");
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+    return pkg.version || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+/**
  * Check if a file exists
  */
 export function fileExists(filePath: string): boolean {

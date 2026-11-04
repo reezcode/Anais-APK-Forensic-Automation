@@ -6,6 +6,7 @@ Generates split reports with main index and separate detail files
 
 import sys
 import json
+import math
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -31,6 +32,7 @@ class ModularReportGenerator:
             'basic_info': 'basic_info.json',
             'encryption_check': 'encryption_check.json',
             'obfuscation': 'obfuscation_report.json',
+            'rasp': 'rasp_report.json',
             'dex_payload': 'dex_payload_report.json',
             'so_strings': 'so_strings.json',
             'entropy': 'entropy_analysis.json',
@@ -38,6 +40,10 @@ class ModularReportGenerator:
             'sast': 'sast_findings.json',
             'manifest': 'manifest_findings.json',
             'network': 'network_findings.json',
+            'signing': 'signing_analysis.json',
+            'input_prep': 'prepare_input.json',
+            'framework': 'framework_report.json',
+            'sdk_inventory': 'sdk_inventory.json',
         }
         
         for key, filename in result_files.items():
@@ -67,7 +73,11 @@ class ModularReportGenerator:
         md.append("\n## 📑 Quick Navigation\n")
         md.append("- [Executive Summary](#executive-summary)")
         md.append("- [APK Information](#apk-information)")
+        md.append("- [App Framework](#framework)")
         md.append("- [Protection & Obfuscation](#protection-obfuscation)")
+        md.append("- [RASP Detection](#rasp-detection)")
+        md.append("- [Signing & Certificates](#signing)")
+        md.append("- [Third-Party SDKs](#sdks)")
         md.append("- 🔗 [Security Findings (SAST)](./sast_findings.md)")
         md.append("- 🔗 [AndroidManifest Analysis](./manifest_analysis.md)")
         md.append("- 🔗 [Network Analysis](./network_analysis.md)")
@@ -84,10 +94,26 @@ class ModularReportGenerator:
         md.append("\n## 📱 APK Information {#apk-information}\n")
         self._add_apk_info(md)
         
+        # App framework
+        md.append("\n## 🧩 App Framework {#framework}\n")
+        self._add_framework_info(md)
+
         # Protection & Obfuscation
         md.append("\n## 🔒 Protection & Obfuscation Analysis {#protection-obfuscation}\n")
         self._add_obfuscation_info(md)
-        
+
+        # RASP detection
+        md.append("\n## 🛡️ RASP Detection {#rasp-detection}\n")
+        self._add_rasp_info(md)
+
+        # Signing & certificates
+        md.append("\n## 🔏 Signing & Certificates {#signing}\n")
+        self._add_signing_info(md)
+
+        # Third-party SDKs
+        md.append("\n## 📦 Third-Party SDKs {#sdks}\n")
+        self._add_sdk_info(md)
+
         # Summary sections with links to details
         md.append("\n## 📊 Analysis Results Summary\n")
         md.append(self._get_findings_summary())
@@ -151,6 +177,15 @@ class ModularReportGenerator:
             lines.append(f"\n**📊 Entropy Analysis:**")
             lines.append(f"- Highly suspicious files: {len(summary.get('highly_suspicious', []))}")
             lines.append(f"- Suspicious files: {len(summary.get('suspicious', []))}")
+
+        # RASP Summary
+        rasp = self.results.get('rasp', {})
+        if rasp:
+            rasp_type = rasp.get('type', 'none')
+            confidence = rasp.get('confidence', 0)
+            lines.append(f"\n**🛡️ RASP Detection:**")
+            lines.append(f"- Type: {rasp_type}")
+            lines.append(f"- Confidence: {f'{confidence}%' if rasp.get('detected') else 'n/a'}")
         
         # YARA Summary
         yara = self.results.get('yara', {})
@@ -268,32 +303,137 @@ class ModularReportGenerator:
         with open(output_file, 'w') as f:
             f.write('\n'.join(md))
     
+    @staticmethod
+    def _risk_level(score):
+        if score >= 80:
+            return "🔴 **CRITICAL**"
+        if score >= 60:
+            return "🟠 **HIGH**"
+        if score >= 40:
+            return "🟡 **MEDIUM**"
+        if score >= 20:
+            return "🟢 **LOW**"
+        return "⚪ **MINIMAL**"
+
+    def _len(self, section, key):
+        """Length of a list-valued field, tolerating missing/int values."""
+        v = self.results.get(section, {}).get(key, [])
+        if isinstance(v, int):
+            return v
+        return len(v) if isinstance(v, (list, dict)) else 0
+
+    def compute_composite_risk(self):
+        """Combine every analyzer's signal into one 0-100 risk score.
+
+        Unlike the raw SAST risk_score (which saturates at 100 on any large
+        app from sheer finding count), this weights confirmed-malware signals
+        highest and applies diminishing returns to high-volume signals so the
+        number stays comparable across apps of very different sizes.
+        """
+        breakdown = []
+
+        def add(label, value):
+            value = round(value, 1)
+            if value > 0:
+                breakdown.append({'factor': label, 'points': value})
+            return value
+
+        score = 0.0
+
+        # 1. Confirmed malware: YARA critical/high matches (strongest signal, cap 30)
+        yara = self.results.get('yara', {}).get('summary', {})
+        yc = yara.get('critical_findings', 0) or 0
+        yh = yara.get('high_severity', 0) or 0
+        score += add(f"YARA matches ({yc} critical, {yh} high)", min(yc * 15 + yh * 6, 30))
+
+        # 2. SAST severity, log-damped so finding count can't alone saturate (cap 25)
+        s_crit = self._len('sast', 'critical')
+        s_high = self._len('sast', 'high')
+        score += add(f"SAST severity ({s_crit} critical, {s_high} high)",
+                     min(8 * math.log10(1 + s_crit) + 4 * math.log10(1 + s_high), 25))
+
+        # 3. Packing / encrypted payloads (cap 20)
+        dexp = self.results.get('dex_payload', {})
+        packed = bool(dexp.get('stub_dex_detected')) or self._len('dex_payload', 'encrypted_payloads') > 0
+        hs = self._len('entropy', 'highly_suspicious')
+        pack_pts = (15 if packed else 0) + min(hs * 2, 10)
+        score += add("Packing / encrypted payloads", min(pack_pts, 20))
+
+        # 4. Manifest misconfiguration (cap 10)
+        score += add("Manifest misconfigurations",
+                     min(3 * math.log10(1 + self._len('manifest', 'findings')), 10))
+
+        # 5. Suspicious network artifacts (cap 10)
+        score += add(f"Suspicious network artifacts ({self._len('network', 'suspicious_urls')})",
+                     min(self._len('network', 'suspicious_urls') * 3, 10))
+
+        # 6. Known packer/protector present (cap 5) — raises analysis difficulty
+        obf_type = str(self.results.get('obfuscation', {}).get('type', 'none')).lower()
+        if obf_type in ('dpt-shell', 'dexprotector', 'bangcle', 'qihoo-360', 'jiagu', 'secneo'):
+            score += add(f"Commercial packer ({obf_type})", 5)
+
+        # 7. Signing problems (cap 10)
+        signing = self.results.get('signing', {})
+        sign_pts = 0
+        sign_titles = []
+        for f in signing.get('findings', []) or []:
+            sev = f.get('severity')
+            if sev == 'high':
+                sign_pts += 5
+            elif sev == 'medium':
+                sign_pts += 2
+            sign_titles.append(f.get('title', ''))
+        if sign_pts:
+            score += add(f"Signing issues ({'; '.join(t for t in sign_titles if t)})", min(sign_pts, 10))
+
+        score = int(round(min(score, 100)))
+        return {'score': score, 'level': self._risk_level(score), 'breakdown': breakdown}
+
     def _add_executive_summary(self, md):
         """Add executive summary"""
-        
-        # Calculate risk level
-        risk_score = self.results.get('sast', {}).get('summary', {}).get('risk_score', 0)
-        
-        if risk_score >= 80:
-            risk_level = "🔴 **CRITICAL**"
-        elif risk_score >= 60:
-            risk_level = "🟠 **HIGH**"
-        elif risk_score >= 40:
-            risk_level = "🟡 **MEDIUM**"
-        elif risk_score >= 20:
-            risk_level = "🟢 **LOW**"
-        else:
-            risk_level = "⚪ **MINIMAL**"
-        
-        md.append(f"**Overall Risk Level:** {risk_level} (Score: {risk_score}/100)\n")
-        
+
+        risk = self.compute_composite_risk()
+        self.results['risk'] = risk  # surfaced in JSON output too
+
+        md.append(f"**Overall Risk Level:** {risk['level']} (Score: {risk['score']}/100)\n")
+        md.append("*Composite score across SAST, YARA, packing, manifest and network signals.*\n")
+
+        if risk['breakdown']:
+            md.append("| Risk Contributor | Points |")
+            md.append("|------------------|-------:|")
+            for item in risk['breakdown']:
+                md.append(f"| {item['factor']} | {item['points']} |")
+            md.append("")
+
+        fw = self.results.get('framework', {})
+        if fw:
+            md.append(f"- **App Framework:** `{fw.get('primary', 'Native / Java-Kotlin')}`")
+
         obf_type = self.results.get('obfuscation', {}).get('type', 'none')
         md.append(f"- **Obfuscation Type:** `{obf_type.upper()}`")
-        
+
+        rasp = self.results.get('rasp', {})
+        if rasp:
+            detected = rasp.get('detected') or []
+            rasp_label = ', '.join(detected) if detected else rasp.get('type', 'None Detected')
+            md.append(f"- **RASP / App Protection:** `{rasp_label}`")
+
+        signing = self.results.get('signing', {})
+        if signing and not signing.get('error'):
+            active = ', '.join(f"v{k[1:]}" for k, v in signing.get('schemes', {}).items() if v) or 'none'
+            sign_findings = signing.get('findings', [])
+            sign_note = f"{len(sign_findings)} issue(s)" if sign_findings else "no issues"
+            md.append(f"- **Signing:** `{active}` ({sign_note})")
+
+        inv = self.results.get('sdk_inventory', {})
+        if inv and inv.get('total'):
+            md.append(f"- **Third-Party SDKs:** {inv.get('total')} ({len(inv.get('trackers', []))} tracker/ad/analytics)")
+
         total_findings = self.results.get('sast', {}).get('summary', {}).get('total_findings', 0)
-        critical_findings = self.results.get('sast', {}).get('summary', {}).get('critical', 0)
+        critical_findings = self._len('sast', 'critical')
         md.append(f"- **Total Security Findings:** {total_findings}")
         md.append(f"- **Critical Issues:** {critical_findings}")
+        md.append(f"- **SAST-only Risk Score:** {self.results.get('sast', {}).get('summary', {}).get('risk_score', 0)}/100")
         md.append("")
     
     def _add_apk_info(self, md):
@@ -313,7 +453,21 @@ class ModularReportGenerator:
         md.append(f"| Services | {len(basic_info.get('services', []))} |")
         md.append(f"| Receivers | {len(basic_info.get('receivers', []))} |")
         md.append("")
-    
+
+        prep = self.results.get('input_prep', {})
+        if prep and prep.get('input_type') and prep.get('input_type') != 'apk':
+            md.append(f"**Input container:** `{prep.get('input_type')}`")
+            splits = prep.get('splits', [])
+            if splits:
+                md.append(f"\nAnalyzed the base APK. {len(splits)} split APK(s) present in the bundle:\n")
+                md.append("| Split | Size | Config split |")
+                md.append("|-------|-----:|:------------:|")
+                for s in splits:
+                    md.append(f"| `{s.get('name')}` | {s.get('size', 0):,} B | {'✅' if s.get('config_split') else '—'} |")
+            for note in prep.get('notes', []):
+                md.append(f"\n> {note}")
+            md.append("")
+
     def _add_obfuscation_info(self, md):
         """Add obfuscation detection info"""
         obf = self.results.get('obfuscation', {})
@@ -432,6 +586,176 @@ class ModularReportGenerator:
         for rec in recs:
             md.append(f"{rec}  ")
         md.append("")
+
+    SEVERITY_ICON = {'critical': '🔴', 'high': '🔴', 'medium': '🟠', 'low': '🟡'}
+
+    def _add_sdk_info(self, md):
+        """Add third-party SDK inventory"""
+        inv = self.results.get('sdk_inventory', {})
+        if not inv:
+            md.append("⚠️ SDK inventory data not available\n")
+            return
+
+        sdks = inv.get('sdks', [])
+        if not sdks:
+            md.append("No known third-party SDKs detected.\n")
+            return
+
+        trackers = inv.get('trackers', [])
+        md.append(f"**{inv.get('total', len(sdks))} SDK(s) detected** — "
+                  f"{len(trackers)} classified as tracker / ad / analytics.\n")
+        if trackers:
+            md.append(f"> 🔎 Privacy note: {', '.join(trackers)}\n")
+
+        md.append("| SDK | Category | Version | CVEs |")
+        md.append("|-----|----------|---------|------|")
+        for s in sdks:
+            ver = s.get('version') or '—'
+            cves = s.get('cves')
+            if cves:
+                cve_txt = ', '.join(c.get('id', '') for c in cves)
+            elif inv.get('online_cve_check'):
+                cve_txt = '✅ none'
+            else:
+                cve_txt = '—'
+            md.append(f"| {s.get('sdk')} | {s.get('category')} | {ver} | {cve_txt} |")
+        md.append("")
+
+    def _add_framework_info(self, md):
+        """Add cross-platform framework detection info"""
+        fw = self.results.get('framework', {})
+        if not fw:
+            md.append("⚠️ Framework analysis data not available\n")
+            return
+
+        md.append(f"**Primary framework:** `{fw.get('primary', 'Native / Java-Kotlin')}`\n")
+
+        detected = fw.get('frameworks', [])
+        if detected:
+            for d in detected:
+                md.append(f"### {d.get('framework')}")
+                md.append(f"- **Logic artifact:** `{d.get('logic_artifact')}`")
+                md.append(f"- **Markers:** {', '.join(f'`{m}`' for m in d.get('markers', []))}")
+                if d.get('bundle_format'):
+                    md.append(f"- **Bundle format:** `{d.get('bundle_format')}`")
+                tools = d.get('recommended_tools') or []
+                if tools:
+                    avail = d.get('tool_available')
+                    status = '✅ installed' if avail else '❌ not installed'
+                    md.append(f"- **Recommended tool:** {', '.join(f'`{t}`' for t in tools)} ({status})")
+                md.append(f"- {d.get('guidance')}")
+                md.append("")
+        else:
+            md.append("Standard Java/Kotlin app — full source is covered by SAST.\n")
+
+        if fw.get('coverage_warning'):
+            md.append(f"> ⚠️ **Coverage caveat:** {fw['coverage_warning']}\n")
+
+    def _add_signing_info(self, md):
+        """Add APK signing and certificate information"""
+        signing = self.results.get('signing', {})
+
+        if not signing:
+            md.append("⚠️ Signing analysis data not available\n")
+            return
+        if signing.get('error'):
+            md.append(f"⚠️ Signing analysis unavailable: {signing['error']}\n")
+            return
+
+        schemes = signing.get('schemes', {})
+        active = ', '.join(f"v{k[1:]}" for k, v in schemes.items() if v) or 'none'
+        md.append(f"- **Signed:** {'Yes' if signing.get('signed') else 'No'}")
+        md.append(f"- **Signature schemes:** `{active}`")
+        md.append("")
+
+        findings = signing.get('findings', [])
+        if findings:
+            md.append("### Signing Findings\n")
+            for f in findings:
+                icon = self.SEVERITY_ICON.get(f.get('severity'), '⚪')
+                md.append(f"- {icon} **{f.get('title')}** — {f.get('detail')}")
+            md.append("")
+        else:
+            md.append("✅ No signing issues detected\n")
+
+        certs = signing.get('certificates', [])
+        if certs:
+            md.append("### Certificates\n")
+            md.append("| Subject | Key | Signature Alg | SHA-256 |")
+            md.append("|---------|-----|---------------|---------|")
+            for c in certs:
+                subj = c.get('subject', '(unparsed)')
+                key = f"{c.get('key_type', '?')}-{c.get('key_size', '?')}"
+                alg = c.get('signature_algorithm', '?')
+                fp = c.get('sha256', '')
+                md.append(f"| {subj} | {key} | {alg} | `{fp[:32]}…` |")
+            md.append("")
+
+    def _add_rasp_info(self, md):
+        """Add RASP detection information"""
+        rasp = self.results.get('rasp', {})
+
+        if not rasp:
+            md.append("⚠️ RASP analysis data not available\n")
+            return
+
+        rasp_type = rasp.get('type', 'none')
+        confidence = rasp.get('confidence', 0)
+        md.append(f"**Type:** `{str(rasp_type).upper()}`")
+        md.append(f"**Confidence:** {f'{confidence}%' if rasp.get('detected') else 'n/a'}\n")
+
+        indicators = rasp.get('indicators', [])
+        if indicators:
+            md.append("### Detection Indicators\n")
+            for indicator in indicators[:20]:
+                md.append(f"- {indicator}")
+            if len(indicators) > 20:
+                md.append(f"\n*...and {len(indicators) - 20} more indicators*")
+            md.append("")
+
+        details = rasp.get('protection_details', {})
+        if details:
+            md.append("### Detected Protection Families\n")
+            md.append("| Family | Score |")
+            md.append("|--------|-------|")
+            for family, score in sorted(details.items(), key=lambda x: x[1], reverse=True):
+                md.append(f"| {family} | {score} |")
+            md.append("")
+
+        evidence = rasp.get('evidence', {})
+        if evidence:
+            md.append("### Evidence\n")
+            for family, items in evidence.items():
+                md.append(f"**{family}**")
+                for item in items[:8]:
+                    md.append(f"- `{item}`")
+                if len(items) > 8:
+                    md.append(f"- ... and {len(items) - 8} more")
+                md.append("")
+
+        heuristics = rasp.get('heuristics', [])
+        if heuristics:
+            md.append("### Hardening Heuristics (vendor unknown)\n")
+            for h in heuristics:
+                md.append(f"- {h.get('description', h.get('name'))}")
+                samples = h.get('samples', [])
+                if samples:
+                    md.append(f"  - Samples: {', '.join(f'`{x}`' for x in samples[:5])}")
+            md.append("")
+
+        weak = rasp.get('weak_signals', {})
+        if weak:
+            md.append("### Weak Signals (below verdict threshold)\n")
+            for family, score in sorted(weak.items(), key=lambda x: x[1], reverse=True):
+                md.append(f"- {family}: {score}")
+            md.append("")
+
+        recs = rasp.get('recommendations', [])
+        if recs:
+            md.append("### RASP-Specific Recommendations\n")
+            for rec in recs:
+                md.append(f"- {rec}")
+            md.append("")
     
     def _add_sast_findings(self, md):
         """Add SAST findings (full details)"""
@@ -805,6 +1129,21 @@ class ModularReportGenerator:
             md.append(f"{rec}  ")
         md.append("")
         
+        fw = self.results.get('framework', {})
+        if fw.get('coverage_warning'):
+            md.append("### Based on App Framework\n")
+            md.append(f"- {fw['coverage_warning']}")
+            for d in fw.get('frameworks', []):
+                md.append(f"- {d.get('framework')}: {d.get('guidance')}")
+            md.append("")
+
+        rasp_recs = self.results.get('rasp', {}).get('recommendations', [])
+        if rasp_recs:
+            md.append("### Based on RASP Detection\n")
+            for rec in rasp_recs:
+                md.append(f"- {rec}")
+            md.append("")
+
         # Entropy-based recommendations
         if entropy and entropy.get('summary', {}).get('highly_suspicious'):
             md.append("### Based on Entropy Analysis\n")
