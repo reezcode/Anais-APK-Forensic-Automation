@@ -42,11 +42,13 @@ The primary entry point to the framework is `anais.sh`.
 
 **Responsibilities**:
 - Parsing user arguments (e.g., `-y/--yara` flags for custom rules).
-- Setting up the isolated `analysis_workspace/` environment.
-- Utilizing `apktool` to extract the `AndroidManifest.xml`, resources, and Smali bytecode.
-- Utilizing `jadx` to decompile classes into readable Java source.
-- Sequentially invoking the individual Python tooling found in the `analysis_tools/` directory.
-- Supplying the outputs to the Modular Report Generator.
+- Resolving the workspace location (`ANAIS_WORKSPACE` env → `paths.workspace` in config → `~/.anais/reports`).
+- Normalizing the input container to a base APK via `prepare_input.py` (`.apk`/`.xapk`/`.apkm`/`.apks`/`.aab`).
+- Running `apktool` and `jadx` **concurrently** to extract Smali/resources and Java source.
+- Invoking the `analysis_tools/` scripts **in parallel**, each writing its own JSON, with per-tool output buffered and printed in a fixed order.
+- Supplying the JSON fragments to the Modular Report Generator, then generating derived outputs (`frida_auto.js`, `report.sarif`).
+
+**Parallelism note**: decompilation and the analysis tools run as backgrounded jobs joined with `wait`. Because each tool writes a distinct JSON file and reads only shared read-only trees, there are no inter-tool data races. A tool exiting non-zero logs a warning and never aborts the run.
 
 ---
 
@@ -89,6 +91,35 @@ Each Python script in this directory operates independently, meaning a failure i
 - **Key Detections**: Identifies segments possessing mathematically high entropy levels indicative of compressed payloads, encrypted strings, or packed stagers awaiting runtime decryption.
 - **Output**: Generates `entropy_analysis.json` often containing recommendations for Dynamic Analysis (e.g., using Frida) to dump the decrypted payload from memory.
 
+### 3.5 `detect_rasp.py`
+**Purpose**: Identifies RASP (Runtime Application Self-Protection) and packer/shell solutions so the analyst knows which runtime defenses to expect before dynamic analysis.
+- **Targets**: Native libraries (decoded `lib/` and raw APK entries), Smali/JADX package paths, `assets/`, `AndroidManifest.xml`, and Smali strings.
+- **Families**: Talsec/freeRASP, Appdome, Promon SHIELD, DexGuard, DexProtector, Zimperium zShield, LiAPP, AppSealing, Bangcle/SecNeo, Ijiami, Tencent Legu, Qihoo 360 Jiagu, Baidu Protect, Alibaba Mobisec, Seciron, Kiwano.
+- **Scoring**: Strong artifacts (exact library, stub/wrapper `Application` class, vendor package) score 35-45 each; keyword hits are capped at 24 per family. Only families scoring 25 or more get a verdict; the rest are listed under `weak_signals`.
+- **Heuristics**: Randomized hex native library names and random high-entropy asset names are reported vendor-neutrally under `heuristics`.
+- **Fallback**: Reads library and asset names straight from the APK zip when APKTool fails.
+- **Output**: Generates `rasp_report.json` (`type`, `confidence`, `detected`, `protection_details`, `evidence`, `weak_signals`, `heuristics`, `recommendations`).
+- **Tests**: `python3 -m unittest discover -s tests`
+
+### 3.6 `detect_framework.py`
+**Purpose**: Classifies the cross-platform framework so the analyst knows where the real logic lives, since Java/Smali SAST cannot see it.
+- **Detects**: Flutter (`libapp.so`), React Native (`index.android.bundle`, Hermes vs plain-JS), Xamarin/.NET (`assemblies/*.dll`), Unity (`libil2cpp.so`), Cordova/Ionic (`assets/www/`).
+- **Reports**: the logic artifact, the recommended decompiler and whether it is installed, and a coverage caveat when logic sits outside the scanned Java.
+- **Output**: `framework_report.json`.
+
+### 3.7 `signing_analyzer.py`
+**Purpose**: Inspects the signing block and certificate chain.
+- **Detects**: signature scheme versions (v1/v2/v3/v4), v1-only signing (Janus / CVE-2017-13156), debug certificates, self-signed context, weak signature algorithms (MD5/SHA1), short RSA keys; emits the certificate SHA-256 for cross-app reuse correlation.
+- **Output**: `signing_analysis.json`.
+
+### 3.8 `sdk_inventory.py`
+**Purpose**: Enumerates bundled third-party SDKs from package paths, classifies them (ads/analytics/tracker/payment/…), extracts a version when discoverable, and — only with `--online` (`ANAIS_CVE_ONLINE=1`) — queries OSV.dev for CVEs.
+- **Output**: `sdk_inventory.json`.
+
+### 3.9 `prepare_input.py` (pre-pipeline)
+**Purpose**: Normalizes any supported container to a single base APK and inventories splits/feature modules. Builds a universal APK from an `.aab` when `bundletool` is available.
+- **Output**: `prepare_input.json`; prints `BASE_APK=<path>` for the orchestrator.
+
 ---
 
 ## 4. Reporting: `report_generator_modular.py`
@@ -98,8 +129,18 @@ Once all tools complete execution, the orchestrator invokes the modular reporter
 **How it works**:
 - It consumes all intermediate `.json` fragments residing inside the temporary namespace.
 - It translates raw data into a human-readable, beautifully formatted Markdown file (`report.md`).
-- It applies severe threat algorithms to map all findings into a unified `App Risk Score` (0 - 100).
-- Finally, it consolidates the disparate JSON fragments into a single combined `report.json` document to allow pipeline automation and third-party dashboard integrations.
+- **Composite risk score**: `compute_composite_risk()` combines every analyzer's signal into one 0–100 score — YARA matches (cap 30), SAST severity log-damped (cap 25), packing/encrypted payloads (cap 20), signing issues (cap 10), manifest misconfig (cap 10), suspicious network (cap 10), commercial packer present (cap 5). The raw SAST `risk_score` is still shown alongside. Unlike the raw score it does not saturate from sheer finding count, so it is comparable across apps. The result is surfaced in `report.json` under `risk`.
+- Finally, it consolidates the disparate JSON fragments into a single combined `report.json` document.
+
+### 4.1 Derived outputs
+
+After the main report, `anais.sh` runs:
+- `frida_script_generator.py` → `reports/frida_auto.js`: a Frida script assembled from the findings (SSL unpinning, crypto/key logging, root/debug bypass, native JNI trace, vendor-specific notes).
+- `sarif_exporter.py` → `reports/report.sarif`: SARIF 2.1.0 export of SAST findings for CI/code scanning.
+
+### 4.2 Version diffing
+
+`diff_reports.py <old report.json> <new report.json>` compares two analyses and reports deltas in risk score, permissions, network endpoints, native libraries, SDKs, framework and RASP — useful for catching a malicious update.
 
 ---
 
@@ -110,5 +151,5 @@ Adding a completely new analysis capability is frictionless due to the modular a
 1. **Create the Python Script**: Create a file in `analysis_tools/` (e.g., `analysis_tools/custom_heuristic.py`).
 2. **Accept Directories**: Ensure your script accepts the paths from the command line (e.g., `<apk_path>`, `<decompiled_dir>`, `<temp_dir>`).
 3. **Generate Standardized Output**: Have your script output its findings to a JSON file inside the temporary directory (e.g., `temp_dir/custom_findings.json`).
-4. **Link to Orchestrator**: Add a bash call to your script inside the `anais.sh` main sequence loop.
+4. **Link to Orchestrator**: Add a `run_*` function and append its name to the `par_tasks` array in `anais.sh` so it runs in parallel with the other tools.
 5. **Update Reporter (Optional)**: If you desire the new data manually structured in the Markdown output, update `report_generator_modular.py` to parse your specific `custom_findings.json` outputs and format the markdown sections. (Otherwise, standard JSON will just be bundled automatically).

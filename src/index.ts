@@ -12,6 +12,7 @@ export * from "./types";
 
 export const executeForensicAnalysis = async (
   apkPath: string,
+  extraArgs: string[] = [],
 ): Promise<AnalysisResult> => {
   return new Promise((resolve, reject) => {
     // Resolve absolute path
@@ -45,8 +46,8 @@ export const executeForensicAnalysis = async (
 
     console.log(`🚀 Executing analysis...\n`);
 
-    // Spawn the bash script
-    const analysis = spawn("bash", [anaisScript, absoluteApkPath], {
+    // Spawn the bash script (passthrough flags before the APK path)
+    const analysis = spawn("bash", [anaisScript, ...extraArgs, absoluteApkPath], {
       cwd: scriptDir,
       env: {
         ...process.env,

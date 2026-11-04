@@ -11,12 +11,20 @@ Anais analyzes APK files and generates detailed security reports. It can detect 
 
 **Features:**
 
-- Decompiles APKs with APKTool and JADX
+- Accepts APK and bundle inputs: `.apk`, `.xapk`, `.apkm`, `.apks`, and `.aab` (AAB needs `bundletool`)
+- Decompiles APKs with APKTool and JADX (run in parallel)
 - Scans for malware with YARA rules
 - Detects obfuscation (ProGuard, R8, DPT-Shell, DexProtector, Bangcle)
+- Detects RASP / app-protection vendors (Talsec, Appdome, Promon, DexGuard, zShield, LiAPP, Tencent Legu, 360 Jiagu, and more)
+- Identifies the app framework (Flutter, React Native, Xamarin/.NET, Unity, Cordova) and points to where the real logic lives
+- Inventories third-party SDKs and flags trackers/ad/analytics (optional offline-by-default CVE lookup via OSV)
+- Inspects APK signing: scheme versions, debug certificates, v1-only (Janus) risk, weak keys
 - Runs static security analysis (SAST)
 - Analyzes network behavior and manifest permissions
 - Identifies encrypted payloads through entropy analysis
+- Produces a single composite risk score across all signals
+- Generates a target-specific Frida script and a SARIF export for CI
+- Diffs two analyses to spot changes between app versions
 - Supports dynamic analysis with Frida
 
 ## Installation
@@ -49,10 +57,26 @@ npm run build
 Basic analysis:
 
 ```bash
-anais /path/to/app.apk
+anais /path/to/app.apk          # also: .xapk .apkm .apks .aab
+anais -y custom_rules.yar /path/to/app.apk   # custom YARA rules (repeatable)
 ```
 
-Reports are saved to `~/Documents/Anais-Reports/` in both Markdown and JSON formats.
+Reports are saved to `~/.anais/reports/` by default, in both Markdown and JSON formats.
+Override the location with the `ANAIS_WORKSPACE` environment variable, or `paths.workspace`
+in `analyzer_config.json`. (The default is no longer `~/Documents`, which syncs to iCloud
+on macOS and evicts large decompiled trees.)
+
+**Compare two versions of an app:**
+
+```bash
+python3 analysis_tools/diff_reports.py old/report.json new/report.json
+```
+
+**Look up CVEs for bundled SDKs (requires network):**
+
+```bash
+ANAIS_CVE_ONLINE=1 anais /path/to/app.apk   # queries OSV.dev for known-version SDKs
+```
 
 **Dynamic analysis:**
 
@@ -76,7 +100,9 @@ Edit `analyzer_config.json` to customize analysis behavior, enable/disable tools
 Each analysis generates:
 
 - **report.md** - Human-readable report with findings and recommendations
-- **report.json** - Machine-readable data for automation
+- **report.json** - Machine-readable data for automation (includes the composite `risk` block)
+- **report.sarif** - SARIF 2.1.0 export of SAST findings for GitHub code scanning / CI
+- **frida_auto.js** - Target-specific Frida script generated from the findings
 - Decompiled source code (APKTool and JADX output)
 - YARA scan results
 - SAST findings

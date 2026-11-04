@@ -5,9 +5,9 @@
     "description": "Comprehensive Anais Static Core"
   },
   "paths": {
-    "workspace": "~/Documents/Anais-Reports",
+    "workspace": "~/.anais/reports",
     "tools": "./analysis_tools",
-    "reports": "~/Documents/Anais-Reports/reports",
+    "reports": "~/.anais/reports/reports",
     "yara_rules": "./rules/yara_general_rules.yar"
   },
   "tools": {

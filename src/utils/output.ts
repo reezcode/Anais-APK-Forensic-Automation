@@ -2,6 +2,8 @@
  * Output formatting utilities
  */
 
+import { getVersion } from "./paths";
+
 export const colors = {
   reset: "\x1b[0m",
   bright: "\x1b[1m",
@@ -35,11 +37,13 @@ export function printSeparator(length: number = 50): void {
 }
 
 export function printBanner(): void {
+  const version = getVersion();
+  const title = `  Anais APK Forensic Automation - CLI v${version}`;
   console.log(
     `\n${colors.cyan}╔═══════════════════════════════════════════════════════════╗${colors.reset}`,
   );
   console.log(
-    `${colors.cyan}║   Anais APK Forensic Automation - CLI v1.0.0            ║${colors.reset}`,
+    `${colors.cyan}║${title.padEnd(59)}║${colors.reset}`,
   );
   console.log(
     `${colors.cyan}║   Comprehensive APK Security Analysis & SAST             ║${colors.reset}`,

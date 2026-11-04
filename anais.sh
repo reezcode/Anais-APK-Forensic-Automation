@@ -44,10 +44,40 @@ NC='\033[0m' # No Color
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORK_DIR="${HOME}/Documents/Anais-Reports"
 TOOLS_DIR="${SCRIPT_DIR}/analysis_tools"
 CONFIG_FILE="${SCRIPT_DIR}/analyzer_config.json"
 ERROR_LOG="${SCRIPT_DIR}/analysis_errors.log"
+
+# Workspace location, resolved in priority order:
+#   1. ANAIS_WORKSPACE environment variable
+#   2. paths.workspace in analyzer_config.json
+#   3. default ~/.anais/reports
+# Default is deliberately NOT ~/Documents: that folder syncs to iCloud on macOS,
+# which evicts large decompiled trees and makes later reads block on download.
+resolve_workspace() {
+    if [ -n "$ANAIS_WORKSPACE" ]; then
+        echo "$ANAIS_WORKSPACE"
+        return
+    fi
+    if [ -f "$CONFIG_FILE" ]; then
+        local cfg
+        cfg=$(python3 -c "
+import json, os
+try:
+    p = json.load(open('$CONFIG_FILE')).get('paths', {}).get('workspace', '')
+    print(os.path.expanduser(p) if p else '')
+except Exception:
+    print('')
+" 2>/dev/null)
+        if [ -n "$cfg" ]; then
+            echo "$cfg"
+            return
+        fi
+    fi
+    echo "${HOME}/.anais/reports"
+}
+
+WORK_DIR="$(resolve_workspace)"
 
 # Ensure workspace directory exists
 if [ ! -d "$WORK_DIR" ]; then
@@ -148,8 +178,9 @@ check_dependencies() {
 # Initialize workspace
 init_workspace() {
     local apk_path="$1"
-    local apk_name=$(basename "$apk_path" .apk)
-    
+    local apk_name=$(basename "$apk_path")
+    apk_name="${apk_name%.*}"
+
     APK_WORK_DIR="${WORK_DIR}/${apk_name}_$(date +%Y%m%d_%H%M%S)"
     DECOMPILED_DIR="${APK_WORK_DIR}/decompiled"
     JADX_OUTPUT="${APK_WORK_DIR}/jadx_output"
@@ -161,6 +192,31 @@ init_workspace() {
     mkdir -p "$APK_WORK_DIR" "$DECOMPILED_DIR" "$JADX_OUTPUT" "$TEMP_DIR" "$REPORTS_DIR"
     
     log_success "Workspace initialized: $APK_WORK_DIR"
+}
+
+# Normalize the input container (XAPK/APKM/APKS/AAB) to a single base APK.
+# Sets APK_PATH to the resolved base APK; records bundle structure for the report.
+prepare_input() {
+    log_section "Preparing Input"
+
+    local prepared_dir="${TEMP_DIR}/prepared"
+    mkdir -p "$prepared_dir"
+
+    local out
+    if out=$(python3 "${TOOLS_DIR}/prepare_input.py" \
+        "$APK_PATH" "$prepared_dir" "${TEMP_DIR}/prepare_input.json" 2>> "$ERROR_LOG"); then
+        echo "$out" | grep -v '^BASE_APK=' || true
+        local base
+        base=$(echo "$out" | sed -n 's/^BASE_APK=//p' | tail -1)
+        if [ -n "$base" ] && [ -f "$base" ]; then
+            APK_PATH="$base"
+            log_success "Using base APK: $(basename "$APK_PATH")"
+        else
+            log_warning "Input preparation returned no base APK; using original input"
+        fi
+    else
+        log_warning "Input preparation failed; using original input as-is"
+    fi
 }
 
 # APK Basic Info Extraction
@@ -228,8 +284,16 @@ check_apk_protection() {
                     log_error "Failed to fix APK headers"
                     return 1
                 fi
+            else
+                log_warning "ZIP test failed but archive is not flagged as encrypted"
+                log_info "Continuing analysis with original APK"
+                APK_TO_ANALYZE="$apk_path"
+                return 0
             fi
         fi
+
+        log_error "Unable to determine encryption state"
+        return 1
     else
         log_success "APK is not encrypted"
         APK_TO_ANALYZE="$apk_path"
@@ -458,6 +522,52 @@ for loc in data.get('likely_unpack_locations', [])[:3]:
     fi
 }
 
+detect_framework() {
+    log_section "Detecting Cross-Platform Framework"
+
+    if python3 "${TOOLS_DIR}/detect_framework.py" \
+        "$APK_PATH" \
+        "$DECOMPILED_DIR" \
+        "${TEMP_DIR}/framework_report.json" 2>> "$ERROR_LOG"; then
+        log_success "Framework detection completed"
+
+        if [ -f "${TEMP_DIR}/framework_report.json" ]; then
+            local primary=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/framework_report.json')).get('primary','Native / Java-Kotlin'))" 2>/dev/null || echo "unknown")
+            log_info "Primary framework: $primary"
+            local warn=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/framework_report.json')).get('coverage_warning') or '')" 2>/dev/null || echo "")
+            if [ -n "$warn" ]; then
+                log_warning "$warn"
+            fi
+        fi
+    else
+        log_warning "Framework detection had issues (check $ERROR_LOG)"
+    fi
+}
+
+detect_rasp() {
+    log_section "Detecting RASP / Protection Solutions"
+
+    if python3 "${TOOLS_DIR}/detect_rasp.py" \
+        "$APK_TO_ANALYZE" \
+        "$DECOMPILED_DIR" \
+        "$JADX_OUTPUT" \
+        "${TEMP_DIR}/rasp_report.json" 2>> "$ERROR_LOG"; then
+        log_success "RASP detection completed"
+
+        if [ -f "${TEMP_DIR}/rasp_report.json" ]; then
+            local rasp_summary=$(python3 -c "import json; d=json.load(open('${TEMP_DIR}/rasp_report.json')); print(', '.join(f'{k} ({v}%)' for k, v in d.get('protection_details', {}).items()) or d.get('type', 'None Detected'))" 2>/dev/null || echo "None Detected")
+            if [ "$rasp_summary" != "None Detected" ]; then
+                log_warning "Detected Protection/RASP: $rasp_summary"
+            else
+                log_info "No known RASP solution detected"
+            fi
+        fi
+    else
+        # Non-fatal: set -e would otherwise abort the remaining pipeline
+        log_warning "RASP detection encountered issues (check $ERROR_LOG)"
+    fi
+}
+
 # Run entropy analysis
 run_entropy_analysis() {
     log_section "Running Entropy Analysis"
@@ -586,6 +696,50 @@ run_sast_analysis() {
     fi
 }
 
+# Inventory third-party SDKs (offline; set ANAIS_CVE_ONLINE=1 for OSV lookup)
+inventory_sdks() {
+    log_section "Inventorying Third-Party SDKs"
+
+    local online_flag=""
+    if [ "$ANAIS_CVE_ONLINE" = "1" ]; then
+        online_flag="--online"
+    fi
+
+    if python3 "${TOOLS_DIR}/sdk_inventory.py" \
+        "$DECOMPILED_DIR" \
+        "$JADX_OUTPUT" \
+        "${TEMP_DIR}/sdk_inventory.json" \
+        $online_flag 2>> "$ERROR_LOG"; then
+        if [ -f "${TEMP_DIR}/sdk_inventory.json" ]; then
+            local n=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/sdk_inventory.json')).get('total',0))" 2>/dev/null || echo "0")
+            local t=$(python3 -c "import json; print(len(json.load(open('${TEMP_DIR}/sdk_inventory.json')).get('trackers',[])))" 2>/dev/null || echo "0")
+            log_success "SDK inventory completed"
+            log_info "Detected ${n} SDK(s) | ${t} tracker/ad/analytics"
+        fi
+    else
+        log_warning "SDK inventory had issues (check error log)"
+    fi
+}
+
+# Analyze APK signing block and certificates
+analyze_signing() {
+    log_section "Analyzing APK Signing"
+
+    if python3 "${TOOLS_DIR}/signing_analyzer.py" \
+        "$APK_TO_ANALYZE" \
+        "${TEMP_DIR}/signing_analysis.json" 2>> "$ERROR_LOG"; then
+
+        if [ -f "${TEMP_DIR}/signing_analysis.json" ]; then
+            local schemes=$(python3 -c "import json; d=json.load(open('${TEMP_DIR}/signing_analysis.json')); print(','.join(k for k,v in d.get('schemes',{}).items() if v) or 'none')" 2>/dev/null || echo "unknown")
+            local nfind=$(python3 -c "import json; print(len(json.load(open('${TEMP_DIR}/signing_analysis.json')).get('findings', [])))" 2>/dev/null || echo "0")
+            log_success "Signing analysis completed"
+            log_info "Signature schemes: ${schemes} | Findings: ${nfind}"
+        fi
+    else
+        log_warning "Signing analysis had issues (check error log)"
+    fi
+}
+
 # Analyze AndroidManifest
 analyze_manifest() {
     log_section "Analyzing AndroidManifest.xml"
@@ -670,6 +824,30 @@ generate_report() {
     fi
 }
 
+# Generate derived outputs: a tailored Frida script and a SARIF export
+generate_outputs() {
+    log_section "Generating Derived Outputs"
+
+    local pkg=$(python3 -c "import json; print(json.load(open('${TEMP_DIR}/basic_info.json')).get('package_name','') or '<package.name>')" 2>/dev/null || echo "<package.name>")
+
+    if python3 "${TOOLS_DIR}/frida_script_generator.py" \
+        "$TEMP_DIR" "${REPORTS_DIR}/frida_auto.js" "$pkg" 2>> "$ERROR_LOG"; then
+        log_success "Frida script: ${REPORTS_DIR}/frida_auto.js"
+    else
+        log_warning "Frida script generation had issues (check error log)"
+    fi
+
+    if [ -f "${TEMP_DIR}/sast_findings.json" ]; then
+        if python3 "${TOOLS_DIR}/sarif_exporter.py" \
+            "${TEMP_DIR}/sast_findings.json" "${REPORTS_DIR}/report.sarif" \
+            "$(basename "$APK_PATH")" 2>> "$ERROR_LOG"; then
+            log_success "SARIF report: ${REPORTS_DIR}/report.sarif"
+        else
+            log_warning "SARIF export had issues (check error log)"
+        fi
+    fi
+}
+
 # Main analysis workflow
 main() {
     print_banner
@@ -715,31 +893,61 @@ main() {
     
     # Initialize workspace
     init_workspace "$APK_PATH"
-    
+
+    # Normalize input container (XAPK/APKM/APKS/AAB) -> base APK (updates APK_PATH)
+    prepare_input
+
     # Extract basic info
     extract_basic_info "$APK_PATH"
     
     # Check and bypass protections
     if check_apk_protection "$APK_PATH"; then
-        # Decompile
-        decompile_apktool "$APK_TO_ANALYZE" || log_warning "APKTool failed, continuing..."
-        decompile_jadx "$APK_TO_ANALYZE" || log_warning "JADX failed, continuing..."
-        
-        # Detect obfuscation
-        detect_obfuscation
-        
-        # Run entropy analysis (especially useful for protected APKs)
-        run_entropy_analysis "$APK_TO_ANALYZE"
-        
-        # Security analysis
-        run_yara_scan "$APK_TO_ANALYZE"
-        analyze_manifest
-        analyze_network_artifacts
-        run_sast_analysis
-        
+        # Decompile with APKTool and JADX concurrently (both are slow and independent)
+        log_section "Decompiling (APKTool + JADX in parallel)"
+        decompile_apktool "$APK_TO_ANALYZE" > "${TEMP_DIR}/log_apktool.txt" 2>&1 &
+        local apktool_pid=$!
+        decompile_jadx "$APK_TO_ANALYZE" > "${TEMP_DIR}/log_jadx.txt" 2>&1 &
+        local jadx_pid=$!
+        wait "$apktool_pid" || log_warning "APKTool failed, continuing..."
+        wait "$jadx_pid" || log_warning "JADX failed, continuing..."
+        cat "${TEMP_DIR}/log_apktool.txt" 2>/dev/null || true
+        cat "${TEMP_DIR}/log_jadx.txt" 2>/dev/null || true
+
+        # Independent analysis tools: run concurrently, buffer output, print in order.
+        # Each tool reads the decompiled trees and writes its own JSON, so there are
+        # no inter-tool dependencies; parallelism cuts wall-clock time on large apps.
+        log_section "Running analysis tools in parallel"
+        local -a par_tasks=(detect_obfuscation detect_framework detect_rasp \
+                            run_entropy_analysis run_yara_scan analyze_signing \
+                            inventory_sdks analyze_manifest analyze_network_artifacts \
+                            run_sast_analysis)
+        local -a par_pids=()
+        local task
+        for task in "${par_tasks[@]}"; do
+            case "$task" in
+                run_entropy_analysis|run_yara_scan)
+                    "$task" "$APK_TO_ANALYZE" > "${TEMP_DIR}/log_${task}.txt" 2>&1 &
+                    ;;
+                *)
+                    "$task" > "${TEMP_DIR}/log_${task}.txt" 2>&1 &
+                    ;;
+            esac
+            par_pids+=("$!")
+        done
+        local i
+        for i in "${!par_tasks[@]}"; do
+            wait "${par_pids[$i]}" || log_warning "${par_tasks[$i]} exited non-zero (see output below)"
+        done
+        for task in "${par_tasks[@]}"; do
+            cat "${TEMP_DIR}/log_${task}.txt" 2>/dev/null || true
+        done
+
         # Generate report
         generate_report
-        
+
+        # Derived outputs (Frida script, SARIF)
+        generate_outputs
+
         log_section "Analysis Complete"
         log_success "All results saved to: $APK_WORK_DIR"
         log_info "Open report: cat $REPORT_FILE"

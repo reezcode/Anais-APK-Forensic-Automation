@@ -1,6 +1,6 @@
 {
   "name": "anais-apk-forensic",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Comprehensive APK security analysis and forensic investigation tool for Android applications",
   "main": "dist/index.js",
   "bin": {
@@ -11,11 +11,10 @@
     "prepublishOnly": "npm run build",
     "postinstall": "chmod +x anais.sh scripts/*.sh 2>/dev/null || true",
     "start": "npm run build && node dist/cli.js",
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "python3 -m unittest discover -s tests"
   },
   "dependencies": {
-    "@types/node": "^20.0.0",
-    "anais-apk-forensic": "^1.0.2"
+    "@types/node": "^20.0.0"
   },
   "devDependencies": {
     "ts-node": "^10.0.0",
