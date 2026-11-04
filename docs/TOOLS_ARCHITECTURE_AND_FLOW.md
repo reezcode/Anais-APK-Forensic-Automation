@@ -142,6 +142,15 @@ After the main report, `anais.sh` runs:
 
 `diff_reports.py <old report.json> <new report.json>` compares two analyses and reports deltas in risk score, permissions, network endpoints, native libraries, SDKs, framework and RASP — useful for catching a malicious update.
 
+### 4.3 REA bridge (optional deep analysis)
+
+`rea_bridge.py` runs only when `ANAIS_REA=1`. It is a two-mode integration with [REA](https://github.com/morluto/rea):
+
+- **Phase 1 (in-pipeline, cheap):** it invokes REA's fast, deterministic mobile commands — `inspect-apk-signature`, `identify-flutter-build`, `inspect-il2cpp-metadata` (Unity), `inspect-managed-members` (Xamarin/.NET), and `inspect-native-exports` per `.so` — parses each `normalized_result`, and records the `evidence_id` plus a short summary into `rea_report.json`. The report renders this as the **REA Deep Analysis** section. None of these need a native disassembler.
+- **Phase 2 (agent-driven, deep):** it writes `reports/rea_targets.json`, a handoff listing the expensive questions (trace `JNI_OnLoad` and the kill path for a detected RASP vendor, decompile `libapp.so` with blutter, map the login flow, decompile Xamarin assemblies). An agent with REA's MCP tools connected answers these on demand; the slow Ghidra/graph/dynamic work is deliberately kept out of the automated run.
+
+Command resolution: `$ANAIS_REA_CMD` → `rea` on PATH → `npx -y rea-agents@<ver>`. `ANAIS_REA_SKIP=1` disables it, `ANAIS_REA_MAX_SO` caps the native-export scan, `ANAIS_REA_TIMEOUT` bounds each call. REA preserves observation/inference/unknown distinctions and Evidence IDs; the bridge keeps those in the report rather than flattening them into findings.
+
 ---
 
 ## 5. How to Extend Anais (Adding a New Tool)

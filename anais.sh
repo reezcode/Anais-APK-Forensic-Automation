@@ -824,6 +824,30 @@ generate_report() {
     fi
 }
 
+# Optional deep-analysis bridge to REA (gated on ANAIS_REA=1)
+run_rea_bridge() {
+    if [ "$ANAIS_REA" != "1" ]; then
+        return 0
+    fi
+    log_section "REA Bridge (deep analysis)"
+
+    if python3 "${TOOLS_DIR}/rea_bridge.py" \
+        "$APK_PATH" \
+        "$DECOMPILED_DIR" \
+        "$TEMP_DIR" \
+        "${TEMP_DIR}/rea_report.json" \
+        "${REPORTS_DIR}/rea_targets.json" 2>> "$ERROR_LOG"; then
+        if [ -f "${TEMP_DIR}/rea_report.json" ]; then
+            local ok=$(python3 -c "import json; d=json.load(open('${TEMP_DIR}/rea_report.json')); print(sum(1 for r in d.get('runs',[]) if 'evidence_id' in r))" 2>/dev/null || echo "0")
+            local tot=$(python3 -c "import json; print(len(json.load(open('${TEMP_DIR}/rea_report.json')).get('runs',[])))" 2>/dev/null || echo "0")
+            log_success "REA bridge completed (${ok}/${tot} analyses)"
+            log_info "Deep-dive targets: ${REPORTS_DIR}/rea_targets.json"
+        fi
+    else
+        log_warning "REA bridge had issues (check $ERROR_LOG)"
+    fi
+}
+
 # Generate derived outputs: a tailored Frida script and a SARIF export
 generate_outputs() {
     log_section "Generating Derived Outputs"
@@ -941,6 +965,9 @@ main() {
         for task in "${par_tasks[@]}"; do
             cat "${TEMP_DIR}/log_${task}.txt" 2>/dev/null || true
         done
+
+        # Optional deep analysis via REA (before report so it can be included)
+        run_rea_bridge
 
         # Generate report
         generate_report

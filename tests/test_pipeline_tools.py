@@ -22,6 +22,7 @@ import sarif_exporter  # noqa: E402
 import sdk_inventory  # noqa: E402
 import diff_reports  # noqa: E402
 import prepare_input  # noqa: E402
+import rea_bridge  # noqa: E402
 from report_generator_modular import ModularReportGenerator  # noqa: E402
 
 HERMES_MAGIC = bytes([0xC6, 0x1F, 0xBC, 0x1F])
@@ -207,6 +208,63 @@ class CompositeRiskTests(unittest.TestCase):
         self._write("yara_enhanced.json", {"summary": {"critical_findings": 3, "high_severity": 0}})
         risk = self._gen().compute_composite_risk()
         self.assertEqual(risk["score"], 30)  # capped
+
+
+class ReaBridgeTests(unittest.TestCase):
+    def test_exports_summary_flags_stripped(self):
+        self.assertIn("note", rea_bridge.summarize_exports({"exports": []}))
+        s = rea_bridge.summarize_exports({"exports": [{"name": "JNI_OnLoad"}, {"name": "foo"}]})
+        self.assertEqual(s["export_count"], 2)
+        self.assertEqual(s["jni_entry_points"], ["JNI_OnLoad"])
+
+    def test_signature_summary_detects_integrity_failure(self):
+        nr = {"schemes": {
+            "v1": {"present": False, "signers": []},
+            "v2": {"present": True, "signers": [
+                {"certificate": {"sha256_fingerprint": "abc"},
+                 "digests": [{"matches_apk": False}]}]},
+        }}
+        s = rea_bridge.summarize_signature(nr)
+        self.assertEqual(s["schemes_present"], ["v2"])
+        self.assertFalse(s["digest_integrity_ok"])
+        self.assertEqual(s["signer_fingerprints"], ["abc"])
+
+    def test_flutter_summary_pulls_snapshot_hash(self):
+        nr = {"flutter_detected": True, "abis": [
+            {"abi": "arm64-v8a", "libapp": {"snapshot_hash_candidates": ["deadbeef"]}}]}
+        s = rea_bridge.summarize_flutter(nr)
+        self.assertEqual(s["snapshot_hashes"], ["deadbeef"])
+        self.assertEqual(s["abis"], ["arm64-v8a"])
+
+    def test_resolve_cmd_prefers_env_override(self):
+        old = os.environ.get("ANAIS_REA_CMD")
+        os.environ["ANAIS_REA_CMD"] = "/usr/bin/rea custom"
+        try:
+            self.assertEqual(rea_bridge.resolve_rea_cmd(), ["/usr/bin/rea", "custom"])
+        finally:
+            if old is None:
+                del os.environ["ANAIS_REA_CMD"]
+            else:
+                os.environ["ANAIS_REA_CMD"] = old
+
+    def test_skip_flag_produces_unavailable_report(self):
+        with tempfile.TemporaryDirectory() as d:
+            rep = os.path.join(d, "rea.json")
+            tgt = os.path.join(d, "targets.json")
+            argv = ["rea_bridge.py", "app.apk", d, d, rep, tgt]
+            old = sys.argv
+            os.environ["ANAIS_REA_SKIP"] = "1"
+            sys.argv = argv
+            try:
+                try:
+                    rea_bridge.main()
+                except SystemExit:
+                    pass
+            finally:
+                sys.argv = old
+                del os.environ["ANAIS_REA_SKIP"]
+            self.assertFalse(json.loads(open(rep).read())["available"])
+            self.assertTrue(os.path.exists(tgt))
 
 
 if __name__ == "__main__":

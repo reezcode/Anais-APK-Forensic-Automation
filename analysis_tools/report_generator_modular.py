@@ -44,6 +44,7 @@ class ModularReportGenerator:
             'input_prep': 'prepare_input.json',
             'framework': 'framework_report.json',
             'sdk_inventory': 'sdk_inventory.json',
+            'rea': 'rea_report.json',
         }
         
         for key, filename in result_files.items():
@@ -78,6 +79,8 @@ class ModularReportGenerator:
         md.append("- [RASP Detection](#rasp-detection)")
         md.append("- [Signing & Certificates](#signing)")
         md.append("- [Third-Party SDKs](#sdks)")
+        if self.results.get('rea', {}).get('available'):
+            md.append("- [REA Deep Analysis](#rea)")
         md.append("- 🔗 [Security Findings (SAST)](./sast_findings.md)")
         md.append("- 🔗 [AndroidManifest Analysis](./manifest_analysis.md)")
         md.append("- 🔗 [Network Analysis](./network_analysis.md)")
@@ -113,6 +116,11 @@ class ModularReportGenerator:
         # Third-party SDKs
         md.append("\n## 📦 Third-Party SDKs {#sdks}\n")
         self._add_sdk_info(md)
+
+        # REA deep analysis (only when the bridge ran)
+        if self.results.get('rea', {}).get('available'):
+            md.append("\n## 🔬 REA Deep Analysis {#rea}\n")
+            self._add_rea_info(md)
 
         # Summary sections with links to details
         md.append("\n## 📊 Analysis Results Summary\n")
@@ -588,6 +596,36 @@ class ModularReportGenerator:
         md.append("")
 
     SEVERITY_ICON = {'critical': '🔴', 'high': '🔴', 'medium': '🟠', 'low': '🟡'}
+
+    def _add_rea_info(self, md):
+        """Add REA deep-analysis bridge results"""
+        rea = self.results.get('rea', {})
+        runs = rea.get('runs', [])
+
+        md.append(f"*Analyses run via `{rea.get('command', 'rea')}`. "
+                  "Evidence IDs reference REA's retained records.*\n")
+
+        if runs:
+            md.append("| REA Tool | Target | Result | Evidence ID |")
+            md.append("|----------|--------|--------|-------------|")
+            for r in runs:
+                if r.get('error'):
+                    result = f"⚠️ {r['error'][:60]}"
+                    ev = '—'
+                else:
+                    summ = r.get('summary', {})
+                    result = ', '.join(f"{k}={v}" for k, v in list(summ.items())[:3]) if isinstance(summ, dict) else str(summ)[:70]
+                    ev = f"`{(r.get('evidence_id') or '')[:18]}…`"
+                md.append(f"| {r.get('tool')} | `{r.get('target')}` | {result or '—'} | {ev} |")
+            md.append("")
+
+        for note in rea.get('notes', []):
+            md.append(f"> {note}")
+        if rea.get('notes'):
+            md.append("")
+
+        md.append("See `rea_targets.json` for the deep-dive questions queued for an agent-driven REA pass "
+                  "(native decompilation, call-flow tracing, dynamic ADB/Frida).\n")
 
     def _add_sdk_info(self, md):
         """Add third-party SDK inventory"""

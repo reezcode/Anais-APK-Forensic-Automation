@@ -25,6 +25,7 @@ Anais analyzes APK files and generates detailed security reports. It can detect 
 - Produces a single composite risk score across all signals
 - Generates a target-specific Frida script and a SARIF export for CI
 - Diffs two analyses to spot changes between app versions
+- Optional deep analysis via REA (decompilation, native exports, Flutter/Unity/.NET, call-flow) with an agent handoff file
 - Supports dynamic analysis with Frida
 
 ## Installation
@@ -77,6 +78,17 @@ python3 analysis_tools/diff_reports.py old/report.json new/report.json
 ```bash
 ANAIS_CVE_ONLINE=1 anais /path/to/app.apk   # queries OSV.dev for known-version SDKs
 ```
+
+**Deep analysis via REA (optional):**
+
+```bash
+ANAIS_REA=1 anais /path/to/app.apk          # runs REA's cheap mobile analyses + emits rea_targets.json
+```
+
+Requires the `rea` CLI on PATH or `npx` (set `ANAIS_REA_CMD` to override). The bridge runs
+only fast, deterministic REA commands (APK signature, native exports, Flutter/Unity/.NET
+identity) and writes `reports/rea_targets.json` listing the expensive questions (native
+decompilation, call-flow tracing, dynamic ADB/Frida) for an agent-driven REA pass.
 
 **Dynamic analysis:**
 
