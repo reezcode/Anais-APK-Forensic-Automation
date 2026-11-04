@@ -73,23 +73,47 @@ appear in the session.
 
 ## The `anais-agent` skill
 
-`.claude/skills/anais-agent/SKILL.md` makes the agent reach for Anais on APK
-forensic requests and routes the phases (static → REA deep → Frida → dynamic),
-prefers the MCP tools when connected and falls back to the CLI otherwise, and
-hands deep native/managed work to the `reverse-engineer-anything` skill.
+The skill makes an agent reach for Anais on APK forensic requests and routes the
+phases (static → REA deep → Frida → dynamic), prefers the MCP tools when
+connected and falls back to the CLI otherwise, and hands deep native/managed work
+to a general RE integration (e.g. `reverse-engineer-anything`).
 
-Install it where your client looks for skills:
+It is **host-neutral** — standard Agent-Skills format (YAML `name`/`description`
+frontmatter + Markdown body), no host-specific content. The canonical copy lives
+in the repo at `skills/anais-agent/`:
 
-- **Project-scoped** (already in this repo): `.claude/skills/anais-agent/` — works
-  for any client opened on this project.
-- **User-scoped** (all projects): copy it to `~/.claude/skills/anais-agent/`.
-
-```bash
-cp -r /abs/path/Anais/.claude/skills/anais-agent ~/.claude/skills/
+```
+skills/anais-agent/
+  SKILL.md                      # router: when to use Anais, phase map, safety
+  references/
+    pipeline.md                 # every stage, outputs, run order, env flags
+    reading-reports.md          # report.json schema + composite risk
+    rasp-frameworks.md          # RASP/packer vendors + framework handling
+    deep-and-dynamic.md         # REA deep-pass + dynamic-bridge contracts
 ```
 
-Then invoke it by name (`/anais-agent`) or let the client auto-select it from the
-description on a matching request.
+`SKILL.md` is the always-loaded summary; the `references/*.md` are loaded on
+demand, so the model gets depth without carrying it all at once (the same
+pattern REA uses). `.claude/skills/anais-agent` in this repo is a symlink to the
+canonical copy so Claude Code auto-discovers it here.
+
+### Install into any host
+
+Copy the skill into whatever directory your host scans for skills. The helper
+dereferences the symlink and drops real files:
+
+```bash
+# default target: ~/.claude/skills  (Claude Code / Claude Desktop, user scope)
+scripts/install_skills.sh
+
+# any other host — pass its skill directory
+scripts/install_skills.sh ~/.config/<host>/skills
+```
+
+Or copy by hand: `cp -RL skills/anais-agent <host-skill-dir>/`. Restart/reconnect
+the host, then invoke the skill by name or let it auto-select from the
+description on a matching request. If a host has no skill mechanism, the MCP
+tools still work on their own — the skill is only the routing/knowledge layer.
 
 ## Relationship to REA
 

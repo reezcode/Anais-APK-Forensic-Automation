@@ -55,6 +55,7 @@
     "dist",
     "bin",
     "src",
+    "skills",
     ".claude",
     "anais.sh",
     "analyzer_config.json",
