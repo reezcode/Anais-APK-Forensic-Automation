@@ -10,10 +10,23 @@ import {
 
 export * from "./types";
 
+export interface ExecuteOptions {
+  /**
+   * Where to echo the script's human-readable output. Defaults to stdout.
+   * The MCP server passes a stderr writer so the stdio JSON-RPC channel on
+   * stdout stays clean.
+   */
+  log?: (chunk: string) => void;
+  /** Extra environment variables (e.g. ANAIS_REA=1) merged into the child env. */
+  env?: NodeJS.ProcessEnv;
+}
+
 export const executeForensicAnalysis = async (
   apkPath: string,
   extraArgs: string[] = [],
+  opts: ExecuteOptions = {},
 ): Promise<AnalysisResult> => {
+  const log = opts.log ?? ((chunk: string) => process.stdout.write(chunk));
   return new Promise((resolve, reject) => {
     // Resolve absolute path
     const absoluteApkPath = resolveAbsolutePath(apkPath);
@@ -28,8 +41,8 @@ export const executeForensicAnalysis = async (
       });
     }
 
-    console.log(`\n📱 APK: ${getBasename(absoluteApkPath)}`);
-    console.log(`📂 Path: ${absoluteApkPath}\n`);
+    log(`\n📱 APK: ${getBasename(absoluteApkPath)}\n`);
+    log(`📂 Path: ${absoluteApkPath}\n`);
 
     // Get paths
     const scriptDir = getProjectRoot();
@@ -44,7 +57,7 @@ export const executeForensicAnalysis = async (
       });
     }
 
-    console.log(`🚀 Executing analysis...\n`);
+    log(`🚀 Executing analysis...\n`);
 
     // Spawn the bash script (passthrough flags before the APK path)
     const analysis = spawn("bash", [anaisScript, ...extraArgs, absoluteApkPath], {
@@ -52,6 +65,7 @@ export const executeForensicAnalysis = async (
       env: {
         ...process.env,
         PYTHONWARNINGS: "ignore",
+        ...(opts.env ?? {}),
       },
     });
 
@@ -63,7 +77,7 @@ export const executeForensicAnalysis = async (
     // Capture stdout
     analysis.stdout.on("data", (data) => {
       const output = data.toString();
-      process.stdout.write(output);
+      log(output);
       stdout += output;
 
       // Extract workspace directory from output

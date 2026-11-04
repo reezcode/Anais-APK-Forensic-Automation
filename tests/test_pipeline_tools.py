@@ -25,6 +25,7 @@ import prepare_input  # noqa: E402
 import rea_bridge  # noqa: E402
 import rea_deep  # noqa: E402
 import frida_script_generator  # noqa: E402
+import dynamic_bridge  # noqa: E402
 from report_generator_modular import ModularReportGenerator  # noqa: E402
 
 HERMES_MAGIC = bytes([0xC6, 0x1F, 0xBC, 0x1F])
@@ -360,6 +361,86 @@ class FridaNativeHookTests(unittest.TestCase):
             text = out.read_text()
             self.assertIn("REA-recovered native hook points", text)
             self.assertIn("base.add(ptr('0x1a2b0'))", text)
+
+
+class DynamicBridgeTests(unittest.TestCase):
+    def test_parse_frida_output_categorizes(self):
+        text = "\n".join([
+            "[Anais] Instrumentation starting for com.x",
+            "[Anais] okhttp3 CertificatePinner.check bypassed",
+            "[Anais][crypto] AES doFinal len=16",
+            "[Anais][key] AES = QUJD",
+            "[Anais][native] enter libjiagu_a64.so!sub_1a2b0 (abort)",
+            "[Anais] blocked root-probe exec: which su",
+            "[Anais] hook failed: something",
+        ])
+        r = dynamic_bridge.parse_frida_output(text)
+        self.assertEqual(len(r["hooks"]["ssl_bypass"]), 1)
+        self.assertEqual(len(r["hooks"]["crypto"]), 1)
+        self.assertEqual(len(r["hooks"]["keys"]), 1)
+        self.assertEqual(len(r["hooks"]["native"]), 1)
+        self.assertEqual(len(r["hooks"]["root_blocked"]), 1)
+        self.assertEqual(r["hits_total"], 5)
+        self.assertEqual(len(r["errors"]), 1)
+
+    def test_parse_logcat_finds_crash(self):
+        text = "\n".join([
+            "01-01 E AndroidRuntime: FATAL EXCEPTION: main",
+            "\tat com.x.MainActivity.onCreate(MainActivity.java:1)",
+            "01-01 I com.x: normal line",
+        ])
+        r = dynamic_bridge.parse_logcat(text, "com.x")
+        self.assertEqual(len(r["crashes"]), 1)
+        self.assertTrue(r["exceptions"])
+        self.assertEqual(r["lines"], 3)
+
+    def test_build_commands_spawn_plan(self):
+        cfg = {"package": "com.x", "apk_path": None, "serial": None, "mode": "spawn",
+               "timeout": 30, "frida_script": "/r/frida_auto.js", "install": False}
+        plan = dynamic_bridge.build_commands(cfg)
+        labels = [l for l, _ in plan]
+        self.assertIn("clear logcat", labels)
+        frida = next(argv for l, argv in plan if l.startswith("frida"))
+        self.assertIn("-f", frida)
+        self.assertIn("com.x", frida)
+
+    def test_build_commands_attach_and_serial_install(self):
+        cfg = {"package": "com.x", "apk_path": "/a.apk", "serial": "emu-5554",
+               "mode": "attach", "timeout": 10, "frida_script": "/r/s.js", "install": True}
+        plan = dynamic_bridge.build_commands(cfg)
+        self.assertEqual(plan[0][0], "install apk")
+        self.assertIn("-s", plan[0][1])  # adb serial
+        frida = next(argv for l, argv in plan if l.startswith("frida"))
+        self.assertIn("-D", frida)      # frida device by serial
+        self.assertIn("-n", frida)      # attach by name
+
+
+class DynamicReportTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.ws = Path(self._tmp.name) / "ws"
+        self.temp = self.ws / "temp"
+        self.temp.mkdir(parents=True)
+        (self.ws / "reports").mkdir()
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_dynamic_section_renders(self):
+        (self.temp / "dynamic_findings.json").write_text(json.dumps({
+            "available": True, "executed": True, "device": "USB", "mode": "spawn",
+            "duration_sec": 30, "frida_script": "reports/frida_auto.js", "hits_total": 2,
+            "hooks": {"ssl_bypass": ["[Anais] CertificatePinner.check bypassed"],
+                      "native": ["[Anais][native] enter libx.so!sub_1"]},
+            "logcat": {"crashes": ["FATAL EXCEPTION: main"], "exceptions": [], "lines": 10},
+            "errors": [], "notes": []}))
+        gen = ModularReportGenerator(str(self.ws), str(self.temp), "app.apk", "sha")
+        md = []
+        gen._add_dynamic_info(md)
+        text = "\n".join(md)
+        self.assertIn("SSL pinning bypassed", text)
+        self.assertIn("Native hooks hit", text)
+        self.assertIn("FATAL EXCEPTION", text)
 
 
 if __name__ == "__main__":

@@ -46,6 +46,7 @@ class ModularReportGenerator:
             'sdk_inventory': 'sdk_inventory.json',
             'rea': 'rea_report.json',
             'rea_deep': 'rea_deep.json',
+            'dynamic': 'dynamic_findings.json',
         }
         
         for key, filename in result_files.items():
@@ -82,6 +83,8 @@ class ModularReportGenerator:
         md.append("- [Third-Party SDKs](#sdks)")
         if self.results.get('rea', {}).get('available'):
             md.append("- [REA Deep Analysis](#rea)")
+        if self.results.get('dynamic', {}).get('executed'):
+            md.append("- [Dynamic Analysis](#dynamic)")
         md.append("- 🔗 [Security Findings (SAST)](./sast_findings.md)")
         md.append("- 🔗 [AndroidManifest Analysis](./manifest_analysis.md)")
         md.append("- 🔗 [Network Analysis](./network_analysis.md)")
@@ -122,6 +125,11 @@ class ModularReportGenerator:
         if self.results.get('rea', {}).get('available'):
             md.append("\n## 🔬 REA Deep Analysis {#rea}\n")
             self._add_rea_info(md)
+
+        # Dynamic analysis (only when the bridge executed on a device)
+        if self.results.get('dynamic', {}).get('executed'):
+            md.append("\n## ▶️ Dynamic Analysis {#dynamic}\n")
+            self._add_dynamic_info(md)
 
         # Summary sections with links to details
         md.append("\n## 📊 Analysis Results Summary\n")
@@ -674,6 +682,45 @@ class ModularReportGenerator:
         for note in deep.get('notes', [])[:6]:
             md.append(f"> {note}")
         if deep.get('notes'):
+            md.append("")
+
+    def _add_dynamic_info(self, md):
+        """Render the Phase 4 dynamic (ADB/Frida) runtime results."""
+        dyn = self.results.get('dynamic', {})
+        md.append(f"*Runtime run on `{dyn.get('device', '?')}` via `{dyn.get('mode', '?')}` "
+                  f"for {dyn.get('duration_sec', '?')}s using `{Path(dyn.get('frida_script', '')).name}`. "
+                  f"{dyn.get('hits_total', 0)} hook hit(s).*\n")
+
+        hooks = dyn.get('hooks', {})
+        LABELS = {"ssl_bypass": "SSL pinning bypassed", "crypto": "Crypto calls",
+                  "keys": "Key material", "native": "Native hooks hit",
+                  "dlopen": "Libraries loaded (dlopen)", "root_blocked": "Root probes blocked"}
+        rows = [(LABELS.get(k, k), v) for k, v in hooks.items() if v]
+        if rows:
+            md.append("| Observed at runtime | Count | Sample |")
+            md.append("|---------------------|-------|--------|")
+            for label, v in rows:
+                sample = (v[0][:80] + '…') if v and len(v[0]) > 80 else (v[0] if v else '')
+                md.append(f"| {label} | {len(v)} | `{sample}` |")
+            md.append("")
+        else:
+            md.append("No instrumented hooks fired during the capture window.\n")
+
+        logcat = dyn.get('logcat', {})
+        if logcat.get('crashes'):
+            md.append(f"**Crashes / FATAL ({len(logcat['crashes'])}):**\n")
+            md.append("```")
+            for c in logcat['crashes'][:8]:
+                md.append(c)
+            md.append("```")
+        if dyn.get('errors'):
+            md.append("**Instrumentation errors:**")
+            for e in dyn['errors'][:6]:
+                md.append(f"> {e}")
+            md.append("")
+        for note in dyn.get('notes', [])[:6]:
+            md.append(f"> {note}")
+        if dyn.get('notes'):
             md.append("")
 
     def _add_sdk_info(self, md):

@@ -27,6 +27,7 @@ Anais analyzes APK files and generates detailed security reports. It can detect 
 - Diffs two analyses to spot changes between app versions
 - Optional deep analysis via REA (decompilation, native exports, Flutter/Unity/.NET, call-flow) with an agent handoff file
 - Supports dynamic analysis with Frida
+- Runs as an **MCP server** with an **`anais-agent` skill** so agents (Claude Code, Codex, …) can drive the whole pipeline — see [`docs/MCP_AND_SKILL.md`](docs/MCP_AND_SKILL.md)
 
 ## Installation
 
@@ -103,6 +104,17 @@ section (incl. native hook points for Frida). Full contract: [`docs/REA_DEEP_PAS
 
 # Hook crypto operations
 ./scripts/dynamic_analysis_helper.sh hook-crypto com.package.name
+```
+
+**Automated runtime bridge (Phase 4):** `dynamic_bridge.py` runs the app on a
+connected device under the generated `frida_auto.js`, captures hook hits + logcat
+into `dynamic_findings.json`, and adds a **Dynamic Analysis** section to the
+report. It executes the target, so it is opt-in and does nothing without `--yes`
+(dry-run otherwise). Full guide: [`docs/DYNAMIC_ANALYSIS.md`](docs/DYNAMIC_ANALYSIS.md).
+
+```bash
+python3 analysis_tools/dynamic_bridge.py <workdir>/temp <workdir>/reports --timeout 30        # dry-run
+python3 analysis_tools/dynamic_bridge.py <workdir>/temp <workdir>/reports --timeout 30 --yes  # execute
 ```
 
 ## Configuration
