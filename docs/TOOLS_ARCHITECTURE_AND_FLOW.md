@@ -135,7 +135,7 @@ Once all tools complete execution, the orchestrator invokes the modular reporter
 ### 4.1 Derived outputs
 
 After the main report, `anais.sh` runs:
-- `frida_script_generator.py` → `reports/frida_auto.js`: a Frida script assembled from the findings (SSL unpinning, crypto/key logging, root/debug bypass, native JNI trace, vendor-specific notes).
+- `frida_script_generator.py` → `reports/frida_auto.js`: a Frida script assembled from the findings (SSL unpinning, crypto/key logging, root/debug bypass, native JNI trace, vendor-specific notes). When a deep pass has run (`rea_deep.json` present), it also emits concrete `Interceptor.attach(base.add(ptr('0x…')))` blocks for every REA-recovered `native_hooks` entry, grouped by library (Phase 3).
 - `sarif_exporter.py` → `reports/report.sarif`: SARIF 2.1.0 export of SAST findings for CI/code scanning.
 
 ### 4.2 Version diffing
@@ -147,7 +147,7 @@ After the main report, `anais.sh` runs:
 `rea_bridge.py` runs only when `ANAIS_REA=1`. It is a two-mode integration with [REA](https://github.com/morluto/rea):
 
 - **Phase 1 (in-pipeline, cheap):** it invokes REA's fast, deterministic mobile commands — `inspect-apk-signature`, `identify-flutter-build`, `inspect-il2cpp-metadata` (Unity), `inspect-managed-members` (Xamarin/.NET), and `inspect-native-exports` per `.so` — parses each `normalized_result`, and records the `evidence_id` plus a short summary into `rea_report.json`. The report renders this as the **REA Deep Analysis** section. None of these need a native disassembler.
-- **Phase 2 (agent-driven, deep):** it writes `reports/rea_targets.json`, a handoff listing the expensive questions (trace `JNI_OnLoad` and the kill path for a detected RASP vendor, decompile `libapp.so` with blutter, map the login flow, decompile Xamarin assemblies). An agent with REA's MCP tools connected answers these on demand; the slow Ghidra/graph/dynamic work is deliberately kept out of the automated run.
+- **Phase 2 (agent-driven, deep):** it writes `reports/rea_targets.json`, a handoff of **machine-actionable tasks** (schema 2). Each task carries an `id`, `priority`, `trigger`, the suggested `rea_tool`, the `target` and how to `obtain` it, the `extract` keys to answer, and a `feeds` tag (`app_flow` or `frida_native_hooks`). Tasks are generated from the framework, the RASP verdict/heuristics, and any stripped or JNI-bearing `.so` that Phase 1's export scan surfaced. An agent with REA (MCP tools or the `rea`/`npx` CLI) executes them out-of-band, writes answers to a raw results file, and runs `rea_deep.py` to validate them against the task ids, emit the canonical `reports/rea_deep.json`, and regenerate both the report and `frida_auto.js`. The report then grows a **Deep Pass (agent-driven)** subsection: completed tasks, candidate **native hook points** (which are compiled into the Frida script — Phase 3), skipped tasks, and anything still `pending`. The full contract is in [`docs/REA_DEEP_PASS.md`](REA_DEEP_PASS.md). The slow Ghidra/graph/dynamic work stays out of the automated run.
 
 Command resolution: `$ANAIS_REA_CMD` → `rea` on PATH → `npx -y rea-agents@<ver>`. `ANAIS_REA_SKIP=1` disables it, `ANAIS_REA_MAX_SO` caps the native-export scan, `ANAIS_REA_TIMEOUT` bounds each call. REA preserves observation/inference/unknown distinctions and Evidence IDs; the bridge keeps those in the report rather than flattening them into findings.
 

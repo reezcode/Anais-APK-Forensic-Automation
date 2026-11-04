@@ -10,6 +10,10 @@ root/debugger-detection neutralizers, and (for packed apps) a DEX dump pointer.
 Usage: frida_script_generator.py <temp_dir> <output_js> [package_name]
 Reads rasp_report.json, framework_report.json, sast_findings.json,
 dex_payload_report.json and network_findings.json from <temp_dir> when present.
+
+When an agent-driven REA deep pass has run (rea_deep.json present), the native
+hook points it recovered — tasks whose `feeds` include `frida_native_hooks` —
+are turned into concrete Interceptor.attach blocks at the recovered addresses.
 """
 
 import os
@@ -118,6 +122,75 @@ RASP_NOTES = {
 }
 
 
+def _lib_from_target(target):
+    """Return the .so basename from a task target like 'lib/<abi>/libfoo.so'."""
+    if not target or not isinstance(target, str):
+        return None
+    base = os.path.basename(target.strip())
+    return base if base.endswith(".so") else None
+
+
+def _js_str(s):
+    """Escape a string for embedding in single-quoted JS."""
+    return str(s).replace("\\", "\\\\").replace("'", "\\'")
+
+
+def build_native_hooks(deep):
+    """Build a Frida block from REA deep-pass native hook points.
+
+    Returns (js_or_None, hook_count). Hooks are grouped per library; an entry
+    with an address attaches at base+offset, one with only a symbol resolves the
+    export by name.
+    """
+    by_lib = {}
+    for c in deep.get("completed", []) or []:
+        lib = _lib_from_target(c.get("target"))
+        for h in c.get("native_hooks", []) or []:
+            if not isinstance(h, dict):
+                continue
+            addr = h.get("address")
+            sym = h.get("symbol")
+            if not (addr or sym):
+                continue
+            key = lib or "<unknown.so>"
+            by_lib.setdefault(key, []).append({
+                "symbol": sym, "address": addr, "note": h.get("note"),
+                "task": c.get("task_id"),
+            })
+    if not by_lib:
+        return None, 0
+
+    lines = ["", "// --- REA-recovered native hook points (deep pass) ---",
+             "// Addresses are file offsets from REA open_binary; attached at module base + offset.",
+             "(function () {"]
+    count = 0
+    for lib, hooks in by_lib.items():
+        safe = _js_str(lib)
+        if lib == "<unknown.so>":
+            lines.append(f"  // NOTE: library unknown for the hooks below; set the correct .so name.")
+        lines.append(f"  var base = Module.findBaseAddress('{safe}');")
+        lines.append(f"  if (!base) {{ console.log('[Anais] {safe} not loaded yet; "
+                     f"attach after dlopen or re-run with the right name'); }}")
+        lines.append("  else {")
+        for h in hooks:
+            count += 1
+            label = _js_str(f"{lib}!{h.get('symbol') or h.get('address')}"
+                            + (f" ({h['note']})" if h.get("note") else ""))
+            if h.get("address"):
+                lines.append(f"    try {{ Interceptor.attach(base.add(ptr('{_js_str(h['address'])}')), {{")
+                lines.append(f"      onEnter: function (args) {{ console.log('[Anais][native] enter {label}'); }},")
+                lines.append(f"      onLeave: function (ret) {{ console.log('[Anais][native] leave {label} ret=' + ret); }}")
+                lines.append("    }); } catch (e) { console.log('[Anais] hook failed: ' + e); }")
+            else:
+                sym = _js_str(h["symbol"])
+                lines.append(f"    try {{ Interceptor.attach(Module.getExportByName('{safe}', '{sym}'), {{")
+                lines.append(f"      onEnter: function (args) {{ console.log('[Anais][native] enter {label}'); }}")
+                lines.append("    }); } catch (e) { console.log('[Anais] export hook failed: ' + e); }")
+        lines.append("  }")
+    lines.append("})();")
+    return "\n".join(lines) + "\n", count
+
+
 def _load(temp_dir, name):
     p = os.path.join(temp_dir, name)
     if os.path.isfile(p):
@@ -143,6 +216,7 @@ def main():
     sast = _load(temp_dir, "sast_findings.json")
     dexp = _load(temp_dir, "dex_payload_report.json")
     network = _load(temp_dir, "network_findings.json")
+    deep = _load(temp_dir, "rea_deep.json")
 
     fname = os.path.basename(output_js)
     blocks = [HEADER.format(pkg=pkg, fname=fname)]
@@ -170,6 +244,12 @@ def main():
     if rasp.get("detected") or native_fw or dexp.get("stub_dex_detected"):
         blocks.append(NATIVE_TRACE)
         included.append("native dlopen/JNI trace")
+
+    # REA-recovered native hooks (Phase 3): concrete addresses beat the generic trace
+    native_hooks_js, hook_count = build_native_hooks(deep)
+    if native_hooks_js:
+        blocks.append(native_hooks_js)
+        included.append(f"REA native hooks ({hook_count})")
 
     # Vendor-specific notes
     notes = []

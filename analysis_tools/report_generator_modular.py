@@ -45,6 +45,7 @@ class ModularReportGenerator:
             'framework': 'framework_report.json',
             'sdk_inventory': 'sdk_inventory.json',
             'rea': 'rea_report.json',
+            'rea_deep': 'rea_deep.json',
         }
         
         for key, filename in result_files.items():
@@ -624,8 +625,56 @@ class ModularReportGenerator:
         if rea.get('notes'):
             md.append("")
 
-        md.append("See `rea_targets.json` for the deep-dive questions queued for an agent-driven REA pass "
-                  "(native decompilation, call-flow tracing, dynamic ADB/Frida).\n")
+        deep = self.results.get('rea_deep', {})
+        if deep.get('available') and (deep.get('completed') or deep.get('skipped')):
+            self._add_rea_deep(md, deep)
+        else:
+            md.append("See `rea_targets.json` for the deep-dive questions queued for an agent-driven REA pass "
+                      "(native decompilation, call-flow tracing, dynamic ADB/Frida). "
+                      "Run them, then merge answers with `rea_deep.py`.\n")
+
+    def _add_rea_deep(self, md, deep):
+        """Render the agent-driven deep pass (Phase 2) results."""
+        md.append("\n### Deep Pass (agent-driven)\n")
+        completed = deep.get('completed', [])
+        skipped = deep.get('skipped', [])
+        pending = deep.get('pending', [])
+
+        if completed:
+            md.append("| Task | REA Tool | Findings | Evidence ID |")
+            md.append("|------|----------|----------|-------------|")
+            for c in completed:
+                f = c.get('findings')
+                if isinstance(f, dict):
+                    shown = ', '.join(f"{k}={v}" for k, v in list(f.items())[:3])
+                elif f is None:
+                    shown = '—'
+                else:
+                    shown = str(f)[:70]
+                ev = f"`{(c.get('evidence_id') or '')[:18]}…`" if c.get('evidence_id') else '—'
+                md.append(f"| {c.get('task_id')} | {c.get('rea_tool') or '—'} | {shown or '—'} | {ev} |")
+            md.append("")
+
+        # Native hook points (feeds the Frida script — Phase 3)
+        hooks = [(c.get('task_id'), h) for c in completed for h in c.get('native_hooks', []) if h]
+        if hooks:
+            md.append("**Native hook points** (candidate Frida targets):\n")
+            md.append("| From Task | Symbol | Address | Note |")
+            md.append("|-----------|--------|---------|------|")
+            for tid, h in hooks:
+                md.append(f"| {tid} | `{h.get('symbol') or '—'}` | `{h.get('address') or '—'}` | {h.get('note') or ''} |")
+            md.append("")
+
+        if skipped:
+            md.append("**Skipped:** " + ", ".join(
+                f"{s.get('task_id')} ({s.get('reason') or 'no reason'})" for s in skipped) + "\n")
+        if pending:
+            md.append(f"**Pending** ({len(pending)}): {', '.join(pending)} — "
+                      "still queued in `rea_targets.json`.\n")
+        for note in deep.get('notes', [])[:6]:
+            md.append(f"> {note}")
+        if deep.get('notes'):
+            md.append("")
 
     def _add_sdk_info(self, md):
         """Add third-party SDK inventory"""

@@ -842,6 +842,7 @@ run_rea_bridge() {
             local tot=$(python3 -c "import json; print(len(json.load(open('${TEMP_DIR}/rea_report.json')).get('runs',[])))" 2>/dev/null || echo "0")
             log_success "REA bridge completed (${ok}/${tot} analyses)"
             log_info "Deep-dive targets: ${REPORTS_DIR}/rea_targets.json"
+            log_info "Agent-driven deep pass: see docs/REA_DEEP_PASS.md (merge with rea_deep.py)"
         fi
     else
         log_warning "REA bridge had issues (check $ERROR_LOG)"

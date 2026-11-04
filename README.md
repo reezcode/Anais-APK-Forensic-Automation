@@ -87,8 +87,10 @@ ANAIS_REA=1 anais /path/to/app.apk          # runs REA's cheap mobile analyses +
 
 Requires the `rea` CLI on PATH or `npx` (set `ANAIS_REA_CMD` to override). The bridge runs
 only fast, deterministic REA commands (APK signature, native exports, Flutter/Unity/.NET
-identity) and writes `reports/rea_targets.json` listing the expensive questions (native
-decompilation, call-flow tracing, dynamic ADB/Frida) for an agent-driven REA pass.
+identity) and writes `reports/rea_targets.json`: machine-actionable tasks for the expensive
+questions (native decompilation, call-flow tracing, dynamic ADB/Frida). An agent runs those
+with REA's deep tools, then `rea_deep.py` merges the answers into a **Deep Pass** report
+section (incl. native hook points for Frida). Full contract: [`docs/REA_DEEP_PASS.md`](docs/REA_DEEP_PASS.md).
 
 **Dynamic analysis:**
 

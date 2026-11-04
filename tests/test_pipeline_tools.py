@@ -23,6 +23,8 @@ import sdk_inventory  # noqa: E402
 import diff_reports  # noqa: E402
 import prepare_input  # noqa: E402
 import rea_bridge  # noqa: E402
+import rea_deep  # noqa: E402
+import frida_script_generator  # noqa: E402
 from report_generator_modular import ModularReportGenerator  # noqa: E402
 
 HERMES_MAGIC = bytes([0xC6, 0x1F, 0xBC, 0x1F])
@@ -265,6 +267,99 @@ class ReaBridgeTests(unittest.TestCase):
                 del os.environ["ANAIS_REA_SKIP"]
             self.assertFalse(json.loads(open(rep).read())["available"])
             self.assertTrue(os.path.exists(tgt))
+
+
+class ReaDeepMergeTests(unittest.TestCase):
+    def _targets(self):
+        return {"schema": 2, "apk": "app.apk", "tasks": [
+            {"id": "rasp-x"}, {"id": "flutter-dart-flow"}, {"id": "native-jni-liba.so"}]}
+
+    def test_pending_completed_skipped_partition(self):
+        raw = {"completed": [{"task_id": "rasp-x", "findings": {"a": 1}}],
+               "skipped": [{"task_id": "flutter-dart-flow", "reason": "no device"}]}
+        deep, warn = rea_deep.merge(self._targets(), raw)
+        self.assertEqual(deep["pending"], ["native-jni-liba.so"])
+        self.assertEqual(len(deep["completed"]), 1)
+        self.assertEqual(deep["skipped"][0]["reason"], "no device")
+        self.assertEqual(warn, [])
+
+    def test_unknown_task_id_flagged(self):
+        raw = {"completed": [{"task_id": "bogus", "findings": {}}]}
+        deep, warn = rea_deep.merge(self._targets(), raw)
+        self.assertTrue(any("bogus" in w for w in warn))
+        self.assertIn("completed task_id not in targets: 'bogus'", deep["notes"])
+
+    def test_native_hooks_normalized_and_filtered(self):
+        raw = {"completed": [{"task_id": "rasp-x", "native_hooks": [
+            {"symbol": "JNI_OnLoad", "address": "0x10"},
+            {"note": "no address or symbol"}]}]}
+        deep, _ = rea_deep.merge(self._targets(), raw)
+        hooks = deep["completed"][0]["native_hooks"]
+        self.assertEqual(len(hooks), 1)
+        self.assertEqual(hooks[0]["address"], "0x10")
+
+
+class ReaDeepReportTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.ws = Path(self._tmp.name) / "ws"
+        self.temp = self.ws / "temp"
+        self.temp.mkdir(parents=True)
+        (self.ws / "reports").mkdir()
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_deep_pass_renders_hooks(self):
+        (self.temp / "rea_report.json").write_text(json.dumps(
+            {"available": True, "command": "rea", "runs": [], "notes": []}))
+        (self.temp / "rea_deep.json").write_text(json.dumps({
+            "available": True, "completed": [
+                {"task_id": "rasp-x", "rea_tool": "open_binary", "findings": {"abort": "0x1a"},
+                 "native_hooks": [{"symbol": "JNI_OnLoad", "address": "0x10", "note": "init"}],
+                 "evidence_id": "ev123"}],
+            "skipped": [], "pending": ["flutter-dart-flow"], "notes": []}))
+        gen = ModularReportGenerator(str(self.ws), str(self.temp), "app.apk", "sha")
+        md = []
+        gen._add_rea_info(md)
+        text = "\n".join(md)
+        self.assertIn("Deep Pass (agent-driven)", text)
+        self.assertIn("Native hook points", text)
+        self.assertIn("0x10", text)
+        self.assertIn("Pending", text)
+
+
+class FridaNativeHookTests(unittest.TestCase):
+    def test_address_and_export_hooks_grouped_by_lib(self):
+        deep = {"completed": [
+            {"task_id": "rasp-x", "target": "lib/arm64-v8a/libjiagu_a64.so",
+             "native_hooks": [{"symbol": "sub_1a2b0", "address": "0x1a2b0", "note": "abort"},
+                              {"symbol": "JNI_OnLoad", "address": None}]},
+            {"task_id": "noise", "target": "lib/arm64-v8a/libfoo.so",
+             "native_hooks": [{"note": "no addr or symbol"}]}]}
+        js, count = frida_script_generator.build_native_hooks(deep)
+        self.assertEqual(count, 2)  # the empty hook is dropped
+        self.assertIn("Module.findBaseAddress('libjiagu_a64.so')", js)
+        self.assertIn("base.add(ptr('0x1a2b0'))", js)
+        self.assertIn("Module.getExportByName('libjiagu_a64.so', 'JNI_OnLoad')", js)
+        self.assertNotIn("libfoo.so", js)
+
+    def test_no_hooks_returns_none(self):
+        js, count = frida_script_generator.build_native_hooks({"completed": []})
+        self.assertIsNone(js)
+        self.assertEqual(count, 0)
+
+    def test_generator_includes_deep_hooks(self):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "rea_deep.json").write_text(json.dumps({"completed": [
+                {"task_id": "rasp-x", "target": "lib/arm64-v8a/libjiagu_a64.so",
+                 "native_hooks": [{"symbol": "sub_1a2b0", "address": "0x1a2b0", "note": "abort"}]}]}))
+            out = Path(d, "frida_auto.js")
+            subprocess.run([sys.executable, str(TOOLS / "frida_script_generator.py"),
+                            d, str(out), "com.x"], check=True, capture_output=True)
+            text = out.read_text()
+            self.assertIn("REA-recovered native hook points", text)
+            self.assertIn("base.add(ptr('0x1a2b0'))", text)
 
 
 if __name__ == "__main__":
