@@ -16,6 +16,8 @@ import re
 import sqlite3
 from pathlib import Path
 
+from reema._psl import public_suffix, registrable_domain
+
 URL_RE = re.compile(r"\bhttps?://[^\s\"'<>\\)]+", re.IGNORECASE)
 IPV4_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 DOMAIN_RE = re.compile(r"\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}\b", re.IGNORECASE)
@@ -46,6 +48,32 @@ def _is_real_domain(value):
     if any(value == s[1:] or value.endswith(s) for s in NOISE_SUFFIXES):
         return False
     return True
+
+
+# A credible bare domain is a registrable name under a known public suffix (B12).
+_HOSTNAME_RE = re.compile(r"\A(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]?\Z")
+
+
+def _is_credible_domain(value):
+    """True for a standalone domain that is a real registrable name, not a code
+    identifier like `coroutineId.id` or `R.id` (B12).
+
+    Decompiled hostnames are written lowercase, so an uppercase letter marks a
+    Java/Kotlin identifier; and the suffix must be a known public suffix with at
+    least one label in front of it (so a bare TLD or `x.start` is rejected).
+    """
+    if not value or value != value.lower():
+        return False
+    value = value.rstrip(".")
+    if not _HOSTNAME_RE.match(value):
+        return False
+    if value in NOISE_DOMAINS or any(value == s[1:] or value.endswith(s) for s in NOISE_SUFFIXES):
+        return False
+    reg = registrable_domain(value)
+    if not reg:
+        return False
+    # A one-character registrable label (`r.id`) is a code identifier, not a domain.
+    return len(reg.split(".")[0]) >= 2
 
 
 def defang(value):
@@ -84,10 +112,12 @@ def extract(case_dir):
     for ip in net.get("ip_addresses", []) or []:
         if _is_public_ip(ip):
             ips.add(ip)
-    # The network analyzer's bare `domains` list is unreliable: its regex also
-    # catches code identifiers like "R.id" or "coroutineId.id" (sibling of K3).
-    # Domains are taken only from real URL hosts below. Harvesting bare domains
-    # cleanly is backlog B12.
+    # The network analyzer's bare `domains` list is noisy (its regex also catches
+    # code identifiers like "R.id"), so each candidate is re-validated against the
+    # bundled public-suffix list before it is trusted as an indicator (B12).
+    for domain in net.get("domains", []) or []:
+        if _is_credible_domain(domain):
+            domains.add(domain.lower().rstrip("."))
 
     # Mine the code-index string table for indicators the analyzer missed.
     for value in _index_strings(temp / "code_index.db"):

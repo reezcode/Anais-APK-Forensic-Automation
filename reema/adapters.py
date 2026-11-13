@@ -338,6 +338,45 @@ def enrichment(data, work_dir):
     return out
 
 
+def ioc_enrichment(data, work_dir):
+    """IOC-feed hits (reema.enrich.run_iocs). A feed hit on an extracted indicator
+    is strong: the sample talks to an address a threat feed already attributes."""
+    out = []
+    for hit in data.get("hits", []) or []:
+        provider, d, value = hit.get("provider"), hit.get("data", {}) or {}, hit.get("value")
+        if provider == "threatfox":
+            conf = d.get("confidence") or 0
+            malware = d.get("malware")
+            out.append(Finding(
+                source="ioc_enrichment",
+                rule="threatfox:known_ioc",
+                title=f"ThreatFox indicator{': ' + malware if malware else ''}: {value}",
+                severity="critical" if conf >= 75 else "high",
+                axis="malice",
+                confidence="high" if conf >= 75 else "medium",
+                category="reputation",
+                description=f"threat_type={d.get('threat_type')}, confidence={conf}, "
+                            f"first_seen={d.get('first_seen')}",
+                evidence=[Evidence(file=d.get("link") or "threatfox", snippet=value)],
+                tags=["ioc"] + ([f"family:{malware}"] if malware else []),
+            ))
+        elif provider == "urlhaus":
+            out.append(Finding(
+                source="ioc_enrichment",
+                rule="urlhaus:known_ioc",
+                title=f"URLhaus listed: {value}",
+                severity="high",
+                axis="malice",
+                confidence="high",
+                category="reputation",
+                description=f"threat={d.get('threat')}, status={d.get('status', 'n/a')}, "
+                            f"tags={', '.join(d.get('tags', []))}",
+                evidence=[Evidence(file=d.get("link") or "urlhaus", snippet=value)],
+                tags=["ioc"],
+            ))
+    return out
+
+
 # legacy file name in temp/ -> adapter
 ADAPTERS = {
     "sast_findings.json": sast,
@@ -349,6 +388,7 @@ ADAPTERS = {
     "dex_payload_report.json": dex_payload,
     "entropy_analysis.json": entropy,
     "enrichment.json": enrichment,
+    "ioc_enrichment.json": ioc_enrichment,
 }
 
 

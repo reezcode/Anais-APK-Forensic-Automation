@@ -2,6 +2,21 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.4.1 — backlog B5, B12 (2026-11-13)
+
+Cleared backlog B5 and B12. Remaining: B10 (native Python APK engine) and B13
+(capability rule content, user-owned).
+
+### Added
+- **B5 — IOC enrichment** (`reema/enrich.py`): `ThreatFox` and `URLhaus` (abuse.ch) feeds. `run_iocs()` queries the extracted URLs/domains/IPs (capped at 50 per kind), caches per indicator with the hash-lookup TTLs, honours `--offline` and missing keys, and audits every live query in `case.json`. Keys: `REEMA_THREATFOX_API_KEY`, `REEMA_URLHAUS_API_KEY`. New `ioc_enrichment` adapter turns feed hits into `malice` findings; `reema/cli.py` runs the stage before findings so hits reach the verdict. `_http_json()` helper for JSON POST.
+- **B12 — trustworthy bare-domain IOCs** (`reema/_psl.py`, `reema/iocs.py`): a bundled trimmed public-suffix list. `iocs.extract` re-enables the network analyzer's `domains` source, re-validating each candidate (lowercase labels, known public suffix, ≥2-char registrable label) so code identifiers like `coroutineId.id`, `R.id` and `r.id` are rejected while real domains pass.
+
+### Fixed
+- `analysis_tools/network_analyzer.py`: `extract_domains` drops any candidate containing an uppercase letter — a decompiled hostname is lowercase, so uppercase marks a code identifier (B12).
+
+### Changed
+- `tests/test_reema_backlog.py`: +10 tests (IOC feeds, public-suffix validation). Suite 103 → 113.
+
 ## 0.4.0 — P2 capability engine, verdict, IOCs (2026-11-13)
 
 ### Added

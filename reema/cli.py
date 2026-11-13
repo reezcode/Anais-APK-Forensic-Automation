@@ -172,6 +172,13 @@ def _stage_enrich(case_dir, case, offline):
     case.log("enrich", "ok", statuses + (f"; family={fam}" if fam else ""))
 
 
+def _stage_ioc_enrich(case_dir, case, offline):
+    """Query extracted IOCs against the threat feeds (B5), before findings are built."""
+    doc = enrich.run_iocs(iocs.extract(case_dir), offline=offline, case=case)
+    (case_dir / "temp" / "ioc_enrichment.json").write_text(json.dumps(doc, indent=2))
+    case.log("ioc_enrich", "ok", f"{len(doc['hits'])} IOC hit(s)")
+
+
 def _stage_upload(sample, case):
     """Upload the sample itself (ADR 0004: explicit opt-in only)."""
     print(f"reema: --upload sends the sample ({sample.name}) to online providers", file=sys.stderr)
@@ -305,6 +312,7 @@ def cmd_analyze(args):
         _stage_index(target, case_dir, case)
     if not args.no_enrich:
         _stage_enrich(case_dir, case, offline=args.offline)
+        _stage_ioc_enrich(case_dir, case, offline=args.offline)
     if args.upload:
         _stage_upload(sample, case)
 

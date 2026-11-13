@@ -67,6 +67,21 @@ def _http(url, data=None, headers=None):
             return e.code, {}
 
 
+def _http_json(url, obj, headers=None):
+    """POST a JSON body and return (http_status, parsed_json). Network errors raise OSError."""
+    body = json.dumps(obj).encode()
+    req = urllib.request.Request(url, data=body, headers={
+        "User-Agent": "reema", "Content-Type": "application/json", **(headers or {})})
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            return resp.status, json.load(resp)
+    except urllib.error.HTTPError as e:
+        try:
+            return e.code, json.load(e)
+        except ValueError:
+            return e.code, {}
+
+
 def _http_multipart(url, fields, file_field, filename, filedata, headers=None):
     """POST a multipart/form-data body with one file. Returns (http_status, parsed_json)."""
     boundary = "----reema" + os.urandom(16).hex()
@@ -193,6 +208,65 @@ class HybridAnalysis:
 PROVIDERS = [MalwareBazaar(), VirusTotal(), Koodous(), HybridAnalysis()]
 
 
+# --- IOC feeds (B5) ------------------------------------------------------------
+# These query an extracted indicator (a URL, domain or IP), not the sample hash.
+# abuse.ch now requires an Auth-Key for every feed, so without a key a feed is
+# skipped like any other provider. Interface: kinds, lookup_ioc(value, kind, key).
+
+class ThreatFox:
+    name = "threatfox"
+    key_env = "REEMA_THREATFOX_API_KEY"
+    kinds = ("urls", "domains", "ips")
+
+    def lookup_ioc(self, value, kind, key):
+        code, body = _http_json("https://threatfox-api.abuse.ch/api/v1/",
+                                {"query": "search_ioc", "search_term": value}, {"Auth-Key": key})
+        status = (body or {}).get("query_status")
+        if status in ("no_result", "illegal_search_term"):
+            return "not_found", {}
+        if status != "ok" or not body.get("data"):
+            return "error", {"query_status": status, "http_status": code}
+        d = body["data"][0]
+        return "found", {
+            "malware": d.get("malware_printable") or d.get("malware"),
+            "threat_type": d.get("threat_type"),
+            "confidence": d.get("confidence_level"),
+            "tags": d.get("tags") or [],
+            "first_seen": d.get("first_seen_utc"),
+            "link": d.get("reference") or f"https://threatfox.abuse.ch/browse/ioc/{d.get('id', '')}",
+        }
+
+
+class URLhaus:
+    name = "urlhaus"
+    key_env = "REEMA_URLHAUS_API_KEY"
+    kinds = ("urls", "domains", "ips")
+
+    def lookup_ioc(self, value, kind, key):
+        if kind == "urls":
+            endpoint, field = "url/", "url"
+        else:
+            endpoint, field = "host/", "host"
+        code, body = _http(f"https://urlhaus-api.abuse.ch/v1/{endpoint}", {field: value}, {"Auth-Key": key})
+        status = (body or {}).get("query_status")
+        if status in ("no_results", "invalid_url", "invalid_host"):
+            return "not_found", {}
+        if status != "ok":
+            return "error", {"query_status": status, "http_status": code}
+        if kind == "urls":
+            data = {"threat": body.get("threat"), "status": body.get("url_status"),
+                    "tags": body.get("tags") or [], "link": body.get("urlhaus_reference")}
+        else:
+            urls = body.get("urls") or []
+            data = {"threat": "malware_host" if urls else None, "url_count": len(urls),
+                    "blacklists": body.get("blacklists") or {},
+                    "link": f"https://urlhaus.abuse.ch/host/{value}/"}
+        return "found", data
+
+
+IOC_PROVIDERS = [ThreatFox(), URLhaus()]
+
+
 # Tokens that name a category, platform or detection artefact, not a family.
 # Dropping them (AVclass-style) leaves the actual family name to vote on.
 _GENERIC_TOKENS = {
@@ -280,6 +354,43 @@ def run(sha256, offline=False, case=None, cache=None, providers=None):
     doc = {"sha256": sha256, "offline": offline, "providers": results}
     doc["family"] = normalize_family(doc)
     return doc
+
+
+def run_iocs(iocs, offline=False, case=None, cache=None, providers=None, max_per_kind=50):
+    """Query extracted indicators against the IOC feeds (B5). Returns {offline, hits}.
+
+    iocs is {urls, domains, ips} from reema.iocs.extract. Results cache per
+    (provider, "kind:value") with the same TTLs as hash lookups, so a repeat run
+    stays offline. Only the indicators (never the sample) leave the machine; each
+    live query is audited in case.json.
+    """
+    cache = cache or Cache()
+    providers = providers or IOC_PROVIDERS
+    hits = []
+    for kind in ("urls", "domains", "ips"):
+        for value in (iocs.get(kind) or [])[:max_per_kind]:
+            for p in providers:
+                if kind not in p.kinds:
+                    continue
+                ckey = f"{kind}:{value}"
+                cached = cache.get(p.name, ckey)
+                if cached:
+                    status, data = cached["status"], cached["data"]
+                elif offline or not os.environ.get(p.key_env):
+                    continue
+                else:
+                    try:
+                        status, data = p.lookup_ioc(value, kind, os.environ[p.key_env])
+                    except (OSError, ValueError) as e:
+                        status, data = "error", {"error": str(e)}
+                    if status in ("found", "not_found"):
+                        cache.put(p.name, ckey, status, data)
+                    if case is not None:
+                        case.add_enrichment(p.name, {"ioc": value, "kind": kind[:-1]}, status, cached=False)
+                if status == "found":
+                    hits.append({"provider": p.name, "kind": kind[:-1], "value": value,
+                                 "data": data, "cached": bool(cached)})
+    return {"offline": offline, "hits": hits}
 
 
 def upload(sample_path, case=None, providers=None):

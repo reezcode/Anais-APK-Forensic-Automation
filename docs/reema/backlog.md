@@ -10,7 +10,6 @@ Phase plan: [`roadmap.md`](roadmap.md). Target design: [`design.md`](design.md).
 |---|---|---|---|
 | B5 | **IOC enrichment** (ThreatFox, URLhaus) | `reema/enrich.py` | The P2 IOC extractor (`reema/iocs.py`) now exists. Query the extracted URLs/domains/IPs against the feeds; cache like the hash lookups; emit findings for hits. |
 | B10 | **Native Python engine for APK** | `reema/cli.py` | `anais.sh` is still the APK engine. Port its stages to Python one at a time (ADR 0001). |
-| B12 | **Trustworthy bare-domain IOCs** | `reema/iocs.py`, `analysis_tools/network_analyzer.py` | The network analyzer's `domains` regex also catches code identifiers (`R.id`, `coroutineId.id`), so `iocs.extract` currently takes domains only from real URL hosts. To harvest standalone domains, fix the analyzer (anchor + validate against a public-suffix list) and then re-enable the `domains` source. |
 | B13 | **Capability rule content** | `reema/capabilities/`, `reema/chains.yaml` | The engine ships with one neutral example rule (`process_exec`) and no chains. Author the real capability rules and behaviour chains per [`capability-rules.md`](capability-rules.md); measure against the P4 corpus. Owner (reez). |
 
 Cleared in 0.3.0 (see [`changelog.md`](changelog.md)): B1 reachability, B2 string table,

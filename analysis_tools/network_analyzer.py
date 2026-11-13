@@ -85,7 +85,12 @@ class NetworkAnalyzer:
         filtered_domains = []
         for domain in domains:
             domain_lower = domain.lower()
-            
+
+            # B12: a real hostname in decompiled code is written lowercase, so any
+            # uppercase letter marks a code identifier (coroutineId.id, R.string).
+            if domain != domain_lower:
+                continue
+
             # Skip if it looks like a Java class/method pattern
             if any([
                 domain.startswith('super.'),

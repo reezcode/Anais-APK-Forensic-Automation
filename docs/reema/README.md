@@ -52,7 +52,9 @@ python3 -m reema findings ~/.anais/reports/<case_dir> --sample sample.apk
 
 Enrichment keys (optional; without a key the provider is skipped):
 `REEMA_MALWAREBAZAAR_API_KEY`, `REEMA_VIRUSTOTAL_API_KEY`, `REEMA_KOODOUS_API_KEY`,
-`REEMA_HYBRIDANALYSIS_API_KEY`. Only the SHA-256 is sent, unless `--upload` is given.
+`REEMA_HYBRIDANALYSIS_API_KEY` (hash lookups); `REEMA_THREATFOX_API_KEY`,
+`REEMA_URLHAUS_API_KEY` (IOC feeds, abuse.ch). Only the SHA-256 and the extracted
+IOCs are sent, unless `--upload` is given.
 
 Case directory:
 
@@ -64,7 +66,8 @@ Case directory:
 | `reports/report.md`, `report.json` | Human report |
 | `reports/report.sarif`, `frida_auto.js` | APK only |
 | `temp/code_index.db` | Code index (SQLite) |
-| `temp/enrichment.json` | Provider results |
+| `temp/enrichment.json` | Hash-provider results |
+| `temp/ioc_enrichment.json` | IOC-feed hits (ThreatFox, URLhaus) |
 
 ## Code layout
 
@@ -80,6 +83,7 @@ Case directory:
 | `reema/capabilities.py` | Capability engine (YAML rules → findings) |
 | `reema/verdict.py` | Behaviour chains and the verdict |
 | `reema/iocs.py` | IOC extraction and export |
+| `reema/_psl.py` | Bundled public-suffix list (domain validation) |
 | `reema/capabilities/`, `reema/chains.yaml` | Detection content (see [capability-rules.md](capability-rules.md)) |
 | `reema/_legacy.py` | Bridge to `analysis_tools/` during migration |
 | `analysis_tools/` | Legacy analyzers (migrated into `reema/` stage by stage) |

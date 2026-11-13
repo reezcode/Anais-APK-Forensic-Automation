@@ -21,7 +21,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "analysis_tools"))
 
-from reema import adapters, cli, enrich, index  # noqa: E402
+from reema import adapters, cli, enrich, index, iocs  # noqa: E402
+from reema import _psl  # noqa: E402
 from reema.case import Case  # noqa: E402
 from reema.findings import Evidence, Finding  # noqa: E402
 import yara_enhanced_analyzer as yara_ea  # noqa: E402
@@ -301,6 +302,98 @@ class GeneralMalwareRuleTest(unittest.TestCase):
         text = (ROOT / "rules" / "yara_general_rules.yar").read_text()
         block = text.split("rule Android_General_Malware", 1)[1].split("rule ", 1)[0]
         self.assertNotIn("(3 of them)", block)
+
+
+class IocEnrichmentTest(unittest.TestCase):
+    def test_threatfox_parsing(self):
+        body = {"query_status": "ok", "data": [{"malware_printable": "Anatsa", "threat_type": "botnet_cc",
+                                                "confidence_level": 80, "id": "1"}]}
+        with mock.patch.object(enrich, "_http_json", return_value=(200, body)):
+            status, data = enrich.ThreatFox().lookup_ioc("evil.top", "domains", "k")
+        self.assertEqual((status, data["malware"], data["confidence"]), ("found", "Anatsa", 80))
+        with mock.patch.object(enrich, "_http_json", return_value=(200, {"query_status": "no_result"})):
+            self.assertEqual(enrich.ThreatFox().lookup_ioc("x", "domains", "k")[0], "not_found")
+
+    def test_urlhaus_url_and_host(self):
+        with mock.patch.object(enrich, "_http", return_value=(200, {"query_status": "ok", "threat": "malware_download",
+                                                                   "url_status": "online", "tags": ["anatsa"]})):
+            status, data = enrich.URLhaus().lookup_ioc("http://evil.top/x", "urls", "k")
+        self.assertEqual((status, data["threat"]), ("found", "malware_download"))
+        with mock.patch.object(enrich, "_http", return_value=(200, {"query_status": "ok", "urls": [{"a": 1}]})):
+            status, data = enrich.URLhaus().lookup_ioc("evil.top", "domains", "k")
+        self.assertEqual((status, data["threat"], data["url_count"]), ("found", "malware_host", 1))
+        with mock.patch.object(enrich, "_http", return_value=(200, {"query_status": "no_results"})):
+            self.assertEqual(enrich.URLhaus().lookup_ioc("evil.top", "domains", "k")[0], "not_found")
+
+    def test_run_iocs_caches_skips_and_audits(self):
+        with tempfile.TemporaryDirectory() as d:
+            cache = enrich.Cache(Path(d) / "c.db")
+            case = Case.create(Path(d) / "case")
+            tf = enrich.ThreatFox()
+            iocset = {"urls": [], "domains": ["evil.top"], "ips": []}
+            found = (200, {"query_status": "ok", "data": [{"malware_printable": "X", "confidence_level": 90}]})
+            with mock.patch.dict(os.environ, {"REEMA_THREATFOX_API_KEY": "k"}):
+                with mock.patch.object(enrich, "_http_json", return_value=found) as m:
+                    doc = enrich.run_iocs(iocset, case=case, cache=cache, providers=[tf])
+                    again = enrich.run_iocs(iocset, case=case, cache=cache, providers=[tf])
+            self.assertEqual(len(doc["hits"]), 1)
+            self.assertTrue(again["hits"][0]["cached"])
+            self.assertEqual(m.call_count, 1)  # second run served from cache
+            self.assertEqual(case.record["enrichment"][0]["sent"], {"ioc": "evil.top", "kind": "domain"})
+
+    def test_run_iocs_offline_and_no_key_send_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            cache = enrich.Cache(Path(d) / "c.db")
+            iocset = {"urls": [], "domains": ["evil.top"], "ips": []}
+            with mock.patch.object(enrich, "_http_json") as m:
+                with mock.patch.dict(os.environ, {}, clear=True):
+                    enrich.run_iocs(iocset, cache=cache, providers=[enrich.ThreatFox()])          # no key
+                with mock.patch.dict(os.environ, {"REEMA_THREATFOX_API_KEY": "k"}):
+                    enrich.run_iocs(iocset, offline=True, cache=cache, providers=[enrich.ThreatFox()])
+            m.assert_not_called()
+
+    def test_ioc_enrichment_adapter(self):
+        data = {"hits": [
+            {"provider": "threatfox", "kind": "domain", "value": "evil.top",
+             "data": {"malware": "Anatsa", "confidence": 90, "threat_type": "botnet_cc"}},
+            {"provider": "urlhaus", "kind": "url", "value": "http://evil.top/x",
+             "data": {"threat": "malware_download", "status": "online", "tags": []}},
+        ]}
+        out = adapters.ioc_enrichment(data, "/case")
+        tf = next(f for f in out if f.rule == "threatfox:known_ioc")
+        self.assertEqual((tf.severity, tf.confidence, tf.axis), ("critical", "high", "malice"))
+        self.assertIn("family:Anatsa", tf.tags)
+        self.assertTrue(any(f.rule == "urlhaus:known_ioc" for f in out))
+
+
+class BareDomainIocTest(unittest.TestCase):
+    def test_public_suffix_and_registrable(self):
+        self.assertEqual(_psl.public_suffix("a.evil.co.uk"), "co.uk")
+        self.assertEqual(_psl.registrable_domain("a.evil.co.uk"), "evil.co.uk")
+        self.assertEqual(_psl.public_suffix("evil.id"), "id")
+        self.assertIsNone(_psl.registrable_domain("co.uk"))  # bare suffix
+
+    def test_credible_domain_rejects_code_identifiers(self):
+        self.assertTrue(iocs._is_credible_domain("api.evil-c2.top"))
+        self.assertTrue(iocs._is_credible_domain("cdn.bad.co.id"))
+        self.assertFalse(iocs._is_credible_domain("coroutineId.id"))  # camelCase identifier
+        self.assertFalse(iocs._is_credible_domain("R.id"))
+        self.assertFalse(iocs._is_credible_domain("view.start"))     # not a public suffix
+        self.assertFalse(iocs._is_credible_domain("id"))             # bare TLD
+
+    def test_extract_reenables_credible_domains(self):
+        with tempfile.TemporaryDirectory() as d:
+            case = Path(d)
+            (case / "temp").mkdir()
+            (case / "temp" / "network_findings.json").write_text(json.dumps({
+                "urls": [], "ip_addresses": [],
+                "domains": ["evil-c2.top", "coroutineId.id", "schemas.android.com", "good.co.id"],
+            }))
+            out = iocs.extract(case)
+            self.assertIn("evil-c2.top", out["domains"])
+            self.assertIn("good.co.id", out["domains"])
+            self.assertNotIn("coroutineId.id", out["domains"])
+            self.assertNotIn("schemas.android.com", out["domains"])  # framework noise
 
 
 if __name__ == "__main__":
