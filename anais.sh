@@ -181,7 +181,8 @@ init_workspace() {
     local apk_name=$(basename "$apk_path")
     apk_name="${apk_name%.*}"
 
-    APK_WORK_DIR="${WORK_DIR}/${apk_name}_$(date +%Y%m%d_%H%M%S)"
+    # Reema creates the case directory itself and passes it in (ANAIS_CASE_DIR).
+    APK_WORK_DIR="${ANAIS_CASE_DIR:-${WORK_DIR}/${apk_name}_$(date +%Y%m%d_%H%M%S)}"
     DECOMPILED_DIR="${APK_WORK_DIR}/decompiled"
     JADX_OUTPUT="${APK_WORK_DIR}/jadx_output"
     TEMP_DIR="${APK_WORK_DIR}/temp"
@@ -226,7 +227,7 @@ extract_basic_info() {
     local apk_path="$1"
     
     # File hash (cross-platform)
-    SHA256=$(shasum -a 256 "$apk_path" 2>/dev/null || sha256sum "$apk_path" | awk '{print $1}')
+    SHA256=$( (shasum -a 256 "$apk_path" 2>/dev/null || sha256sum "$apk_path") | awk '{print $1}')
     
     # MD5 (cross-platform)
     if [ "$OS_TYPE" = "macos" ]; then
@@ -602,6 +603,22 @@ run_entropy_analysis() {
     fi
 }
 
+# Scan every file named in a list with YARA, printing `yara -s` output.
+# Usage: yara_scan_list <list_file> <threads> <rule_file>...
+yara_scan_list() {
+    local list="$1" threads="$2"
+    shift 2
+    [ -s "$list" ] || return 0
+    if yara --help 2>&1 | grep -q -- "--scan-list"; then
+        yara -s -p "$threads" --scan-list "$@" "$list" 2>/dev/null || true
+    else
+        # yara older than 4.1 has no --scan-list: fall back to one process per file.
+        while IFS= read -r file; do
+            yara -s "$@" "$file" 2>/dev/null || true
+        done < "$list"
+    fi
+}
+
 # Run YARA rules
 run_yara_scan() {
     log_section "Running YARA Rules"
@@ -628,20 +645,25 @@ run_yara_scan() {
     log_info "Scanning original APK..."
     yara -s "${yara_args[@]}" "$apk_path" > "${TEMP_DIR}/yara_apk_results.txt" 2>&1 || true
     
+    # Scan each tree with one yara process over a file list: one yara per file
+    # recompiles the rules every time and takes tens of minutes on a large app.
+    local threads
+    threads=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+
     # Scan decompiled directory
     if [ -d "$DECOMPILED_DIR" ]; then
         log_info "Scanning decompiled files..."
-        find "$DECOMPILED_DIR" -type f -name "*.smali" -o -name "*.xml" | while read file; do
-            yara -s "${yara_args[@]}" "$file" 2>/dev/null || true
-        done > "${TEMP_DIR}/yara_decompiled_results.txt"
+        find "$DECOMPILED_DIR" -type f \( -name "*.smali" -o -name "*.xml" \) > "${TEMP_DIR}/yara_decompiled_files.txt"
+        yara_scan_list "${TEMP_DIR}/yara_decompiled_files.txt" "$threads" "${yara_args[@]}" \
+            > "${TEMP_DIR}/yara_decompiled_results.txt"
     fi
-    
+
     # Scan JADX output
     if [ -d "$JADX_OUTPUT" ]; then
         log_info "Scanning JADX sources..."
-        find "$JADX_OUTPUT" -type f -name "*.java" | while read file; do
-            yara -s "${yara_args[@]}" "$file" 2>/dev/null || true
-        done > "${TEMP_DIR}/yara_jadx_results.txt"
+        find "$JADX_OUTPUT" -type f -name "*.java" > "${TEMP_DIR}/yara_jadx_files.txt"
+        yara_scan_list "${TEMP_DIR}/yara_jadx_files.txt" "$threads" "${yara_args[@]}" \
+            > "${TEMP_DIR}/yara_jadx_results.txt"
     fi
     
     log_success "YARA scan completed"
@@ -842,7 +864,7 @@ run_rea_bridge() {
             local tot=$(python3 -c "import json; print(len(json.load(open('${TEMP_DIR}/rea_report.json')).get('runs',[])))" 2>/dev/null || echo "0")
             log_success "REA bridge completed (${ok}/${tot} analyses)"
             log_info "Deep-dive targets: ${REPORTS_DIR}/rea_targets.json"
-            log_info "Agent-driven deep pass: see docs/REA_DEEP_PASS.md (merge with rea_deep.py)"
+            log_info "Agent-driven deep pass: see docs/reema/rea-deep-pass.md (merge with rea_deep.py)"
         fi
     else
         log_warning "REA bridge had issues (check $ERROR_LOG)"
@@ -860,6 +882,14 @@ generate_outputs() {
         log_success "Frida script: ${REPORTS_DIR}/frida_auto.js"
     else
         log_warning "Frida script generation had issues (check error log)"
+    fi
+
+    # Reema normalized findings (common schema, see docs/reema/finding-schema.md)
+    if PYTHONPATH="${SCRIPT_DIR}${PYTHONPATH:+:$PYTHONPATH}" python3 -m reema findings \
+        "$APK_WORK_DIR" --sample "$APK_PATH" 2>> "$ERROR_LOG"; then
+        log_success "Findings: ${REPORTS_DIR}/findings.json"
+    else
+        log_warning "Findings normalization had issues (check error log)"
     fi
 
     if [ -f "${TEMP_DIR}/sast_findings.json" ]; then

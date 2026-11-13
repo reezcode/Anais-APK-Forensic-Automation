@@ -55,12 +55,49 @@ SDK_MAP = {
     "com/tapjoy": ("Tapjoy", "ads", None),
     "org/chromium": ("Chromium", "platform", None),
     "androidx": ("AndroidX", "platform", None),
+    "android/support": ("Android Support Library", "platform", None),
+    "com/google/android/material": ("Material Components", "platform", None),
+    "com/google/common": ("Guava", "platform", "com.google.guava:guava"),
     "kotlin": ("Kotlin stdlib", "platform", None),
+    "kotlinx": ("Kotlin extensions (kotlinx)", "platform", None),
+    "_COROUTINE": ("Kotlin extensions (kotlinx)", "platform", None),  # coroutines debug stubs
+    "org/jetbrains": ("JetBrains annotations", "platform", None),
+    "com/topjohnwu/superuser": ("libsu", "root", "com.github.topjohnwu.libsu:core"),
+    "de/robv/android/xposed": ("Xposed API", "root", None),
 }
 
 TRACKER_CATEGORIES = {"ads", "tracker", "analytics"}
 
 VERSION_RE = re.compile(r'(?:version|VERSION|VersionName|SDK_VERSION)\s*[=:]\s*"?([0-9]+\.[0-9]+(?:\.[0-9]+)?)"?')
+
+
+def _is_source_root(part):
+    return part == "sources" or part.startswith("smali")
+
+
+def owner_of(path):
+    """Return who owns the code at path: "app", "sdk:<name>", or "" when path is
+    not code (manifest, assets, native libs).
+
+    Accepts a decompiled file path ("sources/androidx/a/B.java",
+    "smali_classes2/okhttp3/C.smali") or a DEX type descriptor ("Landroidx/a/B;").
+    The longest matching SDK_MAP prefix wins, so "com/google/android/gms/ads"
+    beats "com/google/android/gms".
+    """
+    p = str(path or "").replace("\\", "/")
+    if p.startswith("L") and p.endswith(";"):
+        rel = p[1:-1]
+    else:
+        parts = p.split("/")
+        roots = [i for i, part in enumerate(parts) if _is_source_root(part)]
+        if not roots:
+            return ""
+        rel = "/".join(parts[roots[-1] + 1:])
+    best = None
+    for prefix, (name, _, _) in SDK_MAP.items():
+        if (rel == prefix or rel.startswith(prefix + "/")) and (best is None or len(prefix) > len(best[0])):
+            best = (prefix, name)
+    return f"sdk:{best[1]}" if best else "app"
 
 
 def _source_roots(decompiled_dir, jadx_dir):

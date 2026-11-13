@@ -169,7 +169,7 @@ reg(
     description:
       "After running the rea_targets.json tasks with REA's deep tools, pass the raw results here. " +
       "Validates them against the task list, writes rea_deep.json, and regenerates the report + " +
-      "frida_auto.js (native hook points become concrete Frida hooks). See docs/REA_DEEP_PASS.md.",
+      "frida_auto.js (native hook points become concrete Frida hooks). See docs/reema/rea-deep-pass.md.",
     inputSchema: {
       workDir: z.string().describe("The work dir returned by anais_analyze"),
       results: z
@@ -179,7 +179,7 @@ reg(
           notes: z.array(z.any()).optional(),
         })
         .passthrough()
-        .describe("Raw deep-pass results (see docs/REA_DEEP_PASS.md)"),
+        .describe("Raw deep-pass results (see docs/reema/rea-deep-pass.md)"),
     },
   },
   async ({ workDir, results }: any) => {
@@ -207,7 +207,7 @@ reg(
       "Run the target on a connected device under the generated frida_auto.js and capture hook " +
       "hits + logcat. SAFETY: this EXECUTES the target (possibly malware). It is dry-run by " +
       "default (returns the command plan, runs nothing); pass execute=true to actually drive the " +
-      "device. Use a disposable/isolated device. See docs/DYNAMIC_ANALYSIS.md.",
+      "device. Use a disposable/isolated device. See docs/dyxon/dynamic-analysis.md.",
     inputSchema: {
       workDir: z.string().describe("The work dir returned by anais_analyze"),
       execute: z.boolean().optional().describe("Actually run on the device (default false = dry-run)"),

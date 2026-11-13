@@ -15,7 +15,7 @@ Phase 2 is agent-driven: the expensive, targeted questions (native
 decompilation, flow tracing, dynamic ADB/Frida) are NOT run here. They are
 emitted as structured, machine-actionable tasks in rea_targets.json for an agent
 to execute with REA's deep tools. The agent writes answers to rea_deep.json
-(see rea_deep.py and docs/REA_DEEP_PASS.md); the report generator folds them in.
+(see rea_deep.py and docs/reema/rea-deep-pass.md); the report generator folds them in.
 
 Usage: rea_bridge.py <apk_path> <decompiled_dir> <temp_dir> <out_report_json> <out_targets_json>
 
@@ -188,7 +188,7 @@ def main():
         "schema": TARGETS_SCHEMA,
         "note": "Deep REA questions for an agent-driven pass (Ghidra / graph / dynamic). "
                 "Execute each task with REA's deep tools, then write answers to deep_results_path "
-                "following docs/REA_DEEP_PASS.md and merge with rea_deep.py.",
+                "following docs/reema/rea-deep-pass.md and merge with rea_deep.py.",
         "apk": apk_path,
         "decompiled_dir": decompiled_dir,
         "temp_dir": temp_dir,

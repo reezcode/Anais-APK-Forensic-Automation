@@ -9,6 +9,13 @@ Automated security analysis tool for Android APK files. Built for security resea
 
 Anais analyzes APK files and generates detailed security reports. It can detect malware, identify vulnerabilities, and help you understand what an Android app is doing under the hood.
 
+Anais is being split into two features:
+
+- **Reema** — malware analysis and forensics (static triage, capabilities, IOCs, Vaccine Pack). Python package in `reema/`.
+- **Dyxon** — dynamic orchestration (device, Frida, runtime capture). Later integrated into Aegis.
+
+Documentation index: [`docs/README.md`](docs/README.md).
+
 **Features:**
 
 - Accepts APK and bundle inputs: `.apk`, `.xapk`, `.apkm`, `.apks`, and `.aab` (AAB needs `bundletool`)
@@ -27,7 +34,7 @@ Anais analyzes APK files and generates detailed security reports. It can detect 
 - Diffs two analyses to spot changes between app versions
 - Optional deep analysis via REA (decompilation, native exports, Flutter/Unity/.NET, call-flow) with an agent handoff file
 - Supports dynamic analysis with Frida
-- Runs as an **MCP server** with an **`anais-agent` skill** so agents (Claude Code, Codex, …) can drive the whole pipeline — see [`docs/MCP_AND_SKILL.md`](docs/MCP_AND_SKILL.md)
+- Runs as an **MCP server** with an **`anais-agent` skill** so agents (Claude Code, Codex, …) can drive the whole pipeline — see [`docs/platform/mcp-and-skill.md`](docs/platform/mcp-and-skill.md)
 
 ## Installation
 
@@ -91,7 +98,7 @@ only fast, deterministic REA commands (APK signature, native exports, Flutter/Un
 identity) and writes `reports/rea_targets.json`: machine-actionable tasks for the expensive
 questions (native decompilation, call-flow tracing, dynamic ADB/Frida). An agent runs those
 with REA's deep tools, then `rea_deep.py` merges the answers into a **Deep Pass** report
-section (incl. native hook points for Frida). Full contract: [`docs/REA_DEEP_PASS.md`](docs/REA_DEEP_PASS.md).
+section (incl. native hook points for Frida). Full contract: [`docs/reema/rea-deep-pass.md`](docs/reema/rea-deep-pass.md).
 
 **Dynamic analysis:**
 
@@ -110,7 +117,7 @@ section (incl. native hook points for Frida). Full contract: [`docs/REA_DEEP_PAS
 connected device under the generated `frida_auto.js`, captures hook hits + logcat
 into `dynamic_findings.json`, and adds a **Dynamic Analysis** section to the
 report. It executes the target, so it is opt-in and does nothing without `--yes`
-(dry-run otherwise). Full guide: [`docs/DYNAMIC_ANALYSIS.md`](docs/DYNAMIC_ANALYSIS.md).
+(dry-run otherwise). Full guide: [`docs/dyxon/dynamic-analysis.md`](docs/dyxon/dynamic-analysis.md).
 
 ```bash
 python3 analysis_tools/dynamic_bridge.py <workdir>/temp <workdir>/reports --timeout 30        # dry-run
@@ -128,6 +135,7 @@ Each analysis generates:
 - **report.md** - Human-readable report with findings and recommendations
 - **report.json** - Machine-readable data for automation (includes the composite `risk` block)
 - **report.sarif** - SARIF 2.1.0 export of SAST findings for GitHub code scanning / CI
+- **findings.json** - every analyzer's findings in one versioned schema (`reema.findings/v1`), split into malice / posture / context axes
 - **frida_auto.js** - Target-specific Frida script generated from the findings
 - Decompiled source code (APKTool and JADX output)
 - YARA scan results

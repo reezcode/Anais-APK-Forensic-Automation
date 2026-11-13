@@ -14,7 +14,7 @@ exact command plan and exits (dry-run). Use a disposable/isolated device.
 
 Preflight: adb on PATH, a device connected, frida + frida-server reachable
 (frida-ps -U). None of this runs in the default anais pipeline — it is a
-separate, opt-in step (see docs/DYNAMIC_ANALYSIS.md).
+separate, opt-in step (see docs/dyxon/dynamic-analysis.md).
 
 Usage:
   dynamic_bridge.py <temp_dir> <reports_dir>

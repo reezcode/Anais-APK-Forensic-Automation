@@ -1,0 +1,23 @@
+# Example capability rule. Neutral by design: it matches process execution, a
+# capability both benign tools and malware use. Copy this file to add real
+# rules; the full format is in docs/reema/capability-rules.md.
+id: process_exec
+title: Executes OS processes
+severity: medium
+attck:
+  - T1059
+tags:
+  - example
+description: >
+  Code calls into the runtime process-execution APIs. On its own this is not
+  malicious; many legitimate apps spawn processes. It is a building block that
+  behaviour chains combine with other capabilities.
+recommendation: >
+  Confirm what commands are run and whether input reaching them is attacker
+  controlled.
+requires:
+  - api: "Ljava/lang/Runtime;->exec"
+any_of:
+  - api:
+      - "Ljava/lang/Runtime;->exec"
+      - "Ljava/lang/ProcessBuilder;->start"

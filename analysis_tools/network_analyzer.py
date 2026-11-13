@@ -12,11 +12,29 @@ from pathlib import Path
 from collections import defaultdict
 from urllib.parse import urlparse
 
+# K5: single source of truth for suspicious TLDs is analyzer_config.json. The
+# list below is only a fallback for when the config is missing or unreadable.
+CONFIG_PATH = Path(__file__).resolve().parent.parent / "analyzer_config.json"
+DEFAULT_SUSPICIOUS_TLDS = ['.top', '.xyz', '.tk', '.ml', '.ga', '.cf', '.gq', '.pw']
+
+
+def load_suspicious_tlds(config_path=CONFIG_PATH):
+    try:
+        cfg = json.loads(Path(config_path).read_text(encoding='utf-8'))
+        tlds = cfg.get('patterns', {}).get('suspicious_tlds')
+        if tlds:
+            return [t if t.startswith('.') else '.' + t for t in tlds]
+    except (OSError, ValueError):
+        pass
+    return list(DEFAULT_SUSPICIOUS_TLDS)
+
+
 class NetworkAnalyzer:
     def __init__(self, decompiled_dir, jadx_dir):
         self.decompiled_dir = Path(decompiled_dir) if decompiled_dir else None
         self.jadx_dir = Path(jadx_dir) if jadx_dir else None
-        
+        self.suspicious_tlds = load_suspicious_tlds()
+
         self.findings = {
             'urls': [],
             'domains': [],
@@ -67,7 +85,12 @@ class NetworkAnalyzer:
         filtered_domains = []
         for domain in domains:
             domain_lower = domain.lower()
-            
+
+            # B12: a real hostname in decompiled code is written lowercase, so any
+            # uppercase letter marks a code identifier (coroutineId.id, R.string).
+            if domain != domain_lower:
+                continue
+
             # Skip if it looks like a Java class/method pattern
             if any([
                 domain.startswith('super.'),
@@ -104,28 +127,34 @@ class NetworkAnalyzer:
         return valid_ips
     
     def is_suspicious_url(self, url):
-        """Check if URL is suspicious"""
-        suspicious_tlds = ['.top', '.xyz', '.tk', '.ml', '.ga', '.cf', '.gq', '.pw']
-        suspicious_keywords = ['api', 'upload', 'download', 'c2', 'cmd', 'command', 'bot']
-        
+        """Check if URL is suspicious.
+
+        K3: 'api', 'upload' and 'download' were dropped — they appear in countless
+        benign REST endpoints and flagged almost every app. Only path segments that
+        actually signal command-and-control remain, matched as whole segments so a
+        word like 'robot' no longer trips 'bot'.
+        """
+        c2_segments = {'c2', 'cmd', 'command', 'bot', 'gate', 'panel', 'inject'}
+
         parsed = urlparse(url)
         domain = parsed.netloc.lower()
         path = parsed.path.lower()
-        
+
         # Check TLD
-        for tld in suspicious_tlds:
+        for tld in self.suspicious_tlds:
             if domain.endswith(tld):
                 return True, f'Suspicious TLD: {tld}'
-        
-        # Check keywords in domain or path
-        for keyword in suspicious_keywords:
-            if keyword in domain or keyword in path:
-                return True, f'Suspicious keyword: {keyword}'
-        
+
+        # Check C2-like whole segments in the path
+        segments = {seg for seg in re.split(r'[/._-]', path) if seg}
+        hit = c2_segments & segments
+        if hit:
+            return True, f'Suspicious path segment: {sorted(hit)[0]}'
+
         # Check for WebSocket
         if url.startswith('wss://') or url.startswith('ws://'):
             return True, 'WebSocket connection'
-        
+
         return False, None
     
     def scan_java_files(self):

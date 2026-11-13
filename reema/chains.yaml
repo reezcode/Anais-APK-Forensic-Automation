@@ -1,0 +1,4 @@
+# Behaviour chains combine capability ids into a known-profile verdict.
+# Add chains here; format in docs/reema/capability-rules.md. Ships empty:
+# a chain needs at least two real capability rules to be meaningful.
+chains: []
