@@ -110,7 +110,8 @@ class McpAdapterTest(unittest.TestCase):
         self.assertEqual(server.name, "dyxon")
         tools = asyncio.run(server.list_tools())
         names = {t.name for t in tools}
-        self.assertEqual(names, {"acquire_device", "reset", "release", "status"})
+        # D2 tools; run_capability/collect_runtime are added in D3.
+        self.assertTrue({"acquire_device", "reset", "release", "status"} <= names)
 
 
 class ConfigTest(unittest.TestCase):

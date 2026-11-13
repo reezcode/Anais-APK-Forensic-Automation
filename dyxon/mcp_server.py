@@ -50,6 +50,23 @@ def build_server(broker: Broker, name: str = SERVER_NAME):
         return broker.acquire_device(backend=backend, ttl_seconds=ttl_seconds, network=network)
 
     @server.tool()
+    def run_capability(session_id: str, package: str, capability: Optional[str] = None,
+                       vaccine: Optional[str] = None, apk: Optional[str] = None,
+                       mode: str = "check", duration: float = 5.0) -> dict:
+        """Run a Vaccine Pack check (mode="check", needs capability + vaccine.json path)
+        or a detonation (mode="detonate", runs for `duration` seconds) against `package`
+        on the leased device. Optionally installs `apk` first. Records a runtime
+        observation; returns its job id."""
+        return broker.run_capability(session_id, package, capability=capability,
+                                     vaccine=vaccine, apk=apk, mode=mode, duration=duration)
+
+    @server.tool()
+    def collect_runtime(session_id: str, out_dir: str) -> dict:
+        """Write this session's observations to dynamic_findings.json in out_dir
+        (a case's temp/), for Reema to merge into findings.json."""
+        return broker.collect_runtime(session_id, out_dir)
+
+    @server.tool()
     def reset(session_id: str) -> dict:
         """Restore a leased device to its clean golden snapshot without releasing it."""
         return broker.reset(session_id)

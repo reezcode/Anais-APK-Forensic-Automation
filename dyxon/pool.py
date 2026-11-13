@@ -107,6 +107,19 @@ class Pool:
                 raise SessionNotFound(session_id)
             self._restore(slot)
 
+    def leased_slot(self, session_id: str) -> DeviceSlot:
+        """Return the DeviceSlot a session holds (serial, frida endpoint, ...).
+
+        Raises SessionNotFound for an unknown, released or reclaimed session.
+        The caller reads the slot (serial, endpoint); it does not change lease state.
+        """
+        with self._lock:
+            self._reap_locked()
+            slot = self._sessions.get(session_id)
+            if slot is None:
+                raise SessionNotFound(session_id)
+            return slot
+
     def reap(self) -> int:
         """Reclaim every expired lease now; return how many were reclaimed."""
         with self._lock:

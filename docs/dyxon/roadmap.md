@@ -11,7 +11,7 @@ Phases run in order; each is committed on its own. Target design:
 | D0 | Package skeleton, AVD backend driver, provisioner | **Done** (2026-11-13) |
 | D1 | Warm pool + snapshot reset, session handle (`dyxon.session/v1`) | **Done** (2026-11-13) |
 | D2 | MCP server: `acquire_device`, `reset`, `release` (the generic device broker) | **Done** (2026-11-13) |
-| D3 | Capability runner: `run_capability`, `collect_runtime`, `dynamic_findings.json` | Planned |
+| D3 | Capability runner: `run_capability`, `collect_runtime`, `dynamic_findings.json` | **Done** (2026-11-13) |
 | D4 | Aegis / REA integration pass; detonation profile | Planned |
 
 The four brainstorm decisions (2026-11-13) set the first path through these
@@ -63,16 +63,21 @@ a ready device without Dyxon doing any analysis. Verified on 2026-11-13: 9 D2
 tests pass (broker success/error paths; MCP adapter registers all four tools;
 env config parse). Suite total 200.
 
-## D3 — Capability runner (planned)
+## D3 — Capability runner (done, 2026-11-13)
 
-| Item | Target |
+| Item | Result |
 |---|---|
-| `run_capability` | Install an app under test, run a Reema Vaccine Pack check on the device |
-| `collect_runtime` | Write `temp/dynamic_findings.json`, merged into `findings.json` |
-| Detonation profile | Install a sample, run it, capture runtime observations |
+| `run_capability` | `dyxon/runner.py` `CapabilityRunner`: optionally installs the app under test, resolves the Vaccine Pack entry's `defense.harness.module` (`dotted.module:function`), runs it with a `HarnessContext`, records an observation. No harness → `no_harness`; a bad harness → `error` (never crashes the broker). Broker tool `run_capability` |
+| Harness plugin | A harness is `run(ctx) -> {status, detail, evidence?}`. Neutral example in `dyxon/harnesses/example.py` (confirms the app under test is installed). Real harnesses are Reema content (B14) |
+| Detonation | `CapabilityRunner.detonate`: clear logcat, launch via `monkey`, wait `duration`, report crash lines. `mode="detonate"` on the tool |
+| `collect_runtime` | Writes `dynamic_findings.json` (schema `dyxon.dynamic/v1`) into a case's `temp/` |
+| Reema merge | `dynamic` adapter added to `reema/adapters.py` (+ registry), maps observations to `reema.findings/v1` (source `dynamic`, runtime confidence `high`, `status:<v>` tag) |
 
-Depends on Reema backlog B14 (Vaccine Pack harness content) for real checks; the
-runner itself is content-free and ships with the neutral example.
+Content-free: the runner is the mechanism; harness logic for real capabilities
+is Reema content (B14). Verified on 2026-11-13: 11 D3 tests (example harness
+pass, no-harness, bad-harness error, detonation crash count, vaccine lookup,
+write, broker run→collect, unknown session, detonate mode, adapter mapping).
+Suite total 211.
 
 ## D4 — Integration (planned)
 

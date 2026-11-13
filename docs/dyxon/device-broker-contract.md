@@ -77,11 +77,28 @@ Returned by `acquire_device`:
 
 ## Runtime-findings contract
 
-`collect_runtime` writes `temp/dynamic_findings.json`. This is the **same**
-contract the pre-Dyxon bridge already uses; it is merged into
-`reports/findings.json` (`reema.findings/v1`) by the report step. Dyxon does not
-change the findings schema — it is a producer of findings, not an owner of the
-schema.
+`collect_runtime` writes `dynamic_findings.json` (into a case's `temp/`), with
+schema `dyxon.dynamic/v1`:
+
+```json
+{
+  "tool": "dyxon",
+  "schema": "dyxon.dynamic/v1",
+  "session": { "serial": "emulator-5554", "backend": "avd", "android_version": "14" },
+  "observations": [
+    { "capability": "process_exec", "status": "pass", "axis": "posture",
+      "severity": "low", "title": "…", "detail": "…", "evidence": ["…"], "attck": [], "job_id": "…" }
+  ],
+  "errors": []
+}
+```
+
+Reema's `dynamic` adapter (`reema/adapters.py`) maps each observation to a
+`reema.findings/v1` finding (source `dynamic`, axis from the observation,
+confidence `high` because it was observed at runtime) and merges it into
+`reports/findings.json`. Dyxon is a producer of findings, not an owner of the
+findings schema. `status` is one of `pass`, `fail`, `observed`, `no_harness`,
+`error`; it is carried as a `status:<value>` tag on the finding.
 
 ## Error and contention behaviour
 

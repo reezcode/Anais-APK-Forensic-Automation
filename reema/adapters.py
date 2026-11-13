@@ -12,7 +12,7 @@ from pathlib import Path
 
 from reema import index
 from reema._legacy import owner_of
-from reema.findings import Evidence, Finding
+from reema.findings import AXES, Evidence, Finding
 
 # SAST categories that describe what malware does, not how a benign app is
 # built. Pattern matches only, so confidence stays low until the P2
@@ -167,6 +167,37 @@ def signing(data, work_dir):
             category="signing",
             description=item.get("detail", ""),
             evidence=[Evidence(file="META-INF/")],
+        ))
+    return out
+
+
+def dynamic(data, work_dir):
+    """Dyxon runtime observations (dynamic_findings.json, schema dyxon.dynamic/v1).
+
+    Each observation is something seen while the app ran on a leased device: a
+    Vaccine Pack check result, or a detonation. Axis comes from the observation
+    (posture for a check, context for a detonation); confidence is "high" because
+    it was observed at runtime, not inferred statically."""
+    out = []
+    serial = (data.get("session") or {}).get("serial", "")
+    device = f"device:{serial}" if serial else "device"
+    for o in data.get("observations", []) or []:
+        axis = o.get("axis", "context")
+        if axis not in AXES:
+            axis = "context"
+        ev = [Evidence(file=device, snippet=str(s)[:200]) for s in (o.get("evidence") or [])]
+        out.append(Finding(
+            source="dynamic",
+            rule=o.get("capability", "dynamic"),
+            title=o.get("title", "dynamic observation"),
+            severity=o.get("severity", "info"),
+            axis=axis,
+            confidence="high",
+            category="dynamic",
+            description=o.get("detail", ""),
+            evidence=ev or [Evidence(file=device)],
+            attck=o.get("attck", []) or [],
+            tags=[f"status:{o.get('status', 'observed')}"],
         ))
     return out
 
@@ -409,6 +440,7 @@ ADAPTERS = {
     "enrichment.json": enrichment,
     "ioc_enrichment.json": ioc_enrichment,
     "ios_findings.json": ios,
+    "dynamic_findings.json": dynamic,
 }
 
 
