@@ -2,6 +2,15 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.6.1 — backlog B17 (2026-11-13)
+
+Cleared backlog B17. Remaining: B10 (native Python APK engine), B13/B14/B16
+(detection/defense content, user-owned).
+
+### Added
+- **B17 — deep iOS analysis** (`reema/ios.py`): a stdlib Mach-O parser (`parse_macho`) reads the main executable's header and load commands — architecture(s) (incl. fat/universal slices, both byte orders), FairPlay encryption (`LC_ENCRYPTION_INFO[_64]` cryptid), PIE/ASLR (`MH_PIE`), code signature (`LC_CODE_SIGNATURE`), linked dylibs, and Swift use (`libswift*` / `__swift5`). `basic_info` now carries a `macho` block; `analyze` raises posture findings `macho_jailbreak_tooling` (Substrate/Cydia/Frida/… dylibs), `macho_unsigned`, `macho_no_pie`, `macho_not_encrypted`, plus a starter Apple-framework→capability map (`ios_cap_*`, context). A malformed binary degrades to the plist facts rather than failing the stage.
+- `tests/test_reema_backlog.py`: `DeepIosTest` (5 tests, hand-built Mach-O fixtures).
+
 ## 0.6.0 — P4 corpus gate, family classifier, iOS IPA (2026-11-13)
 
 ### Added

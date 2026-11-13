@@ -9,6 +9,7 @@ Run: python3 -m unittest discover -s tests -v
 import io
 import json
 import os
+import plistlib
 import sqlite3
 import sys
 import tempfile
@@ -21,7 +22,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "analysis_tools"))
 
-from reema import adapters, cli, enrich, index, iocs  # noqa: E402
+import struct  # noqa: E402
+
+from reema import adapters, cli, enrich, index, iocs, ios  # noqa: E402
 from reema import _psl  # noqa: E402
 from reema.case import Case  # noqa: E402
 from reema.findings import Evidence, Finding  # noqa: E402
@@ -441,6 +444,78 @@ class StixMispExportTest(unittest.TestCase):
             self.assertEqual(stix["type"], "bundle")
             self.assertEqual(misp["Event"]["Attribute"][0]["category"] in
                              ("Network activity", "Payload delivery"), True)
+
+
+def _macho64(dylibs=(), pie=True, signed=True, cryptid=1):
+    """Build a minimal 64-bit little-endian arm64 Mach-O for parse tests."""
+    cmds = []
+    for name in dylibs:
+        raw = name.encode() + b"\x00"
+        pad = (-len(raw)) % 8
+        raw += b"\x00" * pad
+        cmdsize = 24 + len(raw)
+        cmds.append(struct.pack("<6I", 0xC, cmdsize, 24, 0, 0, 0) + raw)
+    cmds.append(struct.pack("<6I", 0x2C, 24, 0, 0, cryptid, 0))  # LC_ENCRYPTION_INFO_64
+    if signed:
+        cmds.append(struct.pack("<4I", 0x1D, 16, 0, 0))          # LC_CODE_SIGNATURE
+    body = b"".join(cmds)
+    flags = 0x200000 if pie else 0
+    header = struct.pack("<8I", 0xFEEDFACF, 0x0100000C, 0, 2, len(cmds), len(body), flags, 0)
+    return header + body
+
+
+class DeepIosTest(unittest.TestCase):
+    def test_parse_macho_facts(self):
+        m = ios.parse_macho(_macho64(dylibs=["@rpath/libswiftCore.dylib"],
+                                     pie=True, signed=True, cryptid=1))
+        self.assertEqual(m["archs"], ["arm64"])
+        self.assertTrue(m["pie"])
+        self.assertTrue(m["signed"])
+        self.assertTrue(m["encrypted"])
+        self.assertTrue(m["swift"])
+        self.assertEqual(m["jailbreak_dylibs"], [])
+
+    def test_parse_macho_jailbreak_and_weaknesses(self):
+        m = ios.parse_macho(_macho64(dylibs=["/usr/lib/substrate.dylib"],
+                                     pie=False, signed=False, cryptid=0))
+        self.assertFalse(m["pie"])
+        self.assertFalse(m["signed"])
+        self.assertFalse(m["encrypted"])
+        self.assertEqual(m["jailbreak_dylibs"], ["/usr/lib/substrate.dylib"])
+
+    def test_parse_macho_rejects_non_macho(self):
+        self.assertEqual(ios.parse_macho(b"PK\x03\x04not a binary"), {})
+
+    def test_macho_findings_from_facts(self):
+        f = ios._macho_findings({"signed": False, "pie": False, "encrypted": False,
+                                 "jailbreak_dylibs": ["substrate.dylib"]})
+        rules = {x["rule"] for x in f}
+        self.assertEqual(rules, {"macho_unsigned", "macho_no_pie",
+                                 "macho_not_encrypted", "macho_jailbreak_tooling"})
+
+    def test_analyze_ipa_end_to_end(self):
+        with tempfile.TemporaryDirectory() as d:
+            case = Path(d)
+            ipa = case / "s.ipa"
+            plist = plistlib.dumps({
+                "CFBundleIdentifier": "com.x.y", "CFBundleExecutable": "X",
+                "CFBundleName": "X", "CFBundleShortVersionString": "1.0",
+                "NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True},
+            })
+            macho = _macho64(dylibs=["/usr/lib/cycript.dylib"], pie=False, signed=False, cryptid=0)
+            with zipfile.ZipFile(ipa, "w") as zf:
+                zf.writestr("Payload/X.app/Info.plist", plist)
+                zf.writestr("Payload/X.app/X", macho)
+                zf.writestr("Payload/X.app/Frameworks/CoreLocation.framework/", b"")
+                zf.writestr("Payload/X.app/Frameworks/CoreLocation.framework/CoreLocation", b"x")
+            findings = ios.analyze(ipa, case)
+            rules = {x["rule"] for x in findings}
+            self.assertIn("ats_arbitrary_loads", rules)
+            self.assertIn("macho_jailbreak_tooling", rules)
+            self.assertIn("macho_no_pie", rules)
+            self.assertIn("ios_cap_location", rules)
+            info = json.loads((case / "temp" / "basic_info.json").read_text())
+            self.assertEqual(info["macho"]["archs"], ["arm64"])
 
 
 if __name__ == "__main__":
