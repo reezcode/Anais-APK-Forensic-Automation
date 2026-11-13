@@ -1,0 +1,140 @@
+# Surveillance / data-collection capabilities. Format: docs/reema/capability-rules.md.
+id: location_tracking
+title: Reads device location
+severity: medium
+attck:
+  - T1430
+tags:
+  - surveillance
+  - location
+description: >
+  The app requests a location permission and reads coordinates through
+  LocationManager or the fused provider. Spyware and stalkerware track the
+  victim's position.
+recommendation: >
+  Check whether location is read in the background or on a schedule, and where
+  it is sent.
+requires:
+  - permission:
+      - "ACCESS_FINE_LOCATION"
+      - "ACCESS_COARSE_LOCATION"
+  - api:
+      - "getLastKnownLocation"
+      - "requestLocationUpdates"
+      - "FusedLocationProviderClient;->getLastLocation"
+---
+id: audio_record
+title: Records audio from the microphone
+severity: high
+attck:
+  - T1429
+tags:
+  - surveillance
+  - audio
+description: >
+  The app holds RECORD_AUDIO and starts a recorder. Spyware captures ambient
+  audio or call audio.
+recommendation: >
+  Determine what triggers recording and whether the captured audio is stored
+  or exfiltrated.
+requires:
+  - permission:
+      - "RECORD_AUDIO"
+  - api:
+      - "MediaRecorder;->start"
+      - "AudioRecord;->startRecording"
+---
+id: camera_capture
+title: Captures from the camera
+severity: medium
+attck:
+  - T1512
+tags:
+  - surveillance
+  - camera
+description: >
+  The app holds CAMERA and captures a still or video. Spyware takes covert
+  photos or video of the surroundings.
+recommendation: >
+  Check whether capture happens without a visible preview or user action.
+requires:
+  - permission:
+      - "CAMERA"
+  - api:
+      - "Camera;->takePicture"
+      - "camera2"
+      - "ImageCapture;->takePicture"
+---
+id: screen_capture
+title: Captures the screen
+severity: high
+attck:
+  - T1513
+tags:
+  - surveillance
+  - screen
+description: >
+  The app uses MediaProjection to record or screenshot the display. RATs use
+  this to watch the victim's screen, including other apps.
+recommendation: >
+  Confirm whether the projection runs continuously and where the frames go.
+requires:
+  - api:
+      - "MediaProjection;->createVirtualDisplay"
+      - "MediaProjectionManager;->createScreenCaptureIntent"
+---
+id: contact_exfiltration
+title: Reads the contact list
+severity: medium
+attck:
+  - T1636.003
+tags:
+  - surveillance
+  - contacts
+description: >
+  The app holds READ_CONTACTS and queries the contacts provider. Spyware and
+  SMS-worm malware harvest the address book.
+recommendation: >
+  Check whether the whole address book is read in bulk and transmitted.
+requires:
+  - permission:
+      - "READ_CONTACTS"
+  - api:
+      - "ContactsContract"
+      - "content://com.android.contacts"
+---
+id: call_log_access
+title: Reads the call log
+severity: medium
+attck:
+  - T1636.002
+tags:
+  - surveillance
+  - call-log
+description: >
+  The app holds READ_CALL_LOG and queries the call-log provider. Stalkerware
+  reconstructs who the victim calls.
+recommendation: >
+  Check whether the call log is read in bulk and transmitted off device.
+requires:
+  - permission:
+      - "READ_CALL_LOG"
+---
+id: clipboard_access
+title: Reads the clipboard
+severity: medium
+attck:
+  - T1414
+tags:
+  - clipper
+  - theft
+description: >
+  The app reads the primary clipboard. Crypto "clipper" malware watches the
+  clipboard for a wallet address and swaps it for the attacker's.
+recommendation: >
+  Check whether clipboard reads are paired with a write that substitutes the
+  content, and whether they run in the background.
+requires:
+  - api:
+      - "ClipboardManager;->getPrimaryClip"
+      - "ClipboardManager;->getText"

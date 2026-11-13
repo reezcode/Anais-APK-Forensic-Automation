@@ -1,0 +1,85 @@
+# Defenses for the surveillance capabilities. Format: docs/reema/vaccine-pack.md.
+id: sensor_minimization
+title: Minimize and foreground sensor access
+applies_to:
+  - location_tracking
+  - audio_record
+  - camera_capture
+  - screen_capture
+summary: >
+  An app under test should access location, microphone, camera and screen only
+  in a visible, user-initiated flow, and never continuously in the background.
+controls:
+  - api: "Foreground-service type for mic/camera/location/projection"
+    min_api: 29
+    note: Declare the matching foregroundServiceType so sensor use is attributable and user-visible.
+  - api: "Runtime permission + in-use indicator"
+    min_api: 23
+    note: Request the sensor permission at point of use; do not defeat the system privacy indicator.
+  - api: "No background capture loops"
+    min_api: 1
+    note: Stop capture when the feature is dismissed; do not schedule periodic silent capture.
+check:
+  steps:
+    - Enumerate sensor-start call sites (location, MediaRecorder/AudioRecord, camera, MediaProjection).
+    - Confirm each runs in a foreground, user-initiated context and stops with the feature.
+  expected: >
+    No sensor is read from background or scheduled code without a visible
+    foreground context.
+harness:
+  module: null
+  note: >
+    A harness would background the app under test and assert no sensor capture
+    starts.
+---
+id: personal_data_access
+title: Scope and justify personal-data reads
+applies_to:
+  - contact_exfiltration
+  - call_log_access
+summary: >
+  An app under test should read contacts and call logs only for a declared
+  feature and never bulk-export them.
+controls:
+  - api: "Scoped queries over bulk reads"
+    min_api: 1
+    note: Query only the records the feature needs; avoid reading the whole provider.
+  - api: "No off-device transfer of the address book or call log"
+    min_api: 1
+    note: Keep personal data on device unless the user explicitly shares it.
+check:
+  steps:
+    - Trace contacts/call-log provider queries in the app under test to a network sink.
+  expected: >
+    No bulk read of contacts or call log is transmitted off device.
+harness:
+  module: null
+  note: >
+    A harness would seed test contacts and assert the app under test does not
+    transmit them.
+---
+id: clipboard_access
+title: Do not snoop the clipboard
+applies_to:
+  - clipboard_access
+summary: >
+  An app under test should read the clipboard only in the foreground in direct
+  response to a paste, and never rewrite it based on content.
+controls:
+  - api: "Foreground-only clipboard reads"
+    min_api: 29
+    note: Since Android 10 background clipboard reads are blocked; do not work around this.
+  - api: "No content-triggered clipboard writes"
+    min_api: 1
+    note: Never replace clipboard content (e.g. a wallet address) based on what was copied.
+check:
+  steps:
+    - Enumerate ClipboardManager reads/writes in the app under test.
+    - Confirm reads are foreground paste handlers and no write substitutes content.
+  expected: >
+    No background clipboard read and no content-conditioned clipboard write.
+harness:
+  module: null
+  note: >
+    A harness would copy a marker, background the app under test, and assert the
+    clipboard is neither read nor altered.

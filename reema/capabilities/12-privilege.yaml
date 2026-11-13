@@ -1,0 +1,42 @@
+# Elevated-privilege and locking capabilities. Format: docs/reema/capability-rules.md.
+id: device_admin
+title: Takes Device Administrator control
+severity: high
+attck:
+  - T1626.001
+tags:
+  - device-admin
+  - persistence
+description: >
+  Code uses DevicePolicyManager to lock the screen, reset the password or wipe
+  the device, or registers a DeviceAdminReceiver. Ransomware and anti-removal
+  malware use admin rights to lock the user out and resist uninstall.
+recommendation: >
+  Check whether lockNow / resetPassword / wipeData are reachable from a C2
+  command path, and whether the admin receiver blocks its own deactivation.
+requires:
+  - api:
+      - "DevicePolicyManager;->lockNow"
+      - "DevicePolicyManager;->resetPassword"
+      - "DevicePolicyManager;->wipeData"
+      - "DeviceAdminReceiver;->onEnabled"
+---
+id: su_invocation
+title: Looks for or invokes the su binary
+severity: medium
+attck:
+  - T1420
+tags:
+  - root
+  - evasion
+description: >
+  The app references the su binary path or invokes it. This is used to detect
+  root (an evasion signal) or to request root privileges directly.
+recommendation: >
+  Distinguish passive root detection from active privilege escalation; trace
+  whether su is actually executed via Runtime.exec / ProcessBuilder.
+requires:
+  - string:
+      - "/system/bin/su"
+      - "/system/xbin/su"
+      - "/sbin/su"

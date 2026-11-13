@@ -1,4 +1,65 @@
 # Behaviour chains combine capability ids into a known-profile verdict.
-# Add chains here; format in docs/reema/capability-rules.md. Ships empty:
-# a chain needs at least two real capability rules to be meaningful.
-chains: []
+# A chain fires when at least `min_match` of its capabilities were proven in the
+# sample's own (app-owned) code. Format: docs/reema/capability-rules.md.
+# Capability ids are defined in reema/capabilities/*.yaml.
+chains:
+  - id: android_banker
+    title: Banking trojan (overlay + automation)
+    family: Banker
+    label: malicious
+    capabilities:
+      - overlay_phishing
+      - accessibility_abuse
+      - sms_intercept
+    min_match: 2
+
+  - id: sms_fraud
+    title: SMS trojan (send + intercept with persistence)
+    family: SMSTrojan
+    label: malicious
+    capabilities:
+      - sms_send
+      - sms_intercept
+      - boot_persistence
+    min_match: 2
+
+  - id: spyware
+    title: Spyware / stalkerware (multi-sensor surveillance)
+    family: Spyware
+    label: malicious
+    capabilities:
+      - location_tracking
+      - audio_record
+      - camera_capture
+      - contact_exfiltration
+      - call_log_access
+      - sms_intercept
+    min_match: 3
+
+  - id: remote_access_trojan
+    title: RAT (live screen/audio/camera capture)
+    family: RAT
+    label: malicious
+    capabilities:
+      - screen_capture
+      - audio_record
+      - camera_capture
+    min_match: 2
+
+  - id: dropper
+    title: Dropper (runtime code load + install)
+    family: Dropper
+    label: malicious
+    capabilities:
+      - dynamic_code_loading
+      - package_install
+    min_match: 2
+
+  - id: ransomware
+    title: Locker/ransomware (device-admin lock + persistence)
+    family: Ransomware
+    label: malicious
+    capabilities:
+      - device_admin
+      - boot_persistence
+    min_match: 2

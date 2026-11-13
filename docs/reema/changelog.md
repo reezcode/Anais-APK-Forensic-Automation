@@ -2,6 +2,21 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.8.0 — backlog B13/B14/B16 + anais.sh removal (2026-11-13)
+
+Clears the last three backlog items (detection/defense content) and deletes the
+retired bash engine. The backlog is now empty.
+
+### Added
+- **B13 — capability rules + chains**: real Android capability rules in `reema/capabilities/` (SMS send/intercept, overlay, accessibility abuse, device-admin, su, dynamic code loading, package install, location/audio/camera/screen/contacts/call-log/clipboard, boot persistence), each mapped to ATT&CK for Mobile. Behaviour chains in `reema/chains.yaml` (banker, SMS fraud, spyware, RAT, dropper, ransomware).
+- **B14 — defense catalog**: defense entries in `reema/defenses/` keyed to every capability, each with code-level controls, a pass/fail check, and the ADR 0003 harness contract.
+- **B16 — offline family classifier**: `reema/families.yaml` and `classify.signature_vote()` name a family from the app-owned capability profile — an offline source (no network, no YARA) independent of the behaviour chains, so a chain and a signature agreeing raises family confidence to high.
+- `tests/test_reema_backlog.py`: `ContentDetectionTest` (4 tests — content loads/cross-refs, banker profile fires chain+signature, signature needs app caps, library-only capability stays non-malicious).
+
+### Removed
+- **`anais.sh` deleted** (retired as the engine in 0.7.0). The npm CLI (`src/index.ts`) and MCP now spawn `python3 -m reema analyze`; `getAnaisScriptPath` dropped, `package.json` `files`/`postinstall` and `scripts/validate_framework.sh` updated.
+- Untracked 29 stray `__pycache__/*.pyc` / `.DS_Store` files that predated `.gitignore`.
+
 ## 0.7.0 — backlog B10: native Python APK engine (2026-11-13)
 
 Cleared backlog B10. Every engineering backlog item is now implemented; the

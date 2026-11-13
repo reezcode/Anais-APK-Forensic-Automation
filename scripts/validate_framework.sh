@@ -12,7 +12,7 @@ echo ""
 # Test 1: Check all scripts exist
 echo "[TEST 1] Checking script files..."
 files=(
-    "anais.sh"
+    "reema/apk.py"
     "scripts/dynamic_analysis_helper.sh"
     "scripts/setup.sh"
     "analysis_tools/check_zip_encryption.py"
@@ -45,7 +45,7 @@ echo ""
 
 # Test 2: Check permissions
 echo "[TEST 2] Checking execute permissions..."
-if [ -x "anais.sh" ] && [ -x "scripts/dynamic_analysis_helper.sh" ] && [ -x "scripts/setup.sh" ]; then
+if [ -x "scripts/dynamic_analysis_helper.sh" ] && [ -x "scripts/setup.sh" ]; then
     echo "✓ Main scripts are executable"
 else
     echo "✗ Scripts not executable. Run: chmod +x *.sh"
@@ -207,7 +207,7 @@ if [ $missing -eq 0 ] && [ $python_errors -eq 0 ]; then
     echo ""
     echo "Quick Start:"
     echo "  1. Run setup (if not done): ./scripts/setup.sh"
-    echo "  2. Analyze an APK: ./anais.sh app.apk"
+    echo "  2. Analyze an APK: python3 -m reema analyze app.apk"
     echo ""
     
     if [ $deps_missing -gt 0 ] || [ $pkgs_missing -gt 0 ]; then

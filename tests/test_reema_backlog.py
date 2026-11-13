@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT / "analysis_tools"))
 
 import struct  # noqa: E402
 
-from reema import adapters, apk, cli, enrich, index, iocs, ios  # noqa: E402
+from reema import adapters, apk, capabilities, classify, cli, enrich, index, iocs, ios, vaccine, verdict  # noqa: E402
 from reema import _psl  # noqa: E402
 from reema.case import Case  # noqa: E402
 from reema.findings import Evidence, Finding  # noqa: E402
@@ -613,6 +613,73 @@ class ApkEngineTest(unittest.TestCase):
             sample = Path(d) / "s.apk"
             self._valid_apk(sample)
             self.assertEqual(apk._protection_check(sample, Path(d), Path(d) / "log"), sample)
+
+
+class ContentDetectionTest(unittest.TestCase):
+    """B13/B14/B16: the shipped capability rules, chains, defenses and family
+    signatures load cleanly, cross-reference valid ids, and detect a profile."""
+
+    def test_all_content_loads_without_errors(self):
+        rules, rerr = capabilities.load_rules()
+        chains, cerr = verdict.load_chains()
+        defs, derr = vaccine.load_defenses()
+        sigs, serr = classify.load_signatures()
+        self.assertEqual((rerr, cerr, derr, serr), ([], [], [], []))
+        cap_ids = {r.id for r in rules}
+        self.assertGreater(len(rules), 10)
+        for ch in chains:
+            self.assertTrue(set(ch.capabilities) <= cap_ids, f"chain {ch.id} unknown cap")
+        for d in defs:
+            self.assertTrue(set(d.applies_to) <= cap_ids, f"defense {d.id} unknown cap")
+        for s in sigs:
+            self.assertTrue(s["caps"] <= cap_ids, f"signature {s['family']} unknown cap")
+
+    def _banker_facts(self):
+        app = "Lcom/evil/bank/Agent;"
+        f = capabilities.Facts()
+        f.add("permission", "android.permission.SYSTEM_ALERT_WINDOW", "manifest")
+        f.add("api", "Landroid/view/WindowManager;->addView", app)
+        f.add("api", "Landroid/accessibilityservice/AccessibilityService;->getRootInActiveWindow", app)
+        f.add("api", "Landroid/view/accessibility/AccessibilityNodeInfo;->performAction", app)
+        return f
+
+    def test_banker_profile_fires_chain_and_signature(self):
+        rules, _ = capabilities.load_rules()
+        chains, _ = verdict.load_chains()
+        matches = capabilities.match_rules(self._banker_facts(), rules)
+        findings = [capabilities.match_to_finding(m) for m in matches]
+        fired = {f.rule for f in findings}
+        self.assertIn("overlay_phishing", fired)
+        self.assertIn("accessibility_abuse", fired)
+
+        v = verdict.decide(findings, chains, family=None)
+        self.assertEqual(v["label"], "malicious")
+        self.assertEqual(v["family"], "Banker")
+
+        # Chain and the offline signature classifier independently name Banker -> high.
+        fam = classify.classify(v, enrichment_family=None, findings=[])
+        self.assertEqual(fam["family"], "Banker")
+        self.assertEqual(fam["confidence"], "high")
+        self.assertIn("chain", fam["sources"])
+        self.assertIn("signature", fam["sources"])
+
+    def test_signature_vote_needs_app_capabilities(self):
+        self.assertIsNone(classify.signature_vote({}))
+        self.assertIsNone(classify.signature_vote({"capabilities_app": ["clipboard_access"]}
+                                                  if False else {"capabilities_app": []}))
+        self.assertEqual(classify.signature_vote({"capabilities_app": ["clipboard_access"]}), "Clipper")
+
+    def test_library_only_capability_does_not_make_malicious(self):
+        sdk = "Lcom/google/android/gms/common/Stub;"
+        f = capabilities.Facts()
+        f.add("api", "Landroid/view/WindowManager;->addView", sdk)
+        f.add("permission", "android.permission.SYSTEM_ALERT_WINDOW", "manifest")
+        rules, _ = capabilities.load_rules()
+        chains, _ = verdict.load_chains()
+        findings = [capabilities.match_to_finding(m)
+                    for m in capabilities.match_rules(f, rules)]
+        v = verdict.decide(findings, chains, family=None)
+        self.assertNotEqual(v["label"], "malicious")
 
 
 if __name__ == "__main__":

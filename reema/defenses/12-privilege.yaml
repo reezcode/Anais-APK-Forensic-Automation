@@ -1,0 +1,27 @@
+# Defenses for device-admin abuse. Format: docs/reema/vaccine-pack.md.
+id: device_admin
+title: Constrain Device Administrator use
+applies_to:
+  - device_admin
+summary: >
+  An app under test should request admin powers only when a real management
+  feature needs them, and never wire lock/wipe to remote or untrusted input.
+controls:
+  - api: "Minimal device-admin policy set"
+    min_api: 8
+    note: Declare only the policies the feature needs; avoid force-lock/wipe unless essential.
+  - api: "User-confirmed, local-only lock/wipe triggers"
+    min_api: 8
+    note: Never reach lockNow/resetPassword/wipeData from a network command or exported component.
+check:
+  steps:
+    - List the policies in the device-admin policy XML.
+    - Trace every lockNow/resetPassword/wipeData call to its trigger.
+  expected: >
+    Admin policies are minimal and no destructive action is reachable from a
+    remote command or exported entry point.
+harness:
+  module: null
+  note: >
+    A harness would send a crafted intent to the app under test and assert no
+    lock or wipe occurs.

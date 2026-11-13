@@ -1,0 +1,39 @@
+# Runtime code loading and package installation. Format: docs/reema/capability-rules.md.
+id: dynamic_code_loading
+title: Loads code at runtime
+severity: high
+attck:
+  - T1407
+tags:
+  - dropper
+  - evasion
+description: >
+  The app loads a DEX or JAR that is not part of its static classes, through
+  DexClassLoader or InMemoryDexClassLoader. Droppers use this to fetch and run
+  a payload that never appears in the scanned APK.
+recommendation: >
+  Find where the loaded file comes from (asset, download, decrypted blob) and
+  what entry point is invoked after loading.
+requires:
+  - api:
+      - "DexClassLoader"
+      - "InMemoryDexClassLoader"
+      - "BaseDexClassLoader;-><init>"
+---
+id: package_install
+title: Installs other packages
+severity: high
+attck:
+  - T1407
+tags:
+  - dropper
+description: >
+  The app requests REQUEST_INSTALL_PACKAGES, letting it install another APK.
+  Combined with runtime code loading or a download, this is the payload-drop
+  stage of a dropper.
+recommendation: >
+  Confirm what APK is installed and whether the user is shown the install
+  prompt or it is pushed silently via a PackageInstaller session.
+requires:
+  - permission:
+      - "REQUEST_INSTALL_PACKAGES"

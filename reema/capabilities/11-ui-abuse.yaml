@@ -1,0 +1,45 @@
+# Screen-overlay and accessibility abuse. Format: docs/reema/capability-rules.md.
+id: overlay_phishing
+title: Draws windows over other apps
+severity: high
+attck:
+  - T1417
+  - T1516
+tags:
+  - overlay
+  - phishing
+description: >
+  The app holds SYSTEM_ALERT_WINDOW and adds a view through WindowManager.
+  Banking trojans use an overlay to draw a fake login over a real app and
+  capture the credentials the user types.
+recommendation: >
+  Determine what the overlay renders and whether it activates when a targeted
+  app (a bank, a wallet) comes to the foreground.
+requires:
+  - permission:
+      - "SYSTEM_ALERT_WINDOW"
+  - api:
+      - "WindowManager;->addView"
+---
+id: accessibility_abuse
+title: Drives the UI through an Accessibility service
+severity: high
+attck:
+  - T1417
+  - T1516
+tags:
+  - accessibility
+  - automation
+description: >
+  The app implements an AccessibilityService and reads or acts on the active
+  window. Malware abuses this to log keystrokes, auto-grant permissions, and
+  click through dialogs without the user.
+recommendation: >
+  Review the service's event handling for auto-clicking (performGlobalAction /
+  performAction) and for reading text out of other apps' windows.
+requires:
+  - api:
+      - "AccessibilityService;->getRootInActiveWindow"
+      - "AccessibilityNodeInfo;->performAction"
+      - "AccessibilityService;->performGlobalAction"
+      - "AccessibilityNodeInfo;->getText"

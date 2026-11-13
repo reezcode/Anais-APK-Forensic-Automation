@@ -1,0 +1,54 @@
+# Defenses for runtime code loading and package install. Format: docs/reema/vaccine-pack.md.
+id: dynamic_code_loading
+title: Avoid or verify runtime code loading
+applies_to:
+  - dynamic_code_loading
+summary: >
+  An app under test should not load executable code that is not shipped and
+  verified inside the signed APK.
+controls:
+  - api: "No DexClassLoader/InMemoryDexClassLoader on untrusted input"
+    min_api: 1
+    note: Do not load DEX/JAR fetched from the network or written by another app.
+  - api: "Signature/hash verification before any permitted load"
+    min_api: 1
+    note: If a module must be loaded, verify its signature or a pinned hash first, from read-only storage.
+check:
+  steps:
+    - Enumerate class-loader construction sites in the app under test.
+    - For each, confirm the source is bundled and read-only, and is verified before load.
+  expected: >
+    No code path loads unverified code from writable or network-sourced
+    storage.
+harness:
+  module: null
+  note: >
+    A harness would place a benign unsigned DEX where the app under test might
+    load it and assert the app refuses to load it.
+---
+id: package_install
+title: Make package installation explicit
+applies_to:
+  - package_install
+summary: >
+  An app under test should install other packages only through the visible
+  platform installer, never silently.
+controls:
+  - api: "PackageInstaller with user confirmation"
+    min_api: 21
+    note: Use the session installer that shows the system install prompt; do not suppress it.
+  - api: "Scope REQUEST_INSTALL_PACKAGES to a real feature"
+    min_api: 26
+    note: Request the permission only if the app genuinely installs user-chosen APKs.
+check:
+  steps:
+    - Trace every install path in the app under test.
+    - Confirm the system install UI is shown and the APK source is user-chosen.
+  expected: >
+    No package is installed without the platform prompt and a user-selected
+    source.
+harness:
+  module: null
+  note: >
+    A harness would invoke the app-under-test install path and assert the system
+    installer prompt appears.

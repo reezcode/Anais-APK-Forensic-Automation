@@ -121,7 +121,7 @@ def _new_case_dir(sample):
 
 
 def _base_apk(case_dir, fallback):
-    """The APK anais.sh actually analyzed (bundles resolve to their base split)."""
+    """The APK the engine actually analyzed (bundles resolve to their base split)."""
     try:
         prep = json.loads((case_dir / "temp" / "prepare_input.json").read_text(encoding="utf-8"))
         base = prep.get("base_apk")

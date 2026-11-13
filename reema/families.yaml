@@ -1,0 +1,61 @@
+# Offline, signature-based family classifier (backlog B16).
+#
+# Each signature names a malware family by the behaviour profile it shows: a set
+# of capability ids (reema/capabilities/*.yaml) seen in the sample's own code.
+# A signature fires when at least `min_caps` of its capabilities are present.
+# This is a local classifier: it uses no network and no YARA, only the
+# capabilities the engine already proved. It is an independent source from the
+# behaviour chains, so when a chain and a signature name the same family the
+# classifier raises confidence to high (reema/classify.py).
+#
+# These profile families; they do not name a specific threat actor's strain.
+signatures:
+  - family: Banker
+    min_caps: 2
+    capabilities:
+      - overlay_phishing
+      - accessibility_abuse
+      - sms_intercept
+      - device_admin
+
+  - family: SMSTrojan
+    min_caps: 2
+    capabilities:
+      - sms_send
+      - sms_intercept
+      - boot_persistence
+
+  - family: Spyware
+    min_caps: 3
+    capabilities:
+      - location_tracking
+      - audio_record
+      - camera_capture
+      - contact_exfiltration
+      - call_log_access
+      - sms_intercept
+
+  - family: RAT
+    min_caps: 2
+    capabilities:
+      - screen_capture
+      - audio_record
+      - camera_capture
+      - accessibility_abuse
+
+  - family: Dropper
+    min_caps: 2
+    capabilities:
+      - dynamic_code_loading
+      - package_install
+
+  - family: Ransomware
+    min_caps: 2
+    capabilities:
+      - device_admin
+      - boot_persistence
+
+  - family: Clipper
+    min_caps: 1
+    capabilities:
+      - clipboard_access

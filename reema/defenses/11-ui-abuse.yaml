@@ -1,0 +1,52 @@
+# Defenses for overlay and accessibility abuse. Format: docs/reema/vaccine-pack.md.
+id: overlay_phishing
+title: Resist overlay and tapjacking
+applies_to:
+  - overlay_phishing
+summary: >
+  An app under test should protect its sensitive screens from being covered or
+  observed by another app's overlay.
+controls:
+  - api: "View.setFilterTouchesWhenObscured(true) / FLAG_WINDOW_IS_OBSCURED"
+    min_api: 9
+    note: Drop touches on sensitive views when another window obscures them (anti-tapjacking).
+  - api: "HIDE_OVERLAY_WINDOWS (setHideOverlayWindows)"
+    min_api: 31
+    note: Hide system-alert overlays from the app's own sensitive activities.
+check:
+  steps:
+    - Identify login and payment screens in the app under test.
+    - Confirm each sets filterTouchesWhenObscured or hides overlay windows.
+  expected: >
+    Sensitive screens reject obscured touches and/or hide overlay windows.
+harness:
+  module: null
+  note: >
+    A harness would draw a benign, labelled overlay over the app under test and
+    assert its sensitive view refuses the obscured tap.
+---
+id: accessibility_abuse
+title: Protect against hostile Accessibility automation
+applies_to:
+  - accessibility_abuse
+summary: >
+  An app under test should not expose sensitive content to accessibility reads
+  and should treat accessibility-driven input on critical actions with care.
+controls:
+  - api: "View.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO)"
+    min_api: 16
+    note: Exclude secret fields (passwords, seeds, OTP) from the accessibility tree.
+  - api: "android:accessibilityDataSensitive"
+    min_api: 34
+    note: Mark sensitive views so only genuine assistive services, not arbitrary apps, can read them.
+check:
+  steps:
+    - Enumerate views that display secrets in the app under test.
+    - Confirm each is excluded from accessibility or marked data-sensitive.
+  expected: >
+    No secret-bearing view is readable by an arbitrary AccessibilityService.
+harness:
+  module: null
+  note: >
+    A harness would register a benign, labelled accessibility service and assert
+    it cannot read the app-under-test's sensitive fields.

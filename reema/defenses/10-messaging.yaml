@@ -1,0 +1,54 @@
+# Defenses for the SMS capabilities. Format: docs/reema/vaccine-pack.md.
+id: sms_send
+title: Gate and attribute SMS sending
+applies_to:
+  - sms_send
+summary: >
+  An app under test should never send SMS from background or externally
+  triggered code paths, and should make every send user-initiated and visible.
+controls:
+  - api: "Explicit user action before SmsManager.sendTextMessage"
+    min_api: 1
+    note: Send only in direct response to a foreground user gesture, never from a receiver or service.
+  - api: "Default-SMS-app role / RoleManager"
+    min_api: 29
+    note: Require the app to hold the SMS role so silent sending by non-default apps is blocked by the platform.
+check:
+  steps:
+    - Enumerate every SmsManager.send* call site.
+    - Trace each back to its trigger and confirm it originates from a foreground user action.
+  expected: >
+    No send call is reachable from a BroadcastReceiver, a background Service or
+    a remote command; every send is user-initiated.
+harness:
+  module: null
+  note: >
+    A harness would launch only the app under test and assert that a crafted
+    background intent does not cause an SMS to be sent.
+---
+id: sms_intercept
+title: Do not silently consume incoming SMS
+applies_to:
+  - sms_intercept
+summary: >
+  An app under test should not abort the SMS broadcast or read message bodies
+  outside a user-visible feature, so OTP theft patterns cannot hide.
+controls:
+  - api: "No abortBroadcast() in the SMS receiver"
+    min_api: 1
+    note: Never suppress the ordered SMS broadcast; suppression hides the message from the user and other apps.
+  - api: "Scoped, foreground SMS reading"
+    min_api: 1
+    note: Read message content only inside a user-visible flow, not in a background receiver that forwards it.
+check:
+  steps:
+    - Inspect every RECEIVE_SMS receiver for abortBroadcast and for reads of getMessageBody/getOriginatingAddress.
+    - Confirm parsed content is not forwarded to a network sink from the receiver.
+  expected: >
+    The receiver does not abort the broadcast and does not exfiltrate message
+    content.
+harness:
+  module: null
+  note: >
+    A harness would deliver a test SMS to the app under test and assert the
+    broadcast completes and nothing is sent off device.

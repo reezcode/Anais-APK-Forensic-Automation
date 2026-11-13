@@ -1,0 +1,19 @@
+# Persistence capabilities. Format: docs/reema/capability-rules.md.
+id: boot_persistence
+title: Starts itself on device boot
+severity: medium
+attck:
+  - T1624.001
+tags:
+  - persistence
+  - autostart
+description: >
+  The app requests RECEIVE_BOOT_COMPLETED so a receiver can relaunch it after
+  reboot. Benign apps do this too, so it matters as the persistence half of a
+  behaviour chain rather than on its own.
+recommendation: >
+  Check what the boot receiver starts and whether the app has a launcher icon;
+  an auto-starting app with no icon is a strong signal.
+requires:
+  - permission:
+      - "RECEIVE_BOOT_COMPLETED"

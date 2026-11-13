@@ -91,11 +91,12 @@ Case directory:
 | `reema/iocs.py` | IOC extraction and export |
 | `reema/vaccine.py` | Vaccine Pack generator |
 | `reema/ios.py` | iOS IPA intake (Info.plist posture + Mach-O facts) |
-| `reema/classify.py` | Family classifier (merges family signals) |
+| `reema/classify.py` | Family classifier (merges chain/signature/enrichment/YARA signals) |
+| `reema/families.yaml` | Offline family signatures (behaviour-profile classifier) |
 | `reema/corpus.py` | Corpus gate (precision/recall over a labelled set) |
 | `reema/defenses/` | Defense catalog content (see [vaccine-pack.md](vaccine-pack.md)) |
 | `reema/_psl.py` | Bundled public-suffix list (domain validation) |
-| `reema/capabilities/`, `reema/chains.yaml` | Detection content (see [capability-rules.md](capability-rules.md)) |
+| `reema/capabilities/`, `reema/chains.yaml` | Capability rules + behaviour chains (see [capability-rules.md](capability-rules.md)) |
 | `reema/_legacy.py` | Bridge to `analysis_tools/` during migration |
 | `analysis_tools/` | Legacy analyzers (migrated into `reema/` stage by stage) |
 | `rules/` | YARA rules |

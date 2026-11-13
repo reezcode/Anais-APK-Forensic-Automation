@@ -44,13 +44,6 @@ export function getProjectRoot(): string {
 }
 
 /**
- * Get the path to anais.sh script
- */
-export function getAnaisScriptPath(): string {
-  return path.join(getProjectRoot(), "anais.sh");
-}
-
-/**
  * Read the package version from package.json (single source of truth)
  */
 export function getVersion(): string {

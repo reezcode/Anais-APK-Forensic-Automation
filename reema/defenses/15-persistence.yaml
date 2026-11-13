@@ -1,0 +1,27 @@
+# Defenses for boot persistence. Format: docs/reema/vaccine-pack.md.
+id: boot_persistence
+title: Keep auto-start visible and minimal
+applies_to:
+  - boot_persistence
+summary: >
+  An app under test that starts on boot should remain user-visible and do the
+  minimum, so auto-start cannot be used to hide a background agent.
+controls:
+  - api: "Launcher entry present"
+    min_api: 1
+    note: Keep a launcher icon; an auto-starting app with no icon is a hiding pattern.
+  - api: "Minimal boot receiver work"
+    min_api: 1
+    note: On BOOT_COMPLETED, restore only declared state; do not start covert services or network loops.
+check:
+  steps:
+    - Inspect the BOOT_COMPLETED receiver in the app under test.
+    - Confirm the app has a launcher activity and the receiver starts no hidden service.
+  expected: >
+    Auto-start is tied to a visible app and performs only declared,
+    user-facing work.
+harness:
+  module: null
+  note: >
+    A harness would broadcast a test BOOT_COMPLETED to the app under test and
+    assert no undisclosed background service starts.

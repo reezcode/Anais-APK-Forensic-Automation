@@ -1,0 +1,46 @@
+# SMS/messaging capabilities. Format: docs/reema/capability-rules.md.
+id: sms_send
+title: Sends SMS messages programmatically
+severity: high
+attck:
+  - T1582
+tags:
+  - sms
+  - fraud
+description: >
+  Code calls SmsManager to send text messages. Premium-SMS fraud and silent
+  2FA relay both rely on this. Legitimate messaging apps use it too, so it
+  carries weight only alongside persistence or interception.
+recommendation: >
+  Confirm the destination numbers and message bodies, and whether sending is
+  triggered without user action (from a receiver or background service).
+requires:
+  - api:
+      - "SmsManager;->sendTextMessage"
+      - "SmsManager;->sendMultipartTextMessage"
+      - "SmsManager;->sendDataMessage"
+---
+id: sms_intercept
+title: Intercepts incoming SMS
+severity: high
+attck:
+  - T1582
+  - T1636.004
+tags:
+  - sms
+  - interception
+description: >
+  The app both requests RECEIVE_SMS and reads the content of incoming
+  messages. This is the mechanism behind one-time-password theft and silent
+  SMS command channels.
+recommendation: >
+  Check whether the receiver aborts the broadcast (hiding the message) and
+  where the parsed body and originating address are sent.
+requires:
+  - permission:
+      - "RECEIVE_SMS"
+  - api:
+      - "SmsMessage;->createFromPdu"
+      - "SmsMessage;->getMessageBody"
+      - "SmsMessage;->getOriginatingAddress"
+      - "SmsMessage;->getDisplayMessageBody"

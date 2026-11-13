@@ -2,7 +2,6 @@ import { spawn } from "child_process";
 import { AnalysisResult } from "./types";
 import {
   fileExists,
-  getAnaisScriptPath,
   getBasename,
   getProjectRoot,
   resolveAbsolutePath,
@@ -46,25 +45,17 @@ export const executeForensicAnalysis = async (
 
     // Get paths
     const scriptDir = getProjectRoot();
-    const anaisScript = getAnaisScriptPath();
 
-    if (!fileExists(anaisScript)) {
-      return resolve({
-        success: false,
-        apkPath,
-        message: `Analysis script not found: ${anaisScript}`,
-        error: "Script not found",
-      });
-    }
+    log(`🚀 Executing analysis (reema engine)...\n`);
 
-    log(`🚀 Executing analysis...\n`);
-
-    // Spawn the bash script (passthrough flags before the APK path)
-    const analysis = spawn("bash", [anaisScript, ...extraArgs, absoluteApkPath], {
+    // Spawn the native Python engine (passthrough flags before the APK path).
+    // The bash engine (anais.sh) was retired in 0.7.0; reema/apk.py is the engine.
+    const analysis = spawn("python3", ["-m", "reema", "analyze", ...extraArgs, absoluteApkPath], {
       cwd: scriptDir,
       env: {
         ...process.env,
         PYTHONWARNINGS: "ignore",
+        PYTHONPATH: scriptDir + (process.env.PYTHONPATH ? `:${process.env.PYTHONPATH}` : ""),
         ...(opts.env ?? {}),
       },
     });
@@ -80,16 +71,12 @@ export const executeForensicAnalysis = async (
       log(output);
       stdout += output;
 
-      // Extract workspace directory from output
-      const workspaceMatch = output.match(/Workspace initialized: (.+)/);
-      if (workspaceMatch) {
-        workspaceDir = workspaceMatch[1].trim();
-      }
-
-      // Extract report path
-      const reportMatch = output.match(/Main report: (.+\.md)/);
-      if (reportMatch) {
-        reportPath = reportMatch[1].trim();
+      // reema prints: "reema: case <id> -> <case_dir>". The report is written
+      // to <case_dir>/reports/report.md.
+      const caseMatch = output.match(/reema: case \S+ -> (.+)/);
+      if (caseMatch) {
+        workspaceDir = caseMatch[1].trim();
+        reportPath = `${workspaceDir}/reports/report.md`;
       }
     });
 
