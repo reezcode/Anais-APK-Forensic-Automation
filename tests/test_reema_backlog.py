@@ -670,16 +670,66 @@ class ContentDetectionTest(unittest.TestCase):
         self.assertEqual(classify.signature_vote({"capabilities_app": ["clipboard_access"]}), "Clipper")
 
     def test_library_only_capability_does_not_make_malicious(self):
+        # An api-only capability proven only in SDK code is owner sdk, not app,
+        # so it does not drive the verdict.
         sdk = "Lcom/google/android/gms/common/Stub;"
         f = capabilities.Facts()
-        f.add("api", "Landroid/view/WindowManager;->addView", sdk)
-        f.add("permission", "android.permission.SYSTEM_ALERT_WINDOW", "manifest")
+        f.add("api", "Landroid/media/projection/MediaProjection;->createVirtualDisplay", sdk)
         rules, _ = capabilities.load_rules()
         chains, _ = verdict.load_chains()
         findings = [capabilities.match_to_finding(m)
                     for m in capabilities.match_rules(f, rules)]
+        self.assertIn("screen_capture", {x.rule for x in findings})
+        self.assertNotEqual(findings[0].owner, "app")
         v = verdict.decide(findings, chains, family=None)
         self.assertNotEqual(v["label"], "malicious")
+
+    def test_manifest_permission_evidence_is_app_owned(self):
+        # Fix 1: a permission-only capability is attributed to the app, so the
+        # verdict can see it (a packed app's only static signal).
+        rules, _ = capabilities.load_rules()
+        f = capabilities.Facts()
+        f.add("permission", "android.permission.READ_CALL_LOG", "manifest")
+        findings = [capabilities.match_to_finding(m)
+                    for m in capabilities.match_rules(f, rules)]
+        call = next(x for x in findings if x.rule == "call_log_access")
+        self.assertEqual(call.owner, "app")
+
+    def test_permission_constellation_needs_three_high_risk(self):
+        # Fix 2: dangerous_permission_set uses any_of_min: 3.
+        rules, _ = capabilities.load_rules()
+
+        def fired(perms):
+            f = capabilities.Facts()
+            for p in perms:
+                f.add("permission", "android.permission." + p, "manifest")
+            return {m.rule.id for m in capabilities.match_rules(f, rules)}
+
+        self.assertNotIn("dangerous_permission_set", fired(["SEND_SMS", "RECEIVE_SMS"]))
+        self.assertIn("dangerous_permission_set",
+                      fired(["SEND_SMS", "RECEIVE_SMS", "SYSTEM_ALERT_WINDOW"]))
+
+    def test_packed_profile_verdict_and_family(self):
+        # A packed app: no api_calls, only dangerous permissions. The
+        # constellation (app-owned) lifts the verdict off clean and the
+        # signature names the generic family.
+        rules, _ = capabilities.load_rules()
+        chains, _ = verdict.load_chains()
+        f = capabilities.Facts()
+        for p in ("SEND_SMS", "RECEIVE_SMS", "SYSTEM_ALERT_WINDOW",
+                  "BIND_ACCESSIBILITY_SERVICE", "READ_CALL_LOG"):
+            f.add("permission", "android.permission." + p, "manifest")
+        findings = [capabilities.match_to_finding(m) for m in capabilities.match_rules(f, rules)]
+        v = verdict.decide(findings, chains, family=None)
+        self.assertIn(v["label"], ("suspicious", "malicious"))
+        self.assertIn("dangerous_permission_set", v["capabilities_app"])
+        fam = classify.classify(v, enrichment_family=None, findings=[])
+        self.assertEqual(fam["family"], "Android.HighRisk")
+
+    def test_any_of_min_out_of_range_is_an_error(self):
+        from reema.capabilities import Rule, RuleError
+        with self.assertRaises(RuleError):
+            Rule({"id": "x", "any_of": [{"permission": "A"}], "any_of_min": 5}, "t.yaml")
 
 
 if __name__ == "__main__":

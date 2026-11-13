@@ -30,3 +30,6 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
+
+# corpus gate scratch
+.corpus_tmp/

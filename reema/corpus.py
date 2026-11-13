@@ -70,15 +70,20 @@ def load_manifest(path):
 
 def _verdict_for(sample, workspace):
     """Run reema analyze on one sample and return its verdict label, or None on error."""
-    cmd = [sys.executable, "-m", "reema", "analyze", "--offline", "--no-enrich", str(sample)]
-    env = {"ANAIS_WORKSPACE": str(workspace), "PYTHONPATH": str(ROOT)}
+    # Each sample gets its own workspace subdirectory. Sharing one workspace
+    # across samples let a leftover SQLite handle (the code index) collide with
+    # the next run -> "database is locked".
+    import hashlib
     import os
-    full_env = {**os.environ, **env}
+    sample_ws = Path(workspace) / f"s_{hashlib.sha1(str(sample).encode()).hexdigest()[:12]}"
+    sample_ws.mkdir(parents=True, exist_ok=True)
+    cmd = [sys.executable, "-m", "reema", "analyze", "--offline", "--no-enrich", str(sample)]
+    full_env = {**os.environ, "ANAIS_WORKSPACE": str(sample_ws), "PYTHONPATH": str(ROOT)}
     proc = subprocess.run(cmd, capture_output=True, text=True, env=full_env)
     if proc.returncode != 0:
         return None, proc.stderr.strip().splitlines()[-1:] or ["engine failed"]
     # The newest case directory for this sample holds the verdict.
-    cases = sorted(Path(workspace).glob(f"{Path(sample).stem}_*"),
+    cases = sorted(Path(sample_ws).glob(f"{Path(sample).stem}_*"),
                    key=lambda p: p.stat().st_mtime)
     if not cases:
         return None, ["no case directory produced"]

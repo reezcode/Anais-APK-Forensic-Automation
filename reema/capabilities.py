@@ -59,11 +59,17 @@ class Rule:
         self.recommendation = data.get("recommendation", "")
         self.defense = data.get("defense", "")
 
-        # requires: every group must match (AND). any_of: at least one must match (OR).
+        # requires: every group must match (AND). any_of: at least `any_of_min`
+        # of the conditions must match (default 1, i.e. OR). A higher any_of_min
+        # expresses a constellation: "at least N of these must co-occur".
         self.requires = [Condition(c, path) for c in _as_list(data.get("requires"))]
         self.any_of = [Condition(c, path) for c in _as_list(data.get("any_of"))]
         if not self.requires and not self.any_of:
             raise RuleError(f"{path}: rule {self.id!r} has neither 'requires' nor 'any_of'")
+        self.any_of_min = int(data.get("any_of_min", 1))
+        if self.any_of_min < 1 or (self.any_of and self.any_of_min > len(self.any_of)):
+            raise RuleError(f"{path}: rule {self.id!r} any_of_min {self.any_of_min} "
+                            f"out of range 1..{len(self.any_of)}")
 
     def evaluate(self, facts):
         """Return a Match when the rule fires, else None."""
@@ -74,8 +80,13 @@ class Rule:
                 return None
             hits.extend(found)
         if self.any_of:
-            any_hits = [h for cond in self.any_of for h in cond.match(facts)]
-            if not any_hits:
+            matched, any_hits = 0, []
+            for cond in self.any_of:
+                found = cond.match(facts)
+                if found:
+                    matched += 1
+                    any_hits.extend(found)
+            if matched < self.any_of_min:
                 return None
             hits.extend(any_hits)
         return Match(self, hits)
@@ -124,7 +135,17 @@ class Match:
         self.hits = hits
 
     def owners(self):
-        owners = {owner_of(h.where) for h in self.hits if h.where and h.where.startswith("L")}
+        # Code evidence is attributed by its class; manifest evidence (a declared
+        # permission or component) is the sample's own declaration, so it is
+        # app-owned. Without this, a permission-only capability can never reach
+        # owner "app" and the verdict ignores it (e.g. a packed app whose code is
+        # unavailable but whose manifest declares dangerous permissions).
+        owners = set()
+        for h in self.hits:
+            if h.where and h.where.startswith("L"):
+                owners.add(owner_of(h.where))
+            elif h.where == "manifest":
+                owners.add("app")
         owners.discard("")
         return owners
 
@@ -193,7 +214,11 @@ class Facts:
 
         db = case_dir / "temp" / "code_index.db"
         if db.is_file():
-            with sqlite3.connect(db) as con:
+            # timeout waits out a transient lock from a still-open writer rather
+            # than failing instantly; close deterministically (a bare `with`
+            # commits but leaks the connection).
+            con = sqlite3.connect(db, timeout=30)
+            try:
                 tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                 if "api_calls" in tables:
                     for api, cls_name in con.execute(
@@ -203,6 +228,8 @@ class Facts:
                     for value, cls_name in con.execute(
                             "SELECT s.value, c.name FROM strings s JOIN classes c ON c.id = s.class_id"):
                         facts.add("string", value, cls_name)
+            finally:
+                con.close()
         return facts
 
 

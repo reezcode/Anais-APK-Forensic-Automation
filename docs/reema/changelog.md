@@ -2,6 +2,20 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.8.1 — corpus-driven content + engine fixes (2026-11-13)
+
+Ran the corpus gate on a real malware set (`FourMays.apk`, `IsolPolicy-release.apk`).
+It surfaced three defects; all fixed. Recall is now 2/2 (both caught), 0 errors.
+
+### Fixed
+- **Permission evidence is app-owned** (`reema/capabilities.py`): `Match.owners()` now attributes a manifest-declared permission/component to the app. Before, a permission-only capability was `owner=""`, so `verdict.decide` (which counts only `owner=="app"`) ignored it — a packed app verdicted `clean` despite dangerous declarations.
+- **Index SQLite lock** (`reema/index.py`): `build()` wrapped its write connection in try/finally so it always closes. A mid-build androguard failure on a large/packed DEX previously leaked an open writer, locking `code_index.db` for every later reader (`capabilities.Facts.from_case` → `database is locked`). All `code_index.db` readers (`capabilities`, `index.api_usage`/`unreachable_classes`, `iocs._index_strings`) now use an explicit close + 30s busy timeout instead of a leak-prone bare `with`.
+
+### Added
+- **Permission-constellation capability** (`reema/capabilities/16-permission-profile.yaml` + `any_of_min` in the rule engine): `dangerous_permission_set` fires when ≥3 high-risk permissions (accessibility, overlay, SMS, call-log, device-admin, install) co-occur — the one static signal that survives packing, since the manifest remains even when the real DEX is unpacked at runtime. New `any_of_min` lets a rule require N-of-M conditions. Generic family `Android.HighRisk` signature (`reema/families.yaml`).
+- **Per-sample corpus workspace** (`reema/corpus.py`): each sample analyses into its own workspace subdir.
+- Tests: +5 (owner attribution, constellation threshold, packed-profile verdict/family, `any_of_min` validation).
+
 ## 0.8.0 — backlog B13/B14/B16 + anais.sh removal (2026-11-13)
 
 Clears the last three backlog items (detection/defense content) and deletes the

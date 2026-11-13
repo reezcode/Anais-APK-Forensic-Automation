@@ -1,0 +1,38 @@
+# Permission-constellation capability. Format: docs/reema/capability-rules.md.
+#
+# This is the one capability that works on a packed sample: when the real DEX is
+# unpacked at runtime the code index has no API calls, but the manifest still
+# declares the permissions. A single dangerous permission is common in benign
+# apps, so this fires only when several HIGH-RISK permissions co-occur
+# (any_of_min) — a combination that is rare outside banker/spyware/SMS-trojan
+# families. It is attributed to the app because the permissions are declared in
+# the sample's own manifest.
+id: dangerous_permission_set
+title: Declares a high-risk permission constellation
+severity: high
+attck:
+  - T1626
+  - T1636
+tags:
+  - permission-profile
+  - packed
+description: >
+  The manifest requests at least three of the permissions abused by mobile
+  malware to intercept SMS, drive the UI, overlay other apps, take device-admin
+  control, install packages, or read call history. Benign apps rarely request
+  this combination together. On a packed sample this is often the only static
+  signal, since the real code is unpacked at runtime.
+recommendation: >
+  Treat as a strong lead: review the declared components (accessibility service,
+  admin receiver, SMS receiver) and run the sample dynamically to recover the
+  unpacked DEX for a full capability read.
+any_of_min: 3
+any_of:
+  - permission: "BIND_ACCESSIBILITY_SERVICE"
+  - permission: "SYSTEM_ALERT_WINDOW"
+  - permission: "SEND_SMS"
+  - permission: "RECEIVE_SMS"
+  - permission: "READ_SMS"
+  - permission: "READ_CALL_LOG"
+  - permission: "BIND_DEVICE_ADMIN"
+  - permission: "REQUEST_INSTALL_PACKAGES"

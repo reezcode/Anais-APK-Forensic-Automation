@@ -59,3 +59,11 @@ signatures:
     min_caps: 1
     capabilities:
       - clipboard_access
+
+  # Generic profile for a packed/obfuscated sample where only the dangerous
+  # permission constellation is visible. Weaker than the behaviour-specific
+  # families above; it names the risk without claiming a precise strain.
+  - family: Android.HighRisk
+    min_caps: 1
+    capabilities:
+      - dangerous_permission_set

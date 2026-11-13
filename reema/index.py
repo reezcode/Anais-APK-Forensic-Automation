@@ -202,7 +202,17 @@ def build(sample, out_path):
     dx, seeds, dex_source = _analysis_for(sample)
     reachable = _reachability(dx, seeds) if dx is not None else None
 
-    db = sqlite3.connect(out_path)
+    db = sqlite3.connect(out_path, timeout=30)
+    try:
+        return _build_into(db, dx, dex_source, reachable)
+    finally:
+        # Always release the write lock; if _build_into raised (androguard can
+        # fail mid-analysis on a large/packed DEX) a leaked open connection
+        # would lock the index for every later reader in this process.
+        db.close()
+
+
+def _build_into(db, dx, dex_source, reachable):
     db.executescript(DDL)
     summary = {"schema": INDEX_SCHEMA, "dex_present": dx is not None, "dex_source": dex_source,
                "classes": 0, "app_classes": 0, "reachable_classes": 0,
@@ -263,17 +273,21 @@ def build(sample, out_path):
 
     db.executemany("INSERT INTO meta(key, value) VALUES (?, ?)", [(k, str(v)) for k, v in summary.items()])
     db.commit()
-    db.close()
     return summary
 
 
 def api_usage(index_path, api_prefix):
     """Callers of APIs starting with api_prefix, as (class, owner, method, api) rows."""
-    with sqlite3.connect(index_path) as db:
+    # A bare `with sqlite3.connect()` commits but does not close, leaking a
+    # handle that can lock the DB for a later reader on a large index; close it.
+    db = sqlite3.connect(index_path, timeout=30)
+    try:
         return db.execute(
             "SELECT c.name, c.owner, a.method, a.api FROM api_calls a JOIN classes c ON c.id = a.class_id "
             "WHERE a.api >= ? AND a.api < ? ORDER BY c.owner != 'app', c.name",
             (api_prefix, api_prefix + "￿")).fetchall()
+    finally:
+        db.close()
 
 
 def unreachable_classes(index_path):
@@ -281,5 +295,8 @@ def unreachable_classes(index_path):
 
     Empty when the index carries no reachability (reachable all NULL, e.g. a JAR).
     """
-    with sqlite3.connect(index_path) as db:
+    db = sqlite3.connect(index_path, timeout=30)
+    try:
         return {row[0] for row in db.execute("SELECT name FROM classes WHERE reachable = 0")}
+    finally:
+        db.close()

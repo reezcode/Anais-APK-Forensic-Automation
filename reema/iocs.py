@@ -93,11 +93,16 @@ def _index_strings(db_path):
     if not Path(db_path).is_file():
         return
     try:
-        with sqlite3.connect(db_path) as con:
-            for (value,) in con.execute("SELECT value FROM strings"):
-                yield value
+        con = sqlite3.connect(db_path, timeout=30)
     except sqlite3.Error:
         return
+    try:
+        for (value,) in con.execute("SELECT value FROM strings"):
+            yield value
+    except sqlite3.Error:
+        return
+    finally:
+        con.close()
 
 
 def extract(case_dir):
