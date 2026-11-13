@@ -48,7 +48,7 @@ All project documentation lives in this directory. Start here.
 
 | Document | Purpose |
 |---|---|
-| [`platform/mcp-and-skill.md`](platform/mcp-and-skill.md) | MCP server tools and the `anais-agent` skill |
+| [`platform/mcp-and-skill.md`](platform/mcp-and-skill.md) | The two MCP servers (Anais/Reema + Dyxon) and the three agent skills |
 
 ## Conventions
 
@@ -57,4 +57,5 @@ All project documentation lives in this directory. Start here.
 - **Decisions:** one ADR per decision in `<feature>/decisions/NNNN-short-title.md`, numbered in sequence and never renumbered. To change a decision, write a new ADR that supersedes the old one.
 - **Status lives in the roadmap.** Design docs describe the target. `roadmap.md` says what exists today.
 - **Dates** are absolute (`2026-11-13`), never relative.
-- Agent skill references stay in `skills/anais-agent/references/` because the skill package ships them. They are not project docs.
+- Agent skill references stay in `skills/<agent>/references/` (`reema-agent`,
+  `dyxon-agent`) because the skill package ships them. They are not project docs.
