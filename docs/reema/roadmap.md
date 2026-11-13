@@ -7,8 +7,8 @@ Last updated: 2026-11-13.
 | P0 | Package skeleton, Finding schema, cleanup | **Done** (2026-11-13, commit `c397af94`) |
 | P1 | Intake and case record, JAR input, code index, enrichment and cache | **Done** (2026-11-13); reachability shipped in 0.3.0 (B1) |
 | P2 | Capability engine, verdict and posture split, IOC export | **Done** (2026-11-13); rule content → backlog B13 |
-| P3 | Vaccine Pack generator, STIX 2.1 / MISP export | Next |
-| P4 | Test corpus gate, family classifier, iOS IPA | Planned |
+| P3 | Vaccine Pack generator, STIX 2.1 / MISP export | **Done** (2026-11-13); defense content → backlog B14, STIX/MISP → B15 |
+| P4 | Test corpus gate, family classifier, iOS IPA | Next |
 
 Target design for every phase: [`design.md`](design.md).
 Designed but unimplemented work, ready to pick up: [`backlog.md`](backlog.md).
@@ -78,11 +78,20 @@ verdict `CLEAN` (confidence low); the one example capability (`process_exec`)
 matched only in the bundled `libsu` library, so it did not escalate — correct.
 57 IOCs exported (5 URLs incl. the sample's real `t.me/sslkiller` channel).
 
-## P3 — Vaccine Pack
+## P3 — Vaccine Pack (done)
 
-- `reports/vaccine/` entries: profile, defense, check, harness (design §3.6, ADR 0003).
-- Defense catalog in `reema/defenses/`.
-- STIX 2.1 and MISP export.
+| Item | Result |
+|---|---|
+| Vaccine Pack generator | `reema/vaccine.py`: one entry per capability found (Profile / Defense / Check / Harness), written to `reports/vaccine/<cap>.md`, `reports/vaccine/index.md` and `reports/vaccine.json`. A capability with no defense gets a Profile and a visible stub. |
+| Defense catalog | YAML in `reema/defenses/`, keyed to capability ids. Load errors reported and skipped. |
+| ADR 0003 guardrails | The six harness limits are printed verbatim in every entry as the contract any harness must meet. Reema emits the defense and check, never attack code. |
+| Content split | Engine is content-free; the real defense catalog and runnable harnesses are backlog B14 (owner: reez). Ships one neutral example (`process_exec`). Format: [`vaccine-pack.md`](vaccine-pack.md). |
+| STIX 2.1 / MISP export | Deferred to backlog B15; IOC JSON/CSV already ship (P2). |
+| Tests | `tests/test_reema_p3.py`, 7 tests; suite total 120, all passing. |
+
+**Verification on 2026-11-13** (reference sample `SSLKiller-v1.2beta.apk`, `--no-enrich`):
+one capability found (`process_exec`), one Vaccine Pack entry written with its
+defense, check and guardrails.
 
 ## P4 — Quality and reach
 

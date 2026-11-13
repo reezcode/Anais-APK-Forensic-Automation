@@ -1,0 +1,30 @@
+# Example defense entry, paired with the example capability `process_exec`.
+# Neutral by design. Copy this to add real defenses; full format is in
+# docs/reema/vaccine-pack.md. Authoring the real catalog is backlog B14.
+id: process_exec
+title: Validate and constrain process execution
+applies_to:
+  - process_exec
+summary: >
+  An app under test should never pass attacker-influenced input to a process
+  executor, and should avoid shelling out at all where a platform API exists.
+controls:
+  - api: "java.lang.ProcessBuilder (argument list form)"
+    min_api: 1
+    note: Pass a fixed argument list, never a shell string built from input.
+  - api: "androidx.work / platform APIs"
+    min_api: 1
+    note: Prefer a platform API over spawning a process where one exists.
+check:
+  steps:
+    - Build the app under test and enumerate every Runtime.exec / ProcessBuilder call site.
+    - For each, trace whether any argument derives from external input (intent, network, file).
+  expected: >
+    No call site passes externally-influenced input to a process executor;
+    each spawned command is a fixed, reviewed argument list.
+harness:
+  module: null
+  note: >
+    No runnable harness ships for the example. A real harness would, within the
+    guardrails below, launch only the app under test and confirm it rejects a
+    crafted input rather than executing it.

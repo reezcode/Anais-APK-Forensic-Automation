@@ -185,7 +185,7 @@ For each capability the engine finds, Reema writes an entry in `reports/vaccine/
 |---|---|
 | `reports/findings.json` | All findings (`reema.findings/v1`), plus the verdict from P2 |
 | `reports/report.md` | Triage report. The verdict and capabilities come first; posture comes after. |
-| `reports/iocs.{json,csv}` | IOCs. STIX 2.1 and MISP exports arrive in P3. |
+| `reports/iocs.{json,csv}` | IOCs (defanged). STIX 2.1 / MISP export is backlog B15. |
 | `reports/vaccine/` | Vaccine Pack entries |
 | `reports/report.sarif` | SAST findings for CI (existing) |
 | `case.json` | Case record and chain of custody |

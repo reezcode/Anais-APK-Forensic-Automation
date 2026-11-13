@@ -26,7 +26,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from reema import __version__, capabilities, enrich, index, iocs, jar, verdict
+from reema import __version__, capabilities, enrich, index, iocs, jar, vaccine, verdict
 from reema.adapters import collect
 from reema.case import Case, hash_file
 from reema.findings import build_document
@@ -273,6 +273,9 @@ def _record_artifacts(case_dir, case):
     }
     for rel, producer in producers.items():
         case.add_artifact(case_dir / rel, producer)
+    vaccine_dir = case_dir / "reports" / "vaccine"
+    if vaccine_dir.is_dir():
+        case.add_artifact(vaccine_dir, "reema.vaccine")
     for p in sorted((case_dir / "reports").glob("*")):
         if p.is_file():
             case.add_artifact(p, "reema.findings" if p.name == "findings.json" else "report")
@@ -322,6 +325,12 @@ def cmd_analyze(args):
     ioc_sets, ioc_count = iocs.write(case_dir, sample=_sample_info(case_dir, sample))
     case.log("iocs", "ok", f"{ioc_count} indicators")
 
+    vaccine_entries, vaccine_errors = vaccine.generate(case_dir, findings_doc=doc)
+    covered = sum(1 for e in vaccine_entries if e["defense"])
+    case.log("vaccine", "ok", f"{len(vaccine_entries)} entries, {covered} with a defense")
+    if vaccine_errors:
+        case.log("vaccine", "warn", "; ".join(vaccine_errors))
+
     if args.extract_children and sample.suffix.lower() in APK_INPUTS:
         _stage_children(target, case_dir, case, args.yara)
     _record_artifacts(case_dir, case)
@@ -333,7 +342,7 @@ def cmd_analyze(args):
     print(f"reema: verdict {v['label'].upper()} (confidence {v['confidence']}{family})")
     print(f"reema: {s['total']} findings (malice={s['by_axis']['malice']}, "
           f"malice in app code={s['malice_by_owner']['app']}), "
-          f"{ioc_count} IOCs -> {out}")
+          f"{ioc_count} IOCs, {len(vaccine_entries)} vaccine entries -> {out}")
     return 0
 
 

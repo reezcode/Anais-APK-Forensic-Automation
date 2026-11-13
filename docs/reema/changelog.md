@@ -2,6 +2,20 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.5.0 — P3 Vaccine Pack (2026-11-13)
+
+### Added
+- `reema/vaccine.py`: Vaccine Pack generator. For each capability the engine found, writes an entry (Profile / Defense / Check / Harness) to `reports/vaccine/<capability>.md`, an `index.md`, and `reports/vaccine.json`. Capabilities are de-duplicated per rule, preferring the app-owned / highest-confidence instance. A capability with no defense entry gets a Profile and a visible stub.
+- `reema/defenses/`: defense catalog (YAML keyed to capability ids), with one neutral example (`process_exec`). Load errors are reported and skipped.
+- The six ADR 0003 harness guardrails are printed verbatim in every entry; Reema emits the defense and the check, never attack code.
+- `docs/reema/vaccine-pack.md`: authoring guide for the catalog.
+- `reema/cli.py`: `analyze` runs the vaccine stage after findings and records `reports/vaccine/` in `case.json`.
+- `tests/test_reema_p3.py` (7 tests).
+
+### Changed
+- `reema analyze` prints a vaccine-entry count on the summary line.
+- Backlog: added B14 (defense catalog + harness content, user-owned) and B15 (STIX 2.1 / MISP export).
+
 ## 0.4.1 — backlog B5, B12 (2026-11-13)
 
 Cleared backlog B5 and B12. Remaining: B10 (native Python APK engine) and B13

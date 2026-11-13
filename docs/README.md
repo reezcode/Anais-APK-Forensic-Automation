@@ -22,6 +22,7 @@ All project documentation lives in this directory. Start here.
 | [`reema/backlog.md`](reema/backlog.md) | Designed but not implemented, ready to pick up |
 | [`reema/finding-schema.md`](reema/finding-schema.md) | `reema.findings/v1` contract (findings + verdict) |
 | [`reema/capability-rules.md`](reema/capability-rules.md) | Authoring capability rules and behaviour chains |
+| [`reema/vaccine-pack.md`](reema/vaccine-pack.md) | Authoring the defense catalog for the Vaccine Pack |
 | [`reema/changelog.md`](reema/changelog.md) | What changed, per phase |
 | [`reema/decisions/`](reema/decisions/README.md) | Architecture decision records (ADRs) |
 | [`reema/tools-architecture-and-flow.md`](reema/tools-architecture-and-flow.md) | Current static pipeline, tool by tool |
