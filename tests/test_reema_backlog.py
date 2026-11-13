@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT / "analysis_tools"))
 import struct  # noqa: E402
 
 from reema import adapters, apk, capabilities, classify, cli, enrich, index, iocs, ios, vaccine, verdict  # noqa: E402
+from reema import _axml  # noqa: E402
 from reema import _psl  # noqa: E402
 from reema.case import Case  # noqa: E402
 from reema.findings import Evidence, Finding  # noqa: E402
@@ -730,6 +731,80 @@ class ContentDetectionTest(unittest.TestCase):
         from reema.capabilities import Rule, RuleError
         with self.assertRaises(RuleError):
             Rule({"id": "x", "any_of": [{"permission": "A"}], "any_of_min": 5}, "t.yaml")
+
+
+class AxmlFallbackTest(unittest.TestCase):
+    """B18: recover permissions/components from a malformed manifest via axml2xml."""
+
+    SAMPLE_XML = (
+        '<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n'
+        '  <uses-permission android:name="android.permission.SEND_SMS" />\n'
+        '  <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />\n'
+        '  <application>\n'
+        '    <service android:name="com.evil.Acc" />\n'
+        '    <receiver android:name="com.evil.Boot" />\n'
+        '  </application>\n</manifest>\n')
+
+    def test_facts_from_xml(self):
+        f = _axml.facts_from_xml(self.SAMPLE_XML)
+        self.assertEqual(f["permissions"],
+                         ["android.permission.BIND_ACCESSIBILITY_SERVICE",
+                          "android.permission.SEND_SMS"])
+        self.assertEqual(f["services"], ["com.evil.Acc"])
+        self.assertEqual(f["receivers"], ["com.evil.Boot"])
+        self.assertEqual(f["manifest_source"], "axml2xml")
+
+    def test_facts_from_xml_empty(self):
+        self.assertEqual(_axml.facts_from_xml("<manifest/>"), {})
+
+    def test_fallback_skips_when_permissions_present(self):
+        with tempfile.TemporaryDirectory() as d:
+            temp = Path(d) / "temp"
+            temp.mkdir()
+            (temp / "basic_info.json").write_text(json.dumps(
+                {"permissions": ["android.permission.INTERNET"]}))
+            # No APK needed: present permissions short-circuit before any parse.
+            apk._manifest_fallback(Path(d) / "nope.apk", temp, None)
+            info = json.loads((temp / "basic_info.json").read_text())
+            self.assertNotIn("manifest_source", info)
+
+    def test_permissions_from_raw_bytes(self):
+        # The string-pool scrape finds UTF-16LE permission strings even when the
+        # structural AXML is malformed (the CORETAX/Taspen case).
+        raw = ('\x00dummy\x00' +
+               'android.permission.SEND_SMS' + '\x00' +
+               'android.permission.SYSTEM_ALERT_WINDOW').encode("utf-16-le")
+        perms = _axml._permissions_from_bytes(raw)
+        self.assertIn("android.permission.SEND_SMS", perms)
+        self.assertIn("android.permission.SYSTEM_ALERT_WINDOW", perms)
+
+    def test_manifest_facts_recovers_from_binary_axml(self):
+        # The bundled test fixture is a real binary AXML that androguard-style
+        # parsers choke on; the string-pool scrape recovers its permissions.
+        fixture = ROOT / "axml" / "tests" / "AndroidManifest.xml"
+        with tempfile.TemporaryDirectory() as d:
+            apk_path = Path(d) / "packed.apk"
+            with zipfile.ZipFile(apk_path, "w") as zf:
+                zf.writestr("AndroidManifest.xml", fixture.read_bytes())
+                zf.writestr("classes.dex", b"dex\n035\x00")
+            facts = _axml.manifest_facts(apk_path)
+        self.assertTrue(facts, "no manifest facts recovered")
+        self.assertIn("android.permission.SYSTEM_ALERT_WINDOW", facts["permissions"])
+        self.assertIn(facts["manifest_source"], ("axml:strings", "axml2xml"))
+
+    def test_fallback_merges_recovered_permissions_into_basic_info(self):
+        fixture = ROOT / "axml" / "tests" / "AndroidManifest.xml"
+        with tempfile.TemporaryDirectory() as d:
+            temp = Path(d) / "temp"
+            temp.mkdir()
+            (temp / "basic_info.json").write_text(json.dumps({"permissions": []}))
+            apk_path = Path(d) / "packed.apk"
+            with zipfile.ZipFile(apk_path, "w") as zf:
+                zf.writestr("AndroidManifest.xml", fixture.read_bytes())
+            apk._manifest_fallback(apk_path, temp, None)
+            info = json.loads((temp / "basic_info.json").read_text())
+            self.assertIn(info.get("manifest_source"), ("axml:strings", "axml2xml"))
+            self.assertIn("android.permission.SYSTEM_ALERT_WINDOW", info["permissions"])
 
 
 if __name__ == "__main__":

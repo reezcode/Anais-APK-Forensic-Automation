@@ -6,9 +6,8 @@ so it can be picked up without extra context. When an item is done, move it to
 
 Phase plan: [`roadmap.md`](roadmap.md). Target design: [`design.md`](design.md).
 
-| Id | Item | Plugs into | Notes |
-|---|---|---|---|
-| B18 | **Fault-tolerant AXML manifest parsing** | `reema/apk.py`, `analysis_tools/apk_basic_info.py` | A corpus run on real Indonesian malware (2026-11-13) scored recall 0.75 (6/8). The two misses (CORETAX, Taspen) ship a deliberately malformed binary `AndroidManifest.xml` ("dummy data between elements", bad chunk header) that both androguard and apktool reject, so `basic_info.json` has 0 permissions and no capability (incl. `dangerous_permission_set`) can fire → verdict `clean`. Recover permissions/components from a tolerant AXML parser (the repo's `axml/` dir is a candidate) or an `aapt` fallback, so the permission constellation still fires on anti-analysis packed droppers. Without it these are a static blind spot (would need dynamic unpacking). |
+**The backlog is empty — every designed item is implemented.** New work starts
+as a new `B<n>` row here.
 
 Cleared in 0.3.0 (see [`changelog.md`](changelog.md)): B1 reachability, B2 string table,
 B3 JVM-only JAR index (d8), B4 sample upload, B6 Koodous/Hybrid Analysis, B7 family
@@ -17,6 +16,7 @@ Cleared in 0.4.1: B5 IOC enrichment (ThreatFox/URLhaus feeds), B12 bare-domain I
 Cleared in 0.5.1: B15 STIX 2.1 / MISP export.
 Cleared in 0.6.1: B17 deep iOS (Mach-O parse, Swift detection, framework→capability map).
 Cleared in 0.7.0: B10 native Python APK engine (`reema/apk.py`); `anais.sh` retired as the engine.
+Cleared in 0.8.3: B18 anti-analysis manifest recovery (`reema/_axml.py`: string-pool scrape + axml2xml fallback).
 Cleared in 0.8.0: B13 capability rule content + chains, B14 defense catalog, B16 offline
 family classifier (`reema/families.yaml`). `anais.sh` deleted; the npm CLI and MCP now
 drive `reema/apk.py`.

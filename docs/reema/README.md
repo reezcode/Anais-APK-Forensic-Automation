@@ -96,6 +96,7 @@ Case directory:
 | `reema/corpus.py` | Corpus gate (precision/recall over a labelled set) |
 | `reema/defenses/` | Defense catalog content (see [vaccine-pack.md](vaccine-pack.md)) |
 | `reema/_psl.py` | Bundled public-suffix list (domain validation) |
+| `reema/_axml.py` | Fallback manifest parse for anti-analysis APKs (string-pool scrape + `axml/` converter) |
 | `reema/capabilities/`, `reema/chains.yaml` | Capability rules + behaviour chains (see [capability-rules.md](capability-rules.md)) |
 | `reema/_legacy.py` | Bridge to `analysis_tools/` during migration |
 | `analysis_tools/` | Legacy analyzers (migrated into `reema/` stage by stage) |

@@ -30,6 +30,7 @@ import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from reema import _axml
 from reema._legacy import RULES_DIR, TOOLS_DIR
 
 DEFAULT_RULES = [str(RULES_DIR / "yara_general_rules.yar")]
@@ -132,6 +133,31 @@ def _yara(rules, targets, out_file, logpath):
                 subprocess.run(["yara", "-s", *rules, str(target)], stdout=out, stderr=log)
 
 
+def _manifest_fallback(base_apk, temp, case):
+    """When androguard recovered no permissions (a malformed/anti-analysis binary
+    manifest), recover them and the components with the tolerant axml2xml parser
+    and merge into basic_info.json, so the capability rules still have facts (B18)."""
+    info_path = temp / "basic_info.json"
+    info = _read_json(info_path)
+    if info.get("permissions"):
+        return  # androguard already parsed the manifest
+    facts = _axml.manifest_facts(base_apk)
+    if not facts:
+        return
+    info.setdefault("format", "apk")
+    info["permissions"] = facts["permissions"]
+    for key in ("activities", "services", "receivers", "providers"):
+        # Only fill a component list androguard left empty; never clobber a good parse.
+        if facts.get(key) and not info.get(key):
+            info[key] = facts[key]
+    source = facts.get("manifest_source", "axml")
+    info["manifest_source"] = source
+    info_path.write_text(json.dumps(info, indent=2))
+    if case is not None:
+        case.log("manifest_fallback", "ok",
+                 f"{source} recovered {len(facts['permissions'])} permission(s)")
+
+
 def _so_strings(apk, obf_type, temp, logpath):
     """SO string extraction for an advanced protection (anais.sh
     analyze_protection_libraries). No-op when the type has no known libraries."""
@@ -161,6 +187,7 @@ def run(apk, case_dir, sha256, rules=None, case=None, offline=False):
     # Sequential preamble: later stages depend on these outputs.
     base_apk = _prepare_input(apk, temp, engine_log)
     _pytool("apk_basic_info.py", [base_apk, temp / "basic_info.json"], engine_log)
+    _manifest_fallback(base_apk, temp, case)
     target = _protection_check(base_apk, temp, engine_log)
     pkg = _read_json(temp / "basic_info.json").get("package_name", "") or ""
 

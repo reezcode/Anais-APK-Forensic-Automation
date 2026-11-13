@@ -2,6 +2,16 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.8.3 — backlog B18: anti-analysis manifest recovery (2026-11-13)
+
+Validated against the two corpus misses (CORETAX, Taspen): both flip
+`clean` → `suspicious`. Those samples ship a malformed binary `AndroidManifest.xml`
+that androguard and apktool reject and that makes the axml2xml JS parser hang.
+
+### Added
+- **B18 — fallback manifest parsing** (`reema/_axml.py`, wired in `reema/apk.py`): when androguard recovers no permissions, `_manifest_fallback` recovers them and merges into `basic_info.json`, so the capability rules (notably `dangerous_permission_set`) still fire on a packed dropper. Two tiers: (1) a string-pool scrape of the raw manifest bytes (UTF-16/UTF-8) — fast and robust, since structural tampering rarely touches the string pool; (2) the bundled Node converter `axml/` (axml2xml), used only when the scrape finds nothing, bounded by a timeout because a malformed manifest can hang it. Degrades to no-op when neither recovers anything. CORETAX: 10 high-risk permissions recovered (BIND_ACCESSIBILITY_SERVICE, READ_SMS, SYSTEM_ALERT_WINDOW, RECORD_AUDIO, …).
+- `tests/test_reema_backlog.py`: `AxmlFallbackTest` (6 tests — raw scrape, XML parse, binary-AXML fixture, merge, skip-when-present).
+
 ## 0.8.1 — corpus-driven content + engine fixes (2026-11-13)
 
 Ran the corpus gate on a real malware set (`FourMays.apk`, `IsolPolicy-release.apk`).
