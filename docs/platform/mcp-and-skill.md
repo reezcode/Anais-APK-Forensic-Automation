@@ -1,9 +1,22 @@
-# Anais as an MCP server + the `anais-agent` skill
+# Anais as MCP servers + the agent skills
 
-Anais can run as an MCP (Model Context Protocol) server so agents — Claude Code,
-Codex, Cursor, etc. — call the pipeline as tools, and ships an `anais-agent`
-skill that teaches an agent when and how to use it (mobile/APK scope), including
-the handoff to REA for deep analysis.
+Anais runs as MCP (Model Context Protocol) servers so agents — Claude Code,
+Codex, Cursor, etc. — call it as tools, and ships agent skills that teach an
+agent when and how to use it (mobile/APK scope), including the hand-off to REA
+for deep analysis.
+
+Since the Reema/Dyxon split there are **two MCP servers** and **three skills**:
+
+- **Anais (Reema) MCP** — the TypeScript server below; static pipeline + REA
+  deep-pass + the legacy dynamic bridge. Tools: `anais_analyze`,
+  `anais_read_report`, `anais_rea_targets`, `anais_merge_deep`, `anais_dynamic`.
+- **Dyxon MCP** — a separate long-lived Python server (`python3 -m dyxon serve`)
+  that holds a device pool. Tools: `acquire_device`, `run_capability`,
+  `collect_runtime`, `reset`, `release`, `status`. See
+  [`../dyxon/device-broker-contract.md`](../dyxon/device-broker-contract.md) and
+  [`../dyxon/integration.md`](../dyxon/integration.md).
+- **Skills** — `reema-agent` (static), `dyxon-agent` (dynamic), and `anais-agent`
+  (a thin router between the two). See "The agent skills" below.
 
 ## Build
 
@@ -71,36 +84,44 @@ workspace.
 After registering, restart/reconnect the client and confirm the `anais_*` tools
 appear in the session.
 
-## The `anais-agent` skill
+## The agent skills
 
-The skill makes an agent reach for Anais on APK forensic requests and routes the
-phases (static → REA deep → Frida → dynamic), prefers the MCP tools when
-connected and falls back to the CLI otherwise, and hands deep native/managed work
-to a general RE integration (e.g. `reverse-engineer-anything`).
-
-It is **host-neutral** — standard Agent-Skills format (YAML `name`/`description`
-frontmatter + Markdown body), no host-specific content. The canonical copy lives
-in the repo at `skills/anais-agent/`:
+Three host-neutral skills (standard Agent-Skills format: YAML
+`name`/`description` frontmatter + Markdown body). `SKILL.md` is the
+always-loaded summary; `references/*.md` load on demand, so the model gets depth
+without carrying it all at once (the same pattern REA uses). The canonical copies
+live in `skills/`; `.claude/skills/<name>` symlinks make Claude Code
+auto-discover them here.
 
 ```
-skills/anais-agent/
-  SKILL.md                      # router: when to use Anais, phase map, safety
-  references/
-    pipeline.md                 # every stage, outputs, run order, env flags
-    reading-reports.md          # report.json schema + composite risk
-    rasp-frameworks.md          # RASP/packer vendors + framework handling
-    deep-and-dynamic.md         # REA deep-pass + dynamic-bridge contracts
+skills/
+  anais-agent/                  # thin router → reema-agent or dyxon-agent
+    SKILL.md
+  reema-agent/                  # static analysis, forensics, verdict, Vaccine Pack
+    SKILL.md
+    references/
+      pipeline.md               # every static stage, outputs, run order, env, CLI
+      reading-reports.md        # report.json / findings.json + composite risk
+      rasp-frameworks.md        # RASP/packer vendors + framework handling
+      rea-deep-pass.md          # REA deep-pass task/result contract
+  dyxon-agent/                  # dynamic device broker: lease, run/detonate, collect
+    SKILL.md
+    references/
+      runtime.md                # broker lifecycle, session/dynamic contracts, pipeline
 ```
 
-`SKILL.md` is the always-loaded summary; the `references/*.md` are loaded on
-demand, so the model gets depth without carrying it all at once (the same
-pattern REA uses). `.claude/skills/anais-agent` in this repo is a symlink to the
-canonical copy so Claude Code auto-discovers it here.
+- `reema-agent` reaches for the static pipeline on APK/JAR/IPA forensic requests,
+  prefers the Anais MCP tools when connected and falls back to `python3 -m reema`,
+  and hands deep native/managed work to REA.
+- `dyxon-agent` reaches for a device: it leases a ready rooted sandbox from the
+  Dyxon MCP (or `python3 -m dyxon`), runs/detonates, and collects runtime
+  findings — it does not analyze.
+- `anais-agent` only routes between the two and names the end-to-end loop.
 
 ### Install into any host
 
-Copy the skill into whatever directory your host scans for skills. The helper
-dereferences the symlink and drops real files:
+Copy the skills into whatever directory your host scans for skills. The helper
+installs **all** of `skills/*/` (dereferencing symlinks):
 
 ```bash
 # default target: ~/.claude/skills  (Claude Code / Claude Desktop, user scope)
@@ -110,15 +131,17 @@ scripts/install_skills.sh
 scripts/install_skills.sh ~/.config/<host>/skills
 ```
 
-Or copy by hand: `cp -RL skills/anais-agent <host-skill-dir>/`. Restart/reconnect
-the host, then invoke the skill by name or let it auto-select from the
-description on a matching request. If a host has no skill mechanism, the MCP
-tools still work on their own — the skill is only the routing/knowledge layer.
+Or copy by hand: `cp -RL skills/reema-agent skills/dyxon-agent skills/anais-agent
+<host-skill-dir>/`. Restart/reconnect the host, then invoke a skill by name or
+let it auto-select from the description on a matching request. If a host has no
+skill mechanism, the MCP tools still work on their own — the skills are only the
+routing/knowledge layer.
 
 ## Relationship to REA
 
-Anais owns the Android static pipeline and the orchestration; REA provides the
-deep engines (native decompile, trace, dynamic, managed/IL2CPP inspection). The
-`anais-agent` skill drives Anais and calls REA for the deep tasks in
-`rea_targets.json`. Register both servers (peer model) for the full chain, or run
-Anais alone for static + risk. See `docs/reema/rea-deep-pass.md`.
+Reema owns the Android static pipeline and the orchestration; REA provides the
+deep engines (native decompile, trace, managed/IL2CPP inspection); Dyxon provides
+the device REA runs on. The `reema-agent` skill drives the static pass and calls
+REA for the deep tasks in `rea_targets.json`; `dyxon-agent` leases REA a device.
+Register the servers (peer model) for the full chain, or run Reema alone for
+static + risk. See [`../reema/rea-deep-pass.md`](../reema/rea-deep-pass.md).

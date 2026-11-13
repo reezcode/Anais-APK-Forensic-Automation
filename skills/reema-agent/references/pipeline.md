@@ -1,8 +1,10 @@
-# Anais pipeline — stages and outputs
+# Reema pipeline — stages and outputs
 
-`anais.sh` orchestrates the run. A TypeScript CLI (`anais`) and the MCP server
-both invoke it. Everything writes JSON into `<workDir>/temp/` and human reports
-into `<workDir>/reports/`. `workDir` is `<workspace>/<apk_basename>`.
+`reema/apk.py` (the native-Python engine, run as `python3 -m reema analyze`)
+orchestrates the run; the TypeScript CLI (`anais`) and the MCP server spawn it.
+(`anais.sh` was retired in 0.8.0.) Everything writes JSON into `<workDir>/temp/`
+and human reports into `<workDir>/reports/`. `workDir` is the case directory
+`<workspace>/<apk_basename>_<timestamp>`.
 
 ## Order of operations
 
@@ -30,15 +32,17 @@ into `<workDir>/reports/`. `workDir` is `<workspace>/<apk_basename>`.
    `rea_report.json`; deep-task handoff → `reports/rea_targets.json`.
 7. **report** (`report_generator_modular.py`) — merges all JSON into
    `reports/report.md` + `reports/report.json`, plus per-section `.md` pages.
-8. **derived outputs** — `frida_script_generator.py` → `reports/frida_auto.js`;
-   `sarif_exporter.py` → `reports/report.sarif`;
-   `python3 -m reema findings` → `reports/findings.json` (normalized findings).
+8. **report + derived outputs** — normalized `reports/findings.json`
+   (`reema.findings/v1`: capability engine + verdict + family), `reports/report.sarif`,
+   `reports/frida_auto.js`, and the **Vaccine Pack** (`reports/vaccine/*.md` +
+   `reports/vaccine.json`, one defense + check per capability found). `case.json`
+   at the case root records hashes, tool versions, enrichment and stage events.
 
 Out-of-band, agent-driven (not in the default run):
 - `rea_deep.py` — merge REA deep-pass answers → `rea_deep.json`, regenerate
-  report + `frida_auto.js`.
-- `dynamic_bridge.py` — run the app on a device under `frida_auto.js` →
-  `dynamic_findings.json` (gated; executes the target).
+  report + `frida_auto.js` (see `rea-deep-pass.md`).
+- **Dynamic** is a separate feature now (**Dyxon**), not part of the Reema run.
+  The static→dynamic hand-off is the `dyxon-agent` skill.
 
 ## Environment flags
 
@@ -49,14 +53,20 @@ Out-of-band, agent-driven (not in the default run):
 - `ANAIS_WORKSPACE` — override the workspace root (default `~/.anais/reports`,
   deliberately off iCloud-synced paths).
 
-## CLI flags
+## CLI (`python3 -m reema`)
 
-- `-y` / `--yara` — run the full YARA scan.
-- APK path is positional (last arg to `anais.sh`).
+- `analyze <sample>` — full static run (APK/XAPK/APKM/APKS/AAB/JAR/IPA) →
+  case dir with `findings.json` + `vaccine.json`. Flags: `-y/--yara <file>`
+  (repeatable), `--offline` (cache-only enrichment), `--no-enrich`, `--no-index`,
+  `--case-dir <dir>`, `--extract-children`, `--analyst <name>`.
+- `findings <case_dir>` — rebuild `reports/findings.json` from `temp/*.json`
+  (this is what folds in `dynamic_findings.json` after a Dyxon run).
+- `corpus <manifest> --samples-dir <dir>` — regression gate over labelled samples
+  (`--max-fp-rate`, `--min-recall`).
 
 ## Extending
 
-Each tool is standalone: reads the decompiled trees / APK, writes one JSON into
-temp. Add a new tool by (1) writing `analysis_tools/<tool>.py` that emits
-`<name>.json`, (2) adding it to the parallel block in `anais.sh`, (3) loading it
-in `report_generator_modular.py`'s `result_files` and adding a render method.
+Each analyzer is standalone: reads the decompiled trees / APK, writes one JSON
+into `temp/`. Add one by (1) writing `analysis_tools/<tool>.py` that emits
+`<name>.json`, (2) wiring it into the engine (`reema/apk.py`), (3) adding a
+`reema/adapters.py` adapter + registry entry so its output becomes findings.

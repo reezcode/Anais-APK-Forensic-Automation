@@ -1,4 +1,8 @@
-# REA deep pass + dynamic bridge — contracts
+# REA deep pass — contract
+
+Reema's static pass flags where native/managed logic hides (RASP abort paths,
+Flutter/Unity/Xamarin); REA recovers it. Dynamic confirmation is a separate
+feature (Dyxon) — see the `dyxon-agent` skill.
 
 ## REA deep pass (Phase 2)
 
@@ -56,35 +60,3 @@ python3 analysis_tools/rea_deep.py <reports>/rea_targets.json raw.json \
 Merge validates against the task list, writes `rea_deep.json`, and regenerates
 the report's Deep Pass section plus `frida_auto.js`. Tasks neither completed nor
 skipped land in `pending`.
-
-## Dynamic bridge (Phase 4)
-
-Runs the target on a connected device under `frida_auto.js`, captures the
-`[Anais]` hook output + a logcat dump into `dynamic_findings.json`:
-
-```json
-{
-  "executed": true, "package": "...", "mode": "spawn", "duration_sec": 30.4,
-  "hits_total": 7,
-  "hooks": { "ssl_bypass": [...], "crypto": [...], "keys": [...],
-             "native": [...], "dlopen": [...], "root_blocked": [...] },
-  "logcat": { "crashes": [...], "exceptions": [...], "lines": 1234 },
-  "errors": [], "notes": []
-}
-```
-
-Invoke — MCP `anais_dynamic({ workDir, execute?, mode?, timeout?, serial? })`
-(`execute` defaults to false = dry-run), or CLI
-`python3 analysis_tools/dynamic_bridge.py <workDir>/temp <workDir>/reports
---timeout 30 [--yes]`. Options: `--mode spawn|attach`, `--serial`, `--timeout`,
-`--install`/`--apk-path`, `--frida-script`.
-
-Preflight checks `adb`/device/`frida-server` (`frida-ps -U`) before any
-execution. Reading results: native hooks firing at REA-recovered addresses prove
-the Phase-3 bypass works; `crypto`/`keys` lines capture runtime key material; a
-logcat crash right after launch usually means a detection fired before the hook
-landed (switch to `attach` or hook `JNI_OnLoad` earlier).
-
-**SAFETY:** this executes the target (possibly malware). Dry-run first, show the
-plan, and only execute with `execute:true`/`--yes` on a disposable, isolated,
-authorized device.
