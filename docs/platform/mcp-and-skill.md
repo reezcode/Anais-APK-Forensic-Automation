@@ -121,4 +121,4 @@ Anais owns the Android static pipeline and the orchestration; REA provides the
 deep engines (native decompile, trace, dynamic, managed/IL2CPP inspection). The
 `anais-agent` skill drives Anais and calls REA for the deep tasks in
 `rea_targets.json`. Register both servers (peer model) for the full chain, or run
-Anais alone for static + risk. See `docs/REA_DEEP_PASS.md`.
+Anais alone for static + risk. See `docs/reema/rea-deep-pass.md`.

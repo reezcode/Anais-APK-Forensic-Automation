@@ -162,7 +162,7 @@
 │  ┌────────────────────────────────────────────────────────────────┐        │
 │  │ 7. REPORT GENERATION                                           │        │
 │  ├────────────────────────────────────────────────────────────────┤        │
-│  │  report_generator.py                                           │        │
+│  │  report_generator_modular.py                                   │        │
 │  │  ├─ Executive Summary                                          │        │
 │  │  ├─ APK Information                                            │        │
 │  │  ├─ Protection Analysis                                        │        │

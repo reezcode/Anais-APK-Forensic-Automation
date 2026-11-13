@@ -8,7 +8,7 @@ against the task list, normalizes them into the canonical rea_deep.json that the
 report generator reads, and (optionally) regenerates the report so the deep
 findings appear in it.
 
-Raw results file shape (what the agent writes — see docs/REA_DEEP_PASS.md):
+Raw results file shape (what the agent writes — see docs/reema/rea-deep-pass.md):
   {
     "completed": [
       {"task_id": "...", "rea_tool": "...", "target": "...",

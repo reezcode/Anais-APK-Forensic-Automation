@@ -8,6 +8,7 @@ Predicts runtime unpacking locations for dynamic analysis
 import sys
 import os
 import json
+import io
 import zipfile
 import struct
 import math
@@ -433,6 +434,130 @@ class DEXPayloadHunter:
         
         return lib_findings
     
+    def find_container_payloads(self, zf):
+        """Find payloads hidden inside containers: ZIPs in assets, ZIPs inside .so files,
+        and extensionless/long-named high-entropy assets."""
+        found = {'zip_assets': [], 'embedded_in_so': [], 'suspicious_assets': []}
+
+        for info in zf.filelist:
+            name = info.filename
+            try:
+                if name.startswith('assets/'):
+                    data = zf.read(name)
+                    if data[:2] == b'PK':
+                        try:
+                            with zipfile.ZipFile(io.BytesIO(data)) as inner:
+                                embedded = [f.filename for f in inner.filelist]
+                            found['zip_assets'].append({
+                                'location': name,
+                                'size': len(data),
+                                'embedded_files': embedded,
+                                'contains_dex': any('.dex' in f.lower() for f in embedded),
+                            })
+                        except zipfile.BadZipFile:
+                            # PK magic but unreadable: usually an encrypted container
+                            found['suspicious_assets'].append({
+                                'location': name,
+                                'size': len(data),
+                                'reason': 'PK signature but not a valid ZIP (likely encrypted)',
+                            })
+                    else:
+                        base = Path(name).name
+                        if '.' not in base or len(base) > 20:
+                            entropy = self.calculate_entropy(data[:min(1024, len(data))])
+                            if entropy > 7.0:
+                                found['suspicious_assets'].append({
+                                    'location': name,
+                                    'size': len(data),
+                                    'entropy': round(entropy, 2),
+                                    'reason': 'Extensionless/long-named asset with high entropy',
+                                })
+
+                elif name.endswith('.so'):
+                    data = zf.read(name)
+                    offset = data.find(b'PK\x03\x04')
+                    while offset != -1:
+                        end = data.find(b'PK\x05\x06', offset)
+                        if end != -1:
+                            blob = data[offset:end + 22]  # 22 = end-of-central-directory size
+                            try:
+                                with zipfile.ZipFile(io.BytesIO(blob)) as inner:
+                                    embedded = [f.filename for f in inner.filelist]
+                                found['embedded_in_so'].append({
+                                    'location': name,
+                                    'offset': offset,
+                                    'size': len(blob),
+                                    'embedded_files': embedded,
+                                    'contains_dex': any('.dex' in f.lower() for f in embedded),
+                                })
+                            except zipfile.BadZipFile:
+                                pass
+                        offset = data.find(b'PK\x03\x04', offset + 1)
+            except Exception as e:
+                self.logger.error(f'Error scanning container {name}', str(e))
+
+        return found
+
+    def locate_target(self, zf, target):
+        """Locate the APK source of a runtime payload filename (e.g. the encrypted zip a
+        shell writes to code_cache). Returns native references and candidate entries."""
+        result = {'target': target, 'referenced_in': [], 'candidates': []}
+        target_bytes = target.encode()
+
+        for info in zf.filelist:
+            if info.filename.endswith('.so'):
+                try:
+                    data = zf.read(info.filename)
+                except Exception:
+                    continue
+                if target_bytes in data:
+                    result['referenced_in'].append({'so_file': info.filename,
+                                                    'offset': data.find(target_bytes)})
+
+        # A name referenced only from native code is written at runtime, so its encrypted
+        # source is usually a large, oddly named asset.
+        if result['referenced_in']:
+            for info in zf.filelist:
+                base = Path(info.filename).name
+                if not (info.filename.startswith('assets/') and info.file_size > 1_000_000 and base):
+                    continue
+                odd_name = ('.' not in base
+                            or base.count(base[0]) > len(base) // 2
+                            or not any(c.isalnum() and c.islower() for c in base))
+                if odd_name:
+                    data = zf.read(info.filename)
+                    entropy = self.calculate_entropy(data[:min(4096, len(data))])
+                    result['candidates'].append({
+                        'location': info.filename,
+                        'size': info.file_size,
+                        'entropy': round(entropy, 2),
+                        'likely_encrypted': entropy > 5.0,
+                        'match': 'runtime-name source candidate',
+                    })
+
+        target_base = target.replace('.zip', '').replace('.jar', '').replace('.dat', '')
+        for info in zf.filelist:
+            if target_base.lower() in info.filename.lower():
+                result['candidates'].append({
+                    'location': info.filename,
+                    'size': info.file_size,
+                    'match': 'exact' if info.filename.endswith(target) else 'name contains target',
+                })
+
+        return result
+
+    def extract_entry(self, location, output_path):
+        """Write one APK entry to output_path. Returns True on success."""
+        try:
+            with zipfile.ZipFile(self.apk_path, 'r') as zf:
+                data = zf.read(location)
+            with open(output_path, 'wb') as f:
+                f.write(data)
+            return True
+        except Exception as e:
+            self.logger.error(f'Error extracting {location}', str(e))
+            return False
+
     def predict_unpack_locations(self, package_name='<package>'):
         """Predict where DEX will be unpacked at runtime"""
         locations = [
@@ -485,7 +610,7 @@ class DEXPayloadHunter:
         
         return locations
     
-    def analyze(self, package_name=None):
+    def analyze(self, package_name=None, target=None):
         """Perform complete payload hunting analysis"""
         
         self.logger.info(f'Analyzing APK: {self.apk_path.name}')
@@ -512,7 +637,16 @@ class DEXPayloadHunter:
         
         # 2. Find encrypted payloads
         self.results['encrypted_payloads'] = self.find_encrypted_payloads()
-        
+
+        # 2b. Payloads hidden inside containers, and the source of a named runtime payload
+        try:
+            with zipfile.ZipFile(self.apk_path, 'r') as zf:
+                self.results['container_payloads'] = self.find_container_payloads(zf)
+                if target:
+                    self.results['target_search'] = self.locate_target(zf, target)
+        except Exception as e:
+            self.logger.error('Error scanning containers', str(e))
+
         # 3. Analyze native libraries
         lib_findings = self.analyze_native_libraries()
         if lib_findings:
@@ -591,12 +725,23 @@ def main():
     parser.add_argument('output_json', help='Output JSON file')
     parser.add_argument('package_name', nargs='?', default=None, help='Package name')
     parser.add_argument('--brief', action='store_true', help='Brief console output')
-    
+    parser.add_argument('--target', '-t',
+                        help='Runtime payload filename to locate in the APK (e.g. i11111i111.zip)')
+    parser.add_argument('--extract', '-e',
+                        help='With --target: write the first candidate entry to this path')
+
     args = parser.parse_args()
-    
+
     hunter = DEXPayloadHunter(args.apk_path)
-    results = hunter.analyze(args.package_name)
-    
+    results = hunter.analyze(args.package_name, target=args.target)
+
+    if args.extract:
+        candidates = results.get('target_search', {}).get('candidates', [])
+        if not candidates:
+            print('No --target candidate to extract', file=sys.stderr)
+        elif hunter.extract_entry(candidates[0]['location'], args.extract):
+            print(f"Extracted {candidates[0]['location']} -> {args.extract}", file=sys.stderr)
+
     # Save results
     with open(args.output_json, 'w') as f:
         json.dump(results, f, indent=2)
@@ -612,6 +757,11 @@ def main():
             so_with_refs = [f for f in results['suspicious_files'] if 'references' in f]
             if so_with_refs:
                 print(f"🔍 Found {len(so_with_refs)} .so file(s) with zip references", file=sys.stderr)
+        containers = results.get('container_payloads', {})
+        hidden_dex = [c for k in ('zip_assets', 'embedded_in_so')
+                      for c in containers.get(k, []) if c.get('contains_dex')]
+        if hidden_dex:
+            print(f"📦 Found {len(hidden_dex)} container(s) holding DEX", file=sys.stderr)
     else:
         # Detailed output
         print(f"\n{'='*60}")

@@ -46,7 +46,7 @@ The primary entry point to the framework is `anais.sh`.
 - Normalizing the input container to a base APK via `prepare_input.py` (`.apk`/`.xapk`/`.apkm`/`.apks`/`.aab`).
 - Running `apktool` and `jadx` **concurrently** to extract Smali/resources and Java source.
 - Invoking the `analysis_tools/` scripts **in parallel**, each writing its own JSON, with per-tool output buffered and printed in a fixed order.
-- Supplying the JSON fragments to the Modular Report Generator, then generating derived outputs (`frida_auto.js`, `report.sarif`).
+- Supplying the JSON fragments to the Modular Report Generator, then generating derived outputs (`frida_auto.js`, `report.sarif`, `findings.json`).
 
 **Parallelism note**: decompilation and the analysis tools run as backgrounded jobs joined with `wait`. Because each tool writes a distinct JSON file and reads only shared read-only trees, there are no inter-tool data races. A tool exiting non-zero logs a warning and never aborts the run.
 
@@ -137,6 +137,7 @@ Once all tools complete execution, the orchestrator invokes the modular reporter
 After the main report, `anais.sh` runs:
 - `frida_script_generator.py` → `reports/frida_auto.js`: a Frida script assembled from the findings (SSL unpinning, crypto/key logging, root/debug bypass, native JNI trace, vendor-specific notes). When a deep pass has run (`rea_deep.json` present), it also emits concrete `Interceptor.attach(base.add(ptr('0x…')))` blocks for every REA-recovered `native_hooks` entry, grouped by library (Phase 3).
 - `sarif_exporter.py` → `reports/report.sarif`: SARIF 2.1.0 export of SAST findings for CI/code scanning.
+- `python3 -m reema findings` → `reports/findings.json`: all analyzer outputs normalized to the Reema Finding schema. See [`finding-schema.md`](finding-schema.md).
 
 ### 4.2 Version diffing
 
@@ -147,7 +148,7 @@ After the main report, `anais.sh` runs:
 `rea_bridge.py` runs only when `ANAIS_REA=1`. It is a two-mode integration with [REA](https://github.com/morluto/rea):
 
 - **Phase 1 (in-pipeline, cheap):** it invokes REA's fast, deterministic mobile commands — `inspect-apk-signature`, `identify-flutter-build`, `inspect-il2cpp-metadata` (Unity), `inspect-managed-members` (Xamarin/.NET), and `inspect-native-exports` per `.so` — parses each `normalized_result`, and records the `evidence_id` plus a short summary into `rea_report.json`. The report renders this as the **REA Deep Analysis** section. None of these need a native disassembler.
-- **Phase 2 (agent-driven, deep):** it writes `reports/rea_targets.json`, a handoff of **machine-actionable tasks** (schema 2). Each task carries an `id`, `priority`, `trigger`, the suggested `rea_tool`, the `target` and how to `obtain` it, the `extract` keys to answer, and a `feeds` tag (`app_flow` or `frida_native_hooks`). Tasks are generated from the framework, the RASP verdict/heuristics, and any stripped or JNI-bearing `.so` that Phase 1's export scan surfaced. An agent with REA (MCP tools or the `rea`/`npx` CLI) executes them out-of-band, writes answers to a raw results file, and runs `rea_deep.py` to validate them against the task ids, emit the canonical `reports/rea_deep.json`, and regenerate both the report and `frida_auto.js`. The report then grows a **Deep Pass (agent-driven)** subsection: completed tasks, candidate **native hook points** (which are compiled into the Frida script — Phase 3), skipped tasks, and anything still `pending`. The full contract is in [`docs/REA_DEEP_PASS.md`](REA_DEEP_PASS.md). The slow Ghidra/graph/dynamic work stays out of the automated run.
+- **Phase 2 (agent-driven, deep):** it writes `reports/rea_targets.json`, a handoff of **machine-actionable tasks** (schema 2). Each task carries an `id`, `priority`, `trigger`, the suggested `rea_tool`, the `target` and how to `obtain` it, the `extract` keys to answer, and a `feeds` tag (`app_flow` or `frida_native_hooks`). Tasks are generated from the framework, the RASP verdict/heuristics, and any stripped or JNI-bearing `.so` that Phase 1's export scan surfaced. An agent with REA (MCP tools or the `rea`/`npx` CLI) executes them out-of-band, writes answers to a raw results file, and runs `rea_deep.py` to validate them against the task ids, emit the canonical `reports/rea_deep.json`, and regenerate both the report and `frida_auto.js`. The report then grows a **Deep Pass (agent-driven)** subsection: completed tasks, candidate **native hook points** (which are compiled into the Frida script — Phase 3), skipped tasks, and anything still `pending`. The full contract is in [`docs/reema/rea-deep-pass.md`](rea-deep-pass.md). The slow Ghidra/graph/dynamic work stays out of the automated run.
 
 Command resolution: `$ANAIS_REA_CMD` → `rea` on PATH → `npx -y rea-agents@<ver>`. `ANAIS_REA_SKIP=1` disables it, `ANAIS_REA_MAX_SO` caps the native-export scan, `ANAIS_REA_TIMEOUT` bounds each call. REA preserves observation/inference/unknown distinctions and Evidence IDs; the bridge keeps those in the report rather than flattening them into findings.
 
@@ -155,7 +156,7 @@ Command resolution: `$ANAIS_REA_CMD` → `rea` on PATH → `npx -y rea-agents@<v
 
 `dynamic_bridge.py` (Phase 4) runs the target on a connected Android device/emulator under the generated `reports/frida_auto.js`, captures the `[Anais]` hook output and a logcat dump, parses them into `dynamic_findings.json`, and the report grows a **Dynamic Analysis** section (hook-hit table by category + logcat crashes). It confirms at runtime what the static and REA passes suspected — SSL pinning, crypto/key use, root/RASP checks firing, and the native hooks (incl. the REA-recovered addresses from Phase 3) actually being hit.
 
-**It executes the target**, so it never runs in the default pipeline and is strictly opt-in: with no `--yes` it only prints the command plan (dry-run) and writes `executed: false`. Preflight checks `adb`/device/`frida-server` (`frida-ps -U`) before anything runs. Options cover `--mode spawn|attach`, `--serial`, `--timeout`, `--install`/`--apk-path`, and `--frida-script`. Full runbook: [`docs/DYNAMIC_ANALYSIS.md`](DYNAMIC_ANALYSIS.md). The slow/irreversible parts (install, launch) stay behind the explicit gate.
+**It executes the target**, so it never runs in the default pipeline and is strictly opt-in: with no `--yes` it only prints the command plan (dry-run) and writes `executed: false`. Preflight checks `adb`/device/`frida-server` (`frida-ps -U`) before anything runs. Options cover `--mode spawn|attach`, `--serial`, `--timeout`, `--install`/`--apk-path`, and `--frida-script`. Full runbook: [`docs/dyxon/dynamic-analysis.md`](../dyxon/dynamic-analysis.md). The slow/irreversible parts (install, launch) stay behind the explicit gate.
 
 ---
 

@@ -226,7 +226,7 @@ extract_basic_info() {
     local apk_path="$1"
     
     # File hash (cross-platform)
-    SHA256=$(shasum -a 256 "$apk_path" 2>/dev/null || sha256sum "$apk_path" | awk '{print $1}')
+    SHA256=$( (shasum -a 256 "$apk_path" 2>/dev/null || sha256sum "$apk_path") | awk '{print $1}')
     
     # MD5 (cross-platform)
     if [ "$OS_TYPE" = "macos" ]; then
@@ -863,7 +863,7 @@ run_rea_bridge() {
             local tot=$(python3 -c "import json; print(len(json.load(open('${TEMP_DIR}/rea_report.json')).get('runs',[])))" 2>/dev/null || echo "0")
             log_success "REA bridge completed (${ok}/${tot} analyses)"
             log_info "Deep-dive targets: ${REPORTS_DIR}/rea_targets.json"
-            log_info "Agent-driven deep pass: see docs/REA_DEEP_PASS.md (merge with rea_deep.py)"
+            log_info "Agent-driven deep pass: see docs/reema/rea-deep-pass.md (merge with rea_deep.py)"
         fi
     else
         log_warning "REA bridge had issues (check $ERROR_LOG)"
@@ -881,6 +881,14 @@ generate_outputs() {
         log_success "Frida script: ${REPORTS_DIR}/frida_auto.js"
     else
         log_warning "Frida script generation had issues (check error log)"
+    fi
+
+    # Reema normalized findings (common schema, see docs/reema/finding-schema.md)
+    if PYTHONPATH="${SCRIPT_DIR}${PYTHONPATH:+:$PYTHONPATH}" python3 -m reema findings \
+        "$APK_WORK_DIR" --sample "$APK_PATH" 2>> "$ERROR_LOG"; then
+        log_success "Findings: ${REPORTS_DIR}/findings.json"
+    else
+        log_warning "Findings normalization had issues (check error log)"
     fi
 
     if [ -f "${TEMP_DIR}/sast_findings.json" ]; then

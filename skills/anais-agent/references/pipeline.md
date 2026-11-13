@@ -31,7 +31,8 @@ into `<workDir>/reports/`. `workDir` is `<workspace>/<apk_basename>`.
 7. **report** (`report_generator_modular.py`) — merges all JSON into
    `reports/report.md` + `reports/report.json`, plus per-section `.md` pages.
 8. **derived outputs** — `frida_script_generator.py` → `reports/frida_auto.js`;
-   `sarif_exporter.py` → `reports/report.sarif`.
+   `sarif_exporter.py` → `reports/report.sarif`;
+   `python3 -m reema findings` → `reports/findings.json` (normalized findings).
 
 Out-of-band, agent-driven (not in the default run):
 - `rea_deep.py` — merge REA deep-pass answers → `rea_deep.json`, regenerate

@@ -22,7 +22,7 @@ files=(
     "analysis_tools/apk_basic_info.py"
     "analysis_tools/manifest_analyzer.py"
     "analysis_tools/network_analyzer.py"
-    "analysis_tools/report_generator.py"
+    "analysis_tools/report_generator_modular.py"
 )
 
 missing=0
