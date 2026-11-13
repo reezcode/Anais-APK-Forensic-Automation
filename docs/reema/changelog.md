@@ -2,6 +2,15 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.5.1 — backlog B15 (2026-11-13)
+
+Cleared backlog B15. Remaining: B10 (native Python APK engine), B13 and B14
+(capability + defense content, user-owned).
+
+### Added
+- **B15 — STIX 2.1 / MISP export** (`reema/iocs.py`): `iocs.write` also writes `reports/iocs.stix.json` (a STIX 2.1 bundle of the URLs/domains/IPs as `indicator` SDOs, with a `Reema` identity) and `reports/iocs.misp.json` (a MISP event with one network-activity attribute per IOC plus the sample hashes). Object IDs are deterministic (uuid5 over the indicator value) so a re-run on the same sample is diffable and de-duplicates on re-import. `stix_bundle()` and `misp_event()` are exposed for reuse.
+- `tests/test_reema_backlog.py`: `StixMispExportTest` (4 tests).
+
 ## 0.5.0 — P3 Vaccine Pack (2026-11-13)
 
 ### Added

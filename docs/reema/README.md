@@ -63,6 +63,7 @@ Case directory:
 | `case.json` | Case record: inputs with hashes, artifacts with hashes, tool versions, online lookups, stage events |
 | `reports/findings.json` | All findings (`reema.findings/v1`) and the `verdict` block |
 | `reports/iocs.json`, `iocs.csv` | Extracted IOCs (defanged) |
+| `reports/iocs.stix.json`, `iocs.misp.json` | Same IOCs as a STIX 2.1 bundle and a MISP event |
 | `reports/vaccine/`, `vaccine.json` | Vaccine Pack: per-capability defense + check |
 | `reports/report.md`, `report.json` | Human report |
 | `reports/report.sarif`, `frida_auto.js` | APK only |

@@ -396,5 +396,52 @@ class BareDomainIocTest(unittest.TestCase):
             self.assertNotIn("schemas.android.com", out["domains"])  # framework noise
 
 
+class StixMispExportTest(unittest.TestCase):
+    IOCS = {"urls": ["http://evil-c2.top/x"], "domains": ["evil-c2.top"], "ips": ["198.51.100.7"]}
+    SAMPLE = {"file_name": "m.apk", "sha256": "a" * 64, "md5": "b" * 32}
+
+    def test_stix_bundle_shape_and_patterns(self):
+        b = iocs.stix_bundle(self.IOCS, self.SAMPLE)
+        self.assertEqual(b["type"], "bundle")
+        indicators = [o for o in b["objects"] if o["type"] == "indicator"]
+        self.assertEqual(len(indicators), 3)
+        patterns = {o["pattern"] for o in indicators}
+        self.assertIn("[url:value = 'http://evil-c2.top/x']", patterns)
+        self.assertIn("[domain-name:value = 'evil-c2.top']", patterns)
+        self.assertIn("[ipv4-addr:value = '198.51.100.7']", patterns)
+        for o in indicators:
+            self.assertEqual(o["spec_version"], "2.1")
+            self.assertEqual(o["pattern_type"], "stix")
+            self.assertTrue(o["id"].startswith("indicator--"))
+
+    def test_stix_ids_are_deterministic(self):
+        a = iocs.stix_bundle(self.IOCS, self.SAMPLE)
+        b = iocs.stix_bundle(self.IOCS, self.SAMPLE)
+        self.assertEqual(a, b)
+
+    def test_misp_event_attributes_include_hash(self):
+        ev = iocs.misp_event(self.IOCS, self.SAMPLE)["Event"]
+        attrs = {(a["type"], a["value"]) for a in ev["Attribute"]}
+        self.assertIn(("url", "http://evil-c2.top/x"), attrs)
+        self.assertIn(("domain", "evil-c2.top"), attrs)
+        self.assertIn(("ip-dst", "198.51.100.7"), attrs)
+        self.assertIn(("sha256", "a" * 64), attrs)
+        self.assertTrue(all(a["to_ids"] for a in ev["Attribute"]))
+
+    def test_write_emits_stix_and_misp_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            case = Path(d)
+            (case / "temp").mkdir()
+            (case / "temp" / "network_findings.json").write_text(json.dumps({
+                "urls": ["http://evil-c2.top/x"], "ip_addresses": ["198.51.100.7"],
+                "domains": ["evil-c2.top"]}))
+            iocs.write(case, sample=self.SAMPLE)
+            stix = json.loads((case / "reports" / "iocs.stix.json").read_text())
+            misp = json.loads((case / "reports" / "iocs.misp.json").read_text())
+            self.assertEqual(stix["type"], "bundle")
+            self.assertEqual(misp["Event"]["Attribute"][0]["category"] in
+                             ("Network activity", "Payload delivery"), True)
+
+
 if __name__ == "__main__":
     unittest.main()

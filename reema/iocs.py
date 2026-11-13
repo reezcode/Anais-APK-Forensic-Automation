@@ -14,6 +14,7 @@ import ipaddress
 import json
 import re
 import sqlite3
+import uuid
 from pathlib import Path
 
 from reema._psl import public_suffix, registrable_domain
@@ -146,8 +147,80 @@ def _rows(iocs):
             yield {"type": kind[:-1], "value": value, "defanged": defang(value)}
 
 
+# STIX 2.1 / MISP export (B15). IDs are deterministic (uuid5 over the indicator
+# value) so re-running on the same sample yields the same bundle, which keeps a
+# report diffable and lets a TIP de-duplicate on re-import.
+_REEMA_NS = uuid.UUID("5f3d6b6e-9f9a-5d3a-9b6e-7e6a9f9a5d3a")
+# A fixed created/modified timestamp keeps the bundle reproducible; the real
+# first-seen time belongs to the case record, not the indicator object.
+_STIX_TS = "2020-01-01T00:00:00.000Z"
+
+# IOC kind -> (STIX pattern object-path, MISP attribute type).
+_STIX_PATH = {"urls": "url:value", "domains": "domain-name:value", "ips": "ipv4-addr:value"}
+_MISP_TYPE = {"urls": "url", "domains": "domain", "ips": "ip-dst"}
+
+
+def _stix_id(prefix, value):
+    return f"{prefix}--{uuid.uuid5(_REEMA_NS, prefix + ':' + value)}"
+
+
+def stix_bundle(iocs, sample=None):
+    """Return a STIX 2.1 bundle (dict) of the indicators as `indicator` SDOs."""
+    sample = sample or {}
+    identity_id = _stix_id("identity", "reema")
+    objects = [{
+        "type": "identity", "spec_version": "2.1", "id": identity_id,
+        "created": _STIX_TS, "modified": _STIX_TS,
+        "name": "Reema", "identity_class": "system",
+    }]
+    for kind, path in _STIX_PATH.items():
+        for value in iocs.get(kind, []):
+            pattern = "[%s = '%s']" % (path, value.replace("\\", "\\\\").replace("'", "\\'"))
+            objects.append({
+                "type": "indicator", "spec_version": "2.1",
+                "id": _stix_id("indicator", value),
+                "created": _STIX_TS, "modified": _STIX_TS,
+                "created_by_ref": identity_id,
+                "name": value, "pattern": pattern, "pattern_type": "stix",
+                "valid_from": _STIX_TS,
+                "labels": ["malicious-activity"],
+            })
+    return {
+        "type": "bundle",
+        "id": _stix_id("bundle", sample.get("sha256", "reema")),
+        "objects": objects,
+    }
+
+
+def misp_event(iocs, sample=None):
+    """Return a MISP event (dict) with one network-activity attribute per IOC."""
+    sample = sample or {}
+    name = sample.get("file_name") or sample.get("package_name") or "sample"
+    attributes = []
+    for kind, mtype in _MISP_TYPE.items():
+        for value in iocs.get(kind, []):
+            attributes.append({
+                "uuid": str(uuid.uuid5(_REEMA_NS, "misp:" + value)),
+                "type": mtype, "category": "Network activity",
+                "to_ids": True, "value": value,
+            })
+    for algo in ("md5", "sha1", "sha256"):
+        if sample.get(algo):
+            attributes.append({
+                "uuid": str(uuid.uuid5(_REEMA_NS, "misp:" + sample[algo])),
+                "type": algo, "category": "Payload delivery",
+                "to_ids": True, "value": sample[algo],
+            })
+    return {"Event": {
+        "uuid": str(uuid.uuid5(_REEMA_NS, "event:" + (sample.get("sha256") or name))),
+        "info": "Reema static analysis: %s" % name,
+        "analysis": "2", "threat_level_id": "2", "distribution": "0",
+        "Attribute": attributes,
+    }}
+
+
 def write(case_dir, sample=None):
-    """Write reports/iocs.json and reports/iocs.csv. Returns (iocs, count)."""
+    """Write reports/iocs.{json,csv,stix.json,misp.json}. Returns (iocs, count)."""
     case_dir = Path(case_dir)
     iocs = extract(case_dir)
     reports = case_dir / "reports"
@@ -163,4 +236,9 @@ def write(case_dir, sample=None):
         w = csv.DictWriter(f, fieldnames=["type", "value", "defanged"])
         w.writeheader()
         w.writerows(rows)
+
+    (reports / "iocs.stix.json").write_text(
+        json.dumps(stix_bundle(iocs, sample), indent=2), encoding="utf-8")
+    (reports / "iocs.misp.json").write_text(
+        json.dumps(misp_event(iocs, sample), indent=2), encoding="utf-8")
     return iocs, len(rows)
