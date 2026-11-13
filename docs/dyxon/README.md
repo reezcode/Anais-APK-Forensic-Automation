@@ -70,7 +70,10 @@ real network path by default. See the design doc for the isolation model.
 
 ## Status
 
-No `dyxon/` package yet. The current implementation is the prototype
-`analysis_tools/dynamic_bridge.py` with `scripts/dynamic_analysis_helper.sh`.
-Reema (P0–P4) is complete and merged, so Dyxon can start. The roadmap begins at
-D0.
+D0 is done (2026-11-13): the `dyxon/` package exists with the AVD backend
+driver, the provisioner and `dyxon doctor`. Run `python3 -m dyxon doctor` to
+check host dependencies, and `python3 -m dyxon up <avd>` to boot, ready and
+snapshot a device. The pool and the MCP broker are next (D1–D2); see
+[`roadmap.md`](roadmap.md). The pre-Dyxon prototype
+(`analysis_tools/dynamic_bridge.py`, `scripts/dynamic_analysis_helper.sh`)
+still exists and is superseded stage by stage.

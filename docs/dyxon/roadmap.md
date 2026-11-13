@@ -8,7 +8,7 @@ Phases run in order; each is committed on its own. Target design:
 
 | Phase | Scope | Status |
 |---|---|---|
-| D0 | Package skeleton, AVD backend driver, provisioner | Planned |
+| D0 | Package skeleton, AVD backend driver, provisioner | **Done** (2026-11-13) |
 | D1 | Broker + warm pool + snapshot reset, session handle (`dyxon.session/v1`) | Planned |
 | D2 | MCP server: `acquire_device`, `reset`, `release` (the generic device broker) | Planned |
 | D3 | Capability runner: `run_capability`, `collect_runtime`, `dynamic_findings.json` | Planned |
@@ -21,14 +21,18 @@ user also wants are kept — scheduled in later phases and the backlog, behind t
 same broker interface so callers never change. See
 [decisions/0001](decisions/0001-dyxon-device-broker-architecture.md).
 
-## D0 — Device driver (planned)
+## D0 — Device driver (done, 2026-11-13)
 
-| Item | Target |
+| Item | Result |
 |---|---|
-| `dyxon/` package | `python3 -m dyxon`, mirroring the `reema/` layout |
-| AVD backend driver | Boot headless, `adb root` + `adb remount`, destroy; uniform driver interface for later backends |
-| Provisioner | Arch-matched `frida-server`, system CA certificate, proxy, settings; take the golden snapshot |
-| Preconditions check | Fail with a named dependency when `emulator`, an arm64 image, or `frida-server` is missing |
+| `dyxon/` package | `python3 -m dyxon`, mirroring the `reema/` layout; `dyxon/__init__.py` at `0.1.0` |
+| AVD backend driver | `dyxon/backends/avd.py`: boot headless (`-writable-system -no-window -no-snapshot-load`), `wait_ready` polls `sys.boot_completed`, `adb root` + `remount`, snapshot save/load, `emu kill`. Behind the `DeviceBackend` interface (`backends/base.py`) so later backends slot in; registry in `backends/__init__.py` |
+| Provisioner | `dyxon/provision.py`: animations off + stay-awake, ABI-matched `frida-server` (push, run, `adb forward`), optional system CA certificate (OpenSSL subject-hash name or a supplied one). `ready_device()` runs boot → wait → root → provision → golden snapshot |
+| Preflight | `dyxon/preflight.py` + `dyxon doctor`: one line per dependency, exit non-zero if any missing. A missing executable surfaces as return code 127 |
+| Testability | All commands run through a `Runner` (`dyxon/shell.py`); `tests/test_dyxon_d0.py` (19 tests) uses a fake runner — no live emulator needed |
+
+Verified on 2026-11-13: 19 D0 tests pass; `dyxon doctor` reports ready on this
+host (emulator, AVDs, adb all present).
 
 ## D1 — Pool and lifecycle (planned)
 
