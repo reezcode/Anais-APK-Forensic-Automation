@@ -36,21 +36,31 @@ class Chain:
             raise ValueError(f"{path}: chain is missing 'id'")
         self.title = data.get("title", self.id)
         self.family = data.get("family", "")
+        # `require`: capabilities that must ALL be present (the malware-specific
+        # discriminator, e.g. overlay or an accessibility service -- things a
+        # benign app with the same sensor capabilities does not have).
+        # `capabilities`: the supporting set; at least `min_match` must be present.
+        self.require = _as_list(data.get("require"))
         self.capabilities = _as_list(data.get("capabilities"))
-        # Fire when at least `min_match` of the named capabilities are present;
-        # default: all of them.
         self.min_match = int(data.get("min_match", len(self.capabilities)))
         self.label = data.get("label", "malicious")
         if self.label not in LABELS:
             raise ValueError(f"{path}: chain {self.id!r} has invalid label {self.label!r}")
+        if not self.require and not self.capabilities:
+            raise ValueError(f"{path}: chain {self.id!r} has neither 'require' nor 'capabilities'")
 
     def evaluate(self, present_ids):
+        if any(r not in present_ids for r in self.require):
+            return None
         matched = [c for c in self.capabilities if c in present_ids]
-        if len(matched) >= self.min_match and matched:
-            return {"chain": self.id, "title": self.title, "family": self.family,
-                    "label": self.label, "matched": matched,
-                    "required": self.min_match, "of": len(self.capabilities)}
-        return None
+        if len(matched) < self.min_match:
+            return None
+        hit = self.require + matched
+        if not hit:
+            return None
+        return {"chain": self.id, "title": self.title, "family": self.family,
+                "label": self.label, "matched": hit,
+                "required": len(self.require) + self.min_match, "of": len(self.require) + len(self.capabilities)}
 
 
 def load_chains(path=CHAINS_FILE):
@@ -108,11 +118,18 @@ def decide(findings, chains, family=None):
         enrich_label = "malicious" if conf in ("high", "medium") else "suspicious"
         reasons.append(f"enrichment family {family['family']} (confidence {conf})")
 
-    # A strong single capability in app code is "suspicious" even with no chain.
-    if not fired and app_caps:
+    # Precision-first: a lone capability is NOT malice -- a benign messenger,
+    # camera or SMS app has the same capabilities as spyware. Only a fired chain
+    # (a malware-specific combination) escalates, with one exception: the
+    # dangerous-permission constellation is itself the discriminator (>=2 of
+    # accessibility/overlay/device-admin/install, which benign apps rarely
+    # declare together), so it alone reads as "suspicious".
+    if not fired and "dangerous_permission_set" in app_caps:
         label = "suspicious"
-        reasons.append(f"{len(app_caps)} capability(ies) in app code: {sorted(app_caps)}")
-    elif not fired and not app_caps and all_caps:
+        reasons.append("high-risk permission constellation in app manifest")
+    elif not fired and app_caps:
+        reasons.append(f"{len(app_caps)} capability(ies) in app code (no malicious chain): {sorted(app_caps)}")
+    elif not fired and all_caps:
         reasons.append(f"{len(all_caps)} capability(ies) in library code only: {sorted(all_caps)}")
 
     for candidate in (enrich_label,):

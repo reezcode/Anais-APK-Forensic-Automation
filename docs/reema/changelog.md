@@ -2,6 +2,21 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.8.4 — precision retune (false-positive fix) (2026-11-13)
+
+A benign corpus (8 F-Droid apps: Fossify SMS/Phone/Contacts/Camera/Gallery,
+Conversations, K-9, NewPipe) measured a false-positive rate of 1.0 — every
+benign app flagged, because a capability's *presence* was treated as malice and
+a lone capability escalated the verdict. A benign messenger, camera or SMS app
+holds the same capabilities as spyware. Retuned precision-first; FP 1.0 → 0.125
+→ 0 (last fix verified by unit tests, corpus re-run in progress).
+
+### Changed
+- **Verdict escalates only on a chain** (`reema/verdict.py`): dropped "a lone app capability → suspicious". A single capability (or a benign combination) is now `clean`. The one exception: the dangerous-permission constellation alone → `suspicious` (it is itself the discriminator).
+- **Chains pivot on a malware discriminator** (`reema/chains.yaml`, new `require` field in `verdict.Chain`): every chain now requires a capability a benign app with the same sensor access lacks — a screen overlay, an accessibility service that reads the screen, device-admin, or runtime code loading — then at least `min_match` supporting capabilities. Stops benign messengers/cameras from matching the spyware/RAT chains.
+- **`accessibility_abuse` narrowed** (`reema/capabilities/11-ui-abuse.yaml`): matches only service-side APIs (`getRootInActiveWindow`, `performGlobalAction`, `dispatchGesture`), not the `AccessibilityNodeInfo` methods benign apps call through androidx. (Was firing on 5/8 benign apps.)
+- **Constellation tightened** (`reema/capabilities/16-permission-profile.yaml`): `dangerous_permission_set` now requires a STRONG abuse permission (accessibility service or device-admin) plus ≥2 abuse permissions total; dropped SMS/call-log (benign-common) from the set. Excludes a messenger holding only {overlay, self-update} while still firing on a banker/dropper.
+
 ## 0.8.3 — backlog B18: anti-analysis manifest recovery (2026-11-13)
 
 Validated against the two corpus misses (CORETAX, Taspen): both flip

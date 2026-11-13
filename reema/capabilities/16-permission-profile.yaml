@@ -17,22 +17,29 @@ tags:
   - permission-profile
   - packed
 description: >
-  The manifest requests at least three of the permissions abused by mobile
-  malware to intercept SMS, drive the UI, overlay other apps, take device-admin
-  control, install packages, or read call history. Benign apps rarely request
-  this combination together. On a packed sample this is often the only static
+  The manifest requests at least two of the "abuse" permissions that mobile
+  malware combines to drive the UI, overlay other apps, take device-admin
+  control, or side-load packages. Unlike SMS or contact permissions (which
+  benign messengers and dialers legitimately hold), benign apps rarely declare
+  two of these together. On a packed sample this is often the only static
   signal, since the real code is unpacked at runtime.
 recommendation: >
   Treat as a strong lead: review the declared components (accessibility service,
-  admin receiver, SMS receiver) and run the sample dynamically to recover the
-  unpacked DEX for a full capability read.
-any_of_min: 3
+  admin receiver) and run the sample dynamically to recover the unpacked DEX for
+  a full capability read.
+# Must include a STRONG abuse permission (an accessibility service or
+# device-admin -- things a benign app almost never declares), plus at least two
+# abuse permissions in total. This excludes a benign messenger that holds only
+# the weak pair {SYSTEM_ALERT_WINDOW (call overlay), REQUEST_INSTALL_PACKAGES
+# (self-update)} while still firing on a banker/dropper that abuses accessibility
+# or device-admin.
+requires:
+  - permission:
+      - "BIND_ACCESSIBILITY_SERVICE"
+      - "BIND_DEVICE_ADMIN"
+any_of_min: 2
 any_of:
   - permission: "BIND_ACCESSIBILITY_SERVICE"
   - permission: "SYSTEM_ALERT_WINDOW"
-  - permission: "SEND_SMS"
-  - permission: "RECEIVE_SMS"
-  - permission: "READ_SMS"
-  - permission: "READ_CALL_LOG"
   - permission: "BIND_DEVICE_ADMIN"
   - permission: "REQUEST_INSTALL_PACKAGES"

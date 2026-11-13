@@ -36,3 +36,6 @@ __pycache__/
 
 # quarantined malware corpus (deleted after use)
 .malware_tmp/
+
+# benign corpus scratch
+.bench_tmp/

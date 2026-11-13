@@ -37,9 +37,12 @@ description: >
 recommendation: >
   Review the service's event handling for auto-clicking (performGlobalAction /
   performAction) and for reading text out of other apps' windows.
+# Match only the service-side APIs a hostile AccessibilityService calls to read
+# the screen or auto-click. Benign apps consume accessibility through androidx
+# (AccessibilityNodeInfo.getText/performAction) without implementing a service,
+# so those are deliberately excluded to avoid false positives.
 requires:
   - api:
       - "AccessibilityService;->getRootInActiveWindow"
-      - "AccessibilityNodeInfo;->performAction"
       - "AccessibilityService;->performGlobalAction"
-      - "AccessibilityNodeInfo;->getText"
+      - "AccessibilityService;->dispatchGesture"
