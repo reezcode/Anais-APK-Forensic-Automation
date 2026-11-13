@@ -8,7 +8,6 @@ Phase plan: [`roadmap.md`](roadmap.md). Target design: [`design.md`](design.md).
 
 | Id | Item | Plugs into | Notes |
 |---|---|---|---|
-| B10 | **Native Python engine for APK** | `reema/cli.py` | `anais.sh` is still the APK engine. Port its stages to Python one at a time (ADR 0001). |
 | B13 | **Capability rule content** | `reema/capabilities/`, `reema/chains.yaml` | The engine ships with one neutral example rule (`process_exec`) and no chains. Author the real capability rules and behaviour chains per [`capability-rules.md`](capability-rules.md); measure against the P4 corpus. Owner (reez). |
 | B14 | **Defense catalog + harness content** | `reema/defenses/` | The Vaccine Pack generator ships with one neutral example defense. Author the real defense entries (and any runnable harnesses, within the ADR 0003 guardrails) per [`vaccine-pack.md`](vaccine-pack.md). Owner (reez). |
 | B16 | **Local family classifier** | `reema/classify.py` | Today the family is merged from chains / enrichment / YARA tags. Add offline signature-based family detection (no network, no YARA), as detection content. Owner (reez). |
@@ -19,6 +18,10 @@ normalization, B8 ssdeep, B9 child samples, B11 (K2–K5).
 Cleared in 0.4.1: B5 IOC enrichment (ThreatFox/URLhaus feeds), B12 bare-domain IOCs.
 Cleared in 0.5.1: B15 STIX 2.1 / MISP export.
 Cleared in 0.6.1: B17 deep iOS (Mach-O parse, Swift detection, framework→capability map).
+Cleared in 0.7.0: B10 native Python APK engine (`reema/apk.py`); `anais.sh` retired as the engine.
+
+The only remaining backlog items (B13, B14, B16) are detection/defense content
+owned by reez; every engineering item is now implemented.
 
 Notes on what landed, for anyone extending it:
 - **B1 reachability** is best-effort and static: reflection, native code and

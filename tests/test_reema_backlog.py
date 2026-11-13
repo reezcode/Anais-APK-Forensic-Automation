@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT / "analysis_tools"))
 
 import struct  # noqa: E402
 
-from reema import adapters, cli, enrich, index, iocs, ios  # noqa: E402
+from reema import adapters, apk, cli, enrich, index, iocs, ios  # noqa: E402
 from reema import _psl  # noqa: E402
 from reema.case import Case  # noqa: E402
 from reema.findings import Evidence, Finding  # noqa: E402
@@ -516,6 +516,103 @@ class DeepIosTest(unittest.TestCase):
             self.assertIn("ios_cap_location", rules)
             info = json.loads((case / "temp" / "basic_info.json").read_text())
             self.assertEqual(info["macho"]["archs"], ["arm64"])
+
+
+class ApkEngineTest(unittest.TestCase):
+    """B10: the native Python APK engine (reema/apk.py). apktool/jadx/yara are
+    not available in CI, so the subprocess layer is faked and the orchestration
+    (stage set, order, file wiring, online gating) is asserted."""
+
+    def _valid_apk(self, path):
+        with zipfile.ZipFile(path, "w") as zf:
+            zf.writestr("AndroidManifest.xml", b"<manifest/>")
+            zf.writestr("classes.dex", b"dex\n035\x00")
+
+    def _patched_run(self, case, sample, offline=False, env=None):
+        calls = {"pytool": [], "run": [], "yara": []}
+
+        def fake_pytool(script, args, logpath):
+            calls["pytool"].append((script, [str(a) for a in args]))
+            out = str(args[-1])
+            if script == "prepare_input.py":
+                Path(args[2]).write_text(json.dumps({"base_apk": str(sample)}))
+            elif script == "apk_basic_info.py":
+                Path(args[1]).write_text(json.dumps({"package_name": "com.x.y"}))
+            elif script == "detect_obfuscation.py":
+                Path(args[3]).write_text(json.dumps({"type": "proguard"}))
+            elif script == "sast_scanner.py":
+                Path(out).write_text(json.dumps({"critical": [], "high": []}))
+            return 0
+
+        def fake_run(cmd, logpath):
+            calls["run"].append([str(c) for c in cmd])
+            return 0
+
+        def fake_yara(rules, targets, out_file, logpath):
+            calls["yara"].append(str(out_file))
+            Path(out_file).write_text("")
+
+        env = env if env is not None else {}
+        with mock.patch.object(apk, "_pytool", fake_pytool), \
+             mock.patch.object(apk, "_run", fake_run), \
+             mock.patch.object(apk, "_yara", fake_yara), \
+             mock.patch.object(apk.shutil, "which", lambda name: "/usr/bin/" + name), \
+             mock.patch.dict(os.environ, env, clear=False):
+            results = apk.run(sample, case, "a" * 64, case=None, offline=offline)
+        return results, calls
+
+    def test_pipeline_stage_set_and_order(self):
+        with tempfile.TemporaryDirectory() as d:
+            case = Path(d) / "case"
+            sample = Path(d) / "s.apk"
+            self._valid_apk(sample)
+            results, calls = self._patched_run(case, sample)
+            stages = [s for s, _ in results]
+            self.assertEqual(stages[:2], ["apktool", "jadx"])
+            for expect in ("obfuscation", "framework", "rasp", "entropy", "yara",
+                           "signing", "sdks", "manifest", "network", "sast"):
+                self.assertIn(expect, stages)
+            # Report, then derived outputs, come last and in order.
+            self.assertEqual(stages[-3:], ["report", "frida", "sarif"])
+            scripts = [s for s, _ in calls["pytool"]]
+            self.assertIn("dex_payload_hunter.py", scripts)      # obfuscation preamble
+            self.assertIn("report_generator_modular.py", scripts)
+            self.assertEqual(len(calls["yara"]), 3)              # apk + decompiled + jadx trees
+
+    def test_report_uses_base_apk_name(self):
+        with tempfile.TemporaryDirectory() as d:
+            case = Path(d) / "case"
+            sample = Path(d) / "base.apk"
+            self._valid_apk(sample)
+            _, calls = self._patched_run(case, sample)
+            report = next(a for s, a in calls["pytool"] if s == "report_generator_modular.py")
+            self.assertEqual(report[2], "base.apk")
+            self.assertIn("a" * 64, report)                      # sha256 passed through
+
+    def test_sdk_online_gated_by_env_and_offline(self):
+        with tempfile.TemporaryDirectory() as d:
+            case = Path(d) / "case"
+            sample = Path(d) / "s.apk"
+            self._valid_apk(sample)
+            # No env: offline sdk inventory.
+            _, calls = self._patched_run(case, sample)
+            sdk = next(a for s, a in calls["pytool"] if s == "sdk_inventory.py")
+            self.assertNotIn("--online", sdk)
+            # Env set but --offline wins: still no network.
+            _, calls = self._patched_run(case, sample, offline=True,
+                                         env={"ANAIS_CVE_ONLINE": "1"})
+            sdk = next(a for s, a in calls["pytool"] if s == "sdk_inventory.py")
+            self.assertNotIn("--online", sdk)
+            # Env set, online allowed.
+            _, calls = self._patched_run(case, sample, env={"ANAIS_CVE_ONLINE": "1"})
+            sdk = next(a for s, a in calls["pytool"] if s == "sdk_inventory.py")
+            self.assertIn("--online", sdk)
+
+    def test_protection_check_clean_apk_passes_through(self):
+        with tempfile.TemporaryDirectory() as d:
+            sample = Path(d) / "s.apk"
+            self._valid_apk(sample)
+            self.assertEqual(apk._protection_check(sample, Path(d), Path(d) / "log"), sample)
 
 
 if __name__ == "__main__":

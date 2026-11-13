@@ -84,12 +84,13 @@ Case directory:
 | `reema/case.py` | `case.json`: hashes, artifacts, tool versions, audit trail |
 | `reema/index.py` | Code index (androguard → SQLite) |
 | `reema/enrich.py` | MalwareBazaar / VirusTotal hash lookups with SQLite cache |
+| `reema/apk.py` | APK engine (native Python port of `anais.sh`: apktool/jadx + analyzers) |
 | `reema/jar.py` | JAR engine (jadx + code analyzers) |
 | `reema/capabilities.py` | Capability engine (YAML rules → findings) |
 | `reema/verdict.py` | Behaviour chains and the verdict |
 | `reema/iocs.py` | IOC extraction and export |
 | `reema/vaccine.py` | Vaccine Pack generator |
-| `reema/ios.py` | iOS IPA intake (Info.plist posture) |
+| `reema/ios.py` | iOS IPA intake (Info.plist posture + Mach-O facts) |
 | `reema/classify.py` | Family classifier (merges family signals) |
 | `reema/corpus.py` | Corpus gate (precision/recall over a labelled set) |
 | `reema/defenses/` | Defense catalog content (see [vaccine-pack.md](vaccine-pack.md)) |

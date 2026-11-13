@@ -5,7 +5,7 @@
 
 `analyze` stages:
     1. case     create <workspace>/<stem>_<UTC time>/ and case.json, hash the input
-    2. engine   APK family: anais.sh (legacy engine); JAR: reema/jar.py
+    2. engine   APK: reema/apk.py; JAR: reema/jar.py; IPA: reema/ios.py
     3. index    androguard code index -> temp/code_index.db       (--no-index skips)
     4. enrich   hash reputation -> temp/enrichment.json            (--offline: cache only)
     5. findings reports/findings.json
@@ -20,20 +20,18 @@ import io
 import json
 import os
 import re
-import subprocess
 import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from reema import (__version__, capabilities, classify, corpus, enrich, index,
-                   iocs, ios, jar, vaccine, verdict)
+from reema import (__version__, apk, capabilities, classify, corpus, enrich,
+                   index, iocs, ios, jar, vaccine, verdict)
 from reema.adapters import collect
 from reema.case import Case, hash_file
 from reema.findings import build_document
 
 ROOT = Path(__file__).resolve().parent.parent
-LEGACY_ENGINE = ROOT / "anais.sh"
 APK_INPUTS = {".apk", ".xapk", ".apkm", ".apks", ".aab"}
 JAR_INPUTS = {".jar"}
 IPA_INPUTS = {".ipa"}
@@ -134,7 +132,7 @@ def _base_apk(case_dir, fallback):
     return fallback
 
 
-def _run_engine(sample, case_dir, rules, case):
+def _run_engine(sample, case_dir, rules, case, offline=False):
     if sample.suffix.lower() in IPA_INPUTS:
         try:
             findings = ios.analyze(sample, case_dir)
@@ -150,14 +148,16 @@ def _run_engine(sample, case_dir, rules, case):
         # jadx exits non-zero on partial decompile errors; only a missing tree is fatal.
         return 0 if any((case_dir / "jadx_output").iterdir()) else dict(results).get("jadx", 1)
 
-    cmd = [str(LEGACY_ENGINE)]
-    for rule in rules or []:
-        cmd += ["-y", rule]
-    cmd.append(str(sample))
-    env = {**os.environ, "ANAIS_CASE_DIR": str(case_dir)}
-    rc = subprocess.call(cmd, env=env)
-    case.log("engine:anais.sh", "ok" if rc == 0 else "error", "" if rc == 0 else f"exit {rc}")
-    return rc
+    sha256 = case.record["inputs"][0]["sha256"]
+    results = apk.run(sample, case_dir, sha256, rules=rules, case=case, offline=offline)
+    # apktool/jadx exit non-zero on partial decompile; the run is only fatal when
+    # neither decompiler produced a tree to analyze.
+    rc = dict(results)
+    if (case_dir / "jadx_output").exists() and any((case_dir / "jadx_output").iterdir()):
+        return 0
+    if (case_dir / "decompiled").exists() and any((case_dir / "decompiled").iterdir()):
+        return 0
+    return rc.get("jadx", 1) or rc.get("apktool", 1)
 
 
 def _stage_index(target, case_dir, case):
@@ -315,7 +315,7 @@ def cmd_analyze(args):
     case.save()
     print(f"reema: case {case.record['case_id']} -> {case_dir}")
 
-    rc = _run_engine(sample, case_dir, args.yara, case)
+    rc = _run_engine(sample, case_dir, args.yara, case, offline=args.offline)
     if rc != 0:
         case.save()
         print(f"reema: engine failed (exit {rc}); see {case.path}", file=sys.stderr)

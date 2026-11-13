@@ -2,6 +2,19 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.7.0 — backlog B10: native Python APK engine (2026-11-13)
+
+Cleared backlog B10. Every engineering backlog item is now implemented; the
+only items left (B13, B14, B16) are detection/defense content owned by reez.
+
+### Added
+- **B10 — native Python APK engine** (`reema/apk.py`): `apk.run()` is a direct port of the `anais.sh` orchestrator. It drives the same `analysis_tools/` scripts and external tools (apktool, jadx, yara) in the same order, with the same output file names, so the Finding adapters and report are unchanged. Stages: `prepare_input` → `apk_basic_info` → protection check (ZIP-encryption probe + header fix) → apktool/jadx decompile (parallel) → analysis tools (obfuscation+dex-payload+SO-strings, framework, RASP, entropy, YARA, signing, SDK inventory, manifest, network, SAST — parallel) → `report_generator_modular` → Frida script + SARIF. `sdk_inventory` goes online only when `ANAIS_CVE_ONLINE=1` and the run is not `--offline`; the REA bridge still gates on `ANAIS_REA=1`.
+- `tests/test_reema_backlog.py`: `ApkEngineTest` (4 tests — stage set/order, base-APK report name, online gating, protection pass-through).
+
+### Changed
+- `reema/cli.py`: the `analyze` engine stage for APKs now calls `reema/apk.py` instead of shelling out to `anais.sh`. Unused `subprocess` import and `LEGACY_ENGINE` constant removed. A run is fatal only when neither decompiler produced a tree.
+- `reema` no longer invokes `anais.sh`. The script is retained for standalone use but is no longer the engine; it is deprecated and may be removed in a later release.
+
 ## 0.6.1 — backlog B17 (2026-11-13)
 
 Cleared backlog B17. Remaining: B10 (native Python APK engine), B13/B14/B16
