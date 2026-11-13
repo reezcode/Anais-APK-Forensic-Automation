@@ -79,12 +79,18 @@ handle (D1), and the MCP device broker (D2). Commands:
 - `DYXON_AVDS=pixel:5554 python3 -m dyxon serve` — run the MCP broker (tools
   `acquire_device`, `reset`, `release`, `status`) over stdio.
 
-The capability runner (D3) is also done: `run_capability` runs a Vaccine Pack
-harness (or a detonation) against an app under test, and `collect_runtime` writes
-`dynamic_findings.json`, which Reema's `dynamic` adapter merges into
-`findings.json`. Harness logic for real capabilities is Reema content (B14); a
-neutral example ships in `dyxon/harnesses/example.py`.
+The capability runner (D3) runs a Vaccine Pack harness (or a detonation) against
+an app under test, and `collect_runtime` writes `dynamic_findings.json`, which
+Reema's `dynamic` adapter merges into `findings.json`. Harness logic for real
+capabilities is Reema content (B14); a neutral example ships in
+`dyxon/harnesses/example.py`.
 
-Next is D4: the Aegis / REA integration pass. The pre-Dyxon prototype
+The integration pass (D4) is done too: `DyxonProvider` is the device provider
+Aegis and REA lease from (`with provider.lease() as session: ...`), and
+`dyxon.pipeline.run_dynamic_pass` drives the full static→lease→dynamic→merged-
+report loop. See [`integration.md`](integration.md). **The Dyxon roadmap
+(D0–D4) is complete.**
+
+The pre-Dyxon prototype
 (`analysis_tools/dynamic_bridge.py`, `scripts/dynamic_analysis_helper.sh`)
 still exists and is superseded stage by stage.

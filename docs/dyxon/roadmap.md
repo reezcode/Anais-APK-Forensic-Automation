@@ -12,7 +12,7 @@ Phases run in order; each is committed on its own. Target design:
 | D1 | Warm pool + snapshot reset, session handle (`dyxon.session/v1`) | **Done** (2026-11-13) |
 | D2 | MCP server: `acquire_device`, `reset`, `release` (the generic device broker) | **Done** (2026-11-13) |
 | D3 | Capability runner: `run_capability`, `collect_runtime`, `dynamic_findings.json` | **Done** (2026-11-13) |
-| D4 | Aegis / REA integration pass; detonation profile | Planned |
+| D4 | Aegis / REA integration pass; end-to-end static→dynamic | **Done** (2026-11-13) |
 
 The four brainstorm decisions (2026-11-13) set the first path through these
 phases: **AVD backend, MCP interface, warm pool + snapshot reset, generic
@@ -79,9 +79,16 @@ pass, no-harness, bad-harness error, detonation crash count, vaccine lookup,
 write, broker run→collect, unknown session, detonate mode, adapter mapping).
 Suite total 211.
 
-## D4 — Integration (planned)
+## D4 — Integration (done, 2026-11-13)
 
-| Item | Target |
+| Item | Result |
 |---|---|
-| Aegis / REA | Dyxon registered as a device provider the Aegis module and REA can lease from |
-| End-to-end | Static (Reema) → lease (Dyxon) → dynamic (REA on the leased device) → merged report |
+| Device provider | `dyxon/provider.py` `DyxonProvider`: a `lease()` context manager that yields a `dyxon.session/v1` handle and releases it on exit (even on exception), plus runner pass-throughs. Works in-process and mirrors the MCP tools one to one |
+| REA hand-off | Documented pattern: lease → take `session["serial"]` → run REA's own ADB/Frida tools → release. Dyxon runs no REA tooling; only the serial crosses |
+| Pipeline | `dyxon/pipeline.py` `run_dynamic_pass`: lease, run each Vaccine Pack capability on the app under test, `collect_runtime` into the case's `temp/`, release |
+| End-to-end merge | `temp/dynamic_findings.json` is folded into `reports/findings.json` by Reema's `dynamic` adapter (registry) on the next `reema findings` run. Proven in a test: a dynamic finding surfaces through `reema.adapters.collect` |
+| Docs | [`integration.md`](integration.md): in-process vs MCP, the REA hand-off, the static→dynamic flow and the two contract files that cross the boundary |
+
+Verified on 2026-11-13: 5 D4 tests (lease yield/release, release-on-exception,
+exhaustion, pipeline writes `dynamic_findings.json`, end-to-end merge into Reema
+findings). Suite total 216. The Dyxon roadmap (D0–D4) is complete.

@@ -40,6 +40,7 @@ All project documentation lives in this directory. Start here.
 | [`dyxon/roadmap.md`](dyxon/roadmap.md) | Phases D0–D4, status |
 | [`dyxon/backlog.md`](dyxon/backlog.md) | Designed but not implemented: other backends, lifecycle modes, interfaces |
 | [`dyxon/device-broker-contract.md`](dyxon/device-broker-contract.md) | `dyxon.session/v1` MCP tool surface and session handle |
+| [`dyxon/integration.md`](dyxon/integration.md) | How REA, Aegis and Reema lease from Dyxon; the static→dynamic flow |
 | [`dyxon/decisions/`](dyxon/decisions/README.md) | Architecture decision records (ADRs) |
 | [`dyxon/dynamic-analysis.md`](dyxon/dynamic-analysis.md) | ADB/Frida runtime bridge runbook (pre-Dyxon prototype) |
 
