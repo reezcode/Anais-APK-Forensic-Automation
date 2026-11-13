@@ -602,6 +602,22 @@ run_entropy_analysis() {
     fi
 }
 
+# Scan every file named in a list with YARA, printing `yara -s` output.
+# Usage: yara_scan_list <list_file> <threads> <rule_file>...
+yara_scan_list() {
+    local list="$1" threads="$2"
+    shift 2
+    [ -s "$list" ] || return 0
+    if yara --help 2>&1 | grep -q -- "--scan-list"; then
+        yara -s -p "$threads" --scan-list "$@" "$list" 2>/dev/null || true
+    else
+        # yara older than 4.1 has no --scan-list: fall back to one process per file.
+        while IFS= read -r file; do
+            yara -s "$@" "$file" 2>/dev/null || true
+        done < "$list"
+    fi
+}
+
 # Run YARA rules
 run_yara_scan() {
     log_section "Running YARA Rules"
@@ -628,20 +644,25 @@ run_yara_scan() {
     log_info "Scanning original APK..."
     yara -s "${yara_args[@]}" "$apk_path" > "${TEMP_DIR}/yara_apk_results.txt" 2>&1 || true
     
+    # Scan each tree with one yara process over a file list: one yara per file
+    # recompiles the rules every time and takes tens of minutes on a large app.
+    local threads
+    threads=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+
     # Scan decompiled directory
     if [ -d "$DECOMPILED_DIR" ]; then
         log_info "Scanning decompiled files..."
-        find "$DECOMPILED_DIR" -type f -name "*.smali" -o -name "*.xml" | while read file; do
-            yara -s "${yara_args[@]}" "$file" 2>/dev/null || true
-        done > "${TEMP_DIR}/yara_decompiled_results.txt"
+        find "$DECOMPILED_DIR" -type f \( -name "*.smali" -o -name "*.xml" \) > "${TEMP_DIR}/yara_decompiled_files.txt"
+        yara_scan_list "${TEMP_DIR}/yara_decompiled_files.txt" "$threads" "${yara_args[@]}" \
+            > "${TEMP_DIR}/yara_decompiled_results.txt"
     fi
-    
+
     # Scan JADX output
     if [ -d "$JADX_OUTPUT" ]; then
         log_info "Scanning JADX sources..."
-        find "$JADX_OUTPUT" -type f -name "*.java" | while read file; do
-            yara -s "${yara_args[@]}" "$file" 2>/dev/null || true
-        done > "${TEMP_DIR}/yara_jadx_results.txt"
+        find "$JADX_OUTPUT" -type f -name "*.java" > "${TEMP_DIR}/yara_jadx_files.txt"
+        yara_scan_list "${TEMP_DIR}/yara_jadx_files.txt" "$threads" "${yara_args[@]}" \
+            > "${TEMP_DIR}/yara_jadx_results.txt"
     fi
     
     log_success "YARA scan completed"
