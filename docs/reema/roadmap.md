@@ -8,7 +8,7 @@ Last updated: 2026-11-13.
 | P1 | Intake and case record, JAR input, code index, enrichment and cache | **Done** (2026-11-13); reachability shipped in 0.3.0 (B1) |
 | P2 | Capability engine, verdict and posture split, IOC export | **Done** (2026-11-13); rule content → backlog B13 |
 | P3 | Vaccine Pack generator, STIX 2.1 / MISP export | **Done** (2026-11-13); defense content → backlog B14, STIX/MISP → B15 |
-| P4 | Test corpus gate, family classifier, iOS IPA | Next |
+| P4 | Test corpus gate, family classifier, iOS IPA | **Done** (2026-11-13); local family signatures → B16, deep iOS → B17 |
 
 Target design for every phase: [`design.md`](design.md).
 Designed but unimplemented work, ready to pick up: [`backlog.md`](backlog.md).
@@ -93,11 +93,18 @@ matched only in the bundled `libsu` library, so it did not escalate — correct.
 one capability found (`process_exec`), one Vaccine Pack entry written with its
 defense, check and guardrails.
 
-## P4 — Quality and reach
+## P4 — Quality and reach (done)
 
-- Labelled corpus and a precision/recall gate on rule changes.
-- Family classifier.
-- iOS IPA intake.
+| Item | Result |
+|---|---|
+| Corpus gate | `reema/corpus.py` + `reema corpus <manifest> --samples-dir DIR`. Runs `analyze --offline --no-enrich` over a labelled set, compares each verdict to the expected label, reports precision/recall/FP-rate, and fails (exit 1) when the benign false-positive rate exceeds `--max-fp-rate` (default 0.0) or recall falls below `--min-recall`. Samples stay outside the repo; the manifest lists them (CSV/JSON). Missing files are skipped, not errors. |
+| Family classifier | `reema/classify.py`: merges every family signal Reema has — fired-chain families, the enrichment vote, and `family:*` finding tags — into one best family with a confidence (two+ agreeing sources → high). Written to `findings.json` as `family`. Local signature-based classification is content → backlog B16. |
+| iOS IPA intake | `reema/ios.py` + `.ipa` input: reads the app bundle `Info.plist`, entitlements and embedded frameworks into `basic_info.json`, and raises App Transport Security / URL-scheme posture findings (`ios` adapter, axis `posture`). The code index is skipped for IPAs (no DEX). Deep Mach-O / Swift / iOS capability rules → backlog B17. |
+| Tests | `tests/test_reema_p4.py`, 18 tests; suite total 138, all passing. |
+
+**Verification on 2026-11-13:**
+- A minimal IPA with `NSAllowsArbitraryLoads` produced the expected ATS posture finding; verdict CLEAN.
+- A two-row corpus (`SSLKiller` benign + one missing entry) scored the benign sample as a true negative; gate PASS at fp-rate 0.0.
 
 ## Known issues
 

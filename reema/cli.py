@@ -26,7 +26,8 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from reema import __version__, capabilities, enrich, index, iocs, jar, vaccine, verdict
+from reema import (__version__, capabilities, classify, corpus, enrich, index,
+                   iocs, ios, jar, vaccine, verdict)
 from reema.adapters import collect
 from reema.case import Case, hash_file
 from reema.findings import build_document
@@ -35,6 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LEGACY_ENGINE = ROOT / "anais.sh"
 APK_INPUTS = {".apk", ".xapk", ".apkm", ".apks", ".aab"}
 JAR_INPUTS = {".jar"}
+IPA_INPUTS = {".ipa"}
 
 
 def _sample_info(case_dir, sample=None):
@@ -87,9 +89,14 @@ def write_findings(case_dir, sample=None):
         doc["capability_rule_errors"] = cap_errors
 
     chains, chain_errors = verdict.load_chains()
-    doc["verdict"] = verdict.decide(findings, chains, family=_family(case_dir))
+    family_vote = _family(case_dir)
+    doc["verdict"] = verdict.decide(findings, chains, family=family_vote)
     if chain_errors:
         doc["chain_errors"] = chain_errors
+
+    # Merge every family signal (chains, enrichment, YARA family tags) into one.
+    doc["family"] = classify.classify(doc["verdict"], enrichment_family=family_vote,
+                                       findings=[f.to_dict() for f in findings])
 
     out = case_dir / "reports" / "findings.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -128,6 +135,15 @@ def _base_apk(case_dir, fallback):
 
 
 def _run_engine(sample, case_dir, rules, case):
+    if sample.suffix.lower() in IPA_INPUTS:
+        try:
+            findings = ios.analyze(sample, case_dir)
+        except (zipfile.BadZipFile, OSError) as e:
+            case.log("engine:ios", "error", str(e))
+            return 1
+        case.log("engine:ios", "ok", f"{len(findings)} posture finding(s)")
+        return 0
+
     if sample.suffix.lower() in JAR_INPUTS:
         sha256 = case.record["inputs"][0]["sha256"]
         results = jar.run(sample, case_dir, sha256, rules=rules, case=case)
@@ -286,7 +302,7 @@ def cmd_analyze(args):
     if not sample.is_file():
         print(f"reema: sample not found: {sample}", file=sys.stderr)
         return 2
-    if sample.suffix.lower() not in APK_INPUTS | JAR_INPUTS:
+    if sample.suffix.lower() not in APK_INPUTS | JAR_INPUTS | IPA_INPUTS:
         print(f"reema: unsupported input type {sample.suffix!r}", file=sys.stderr)
         return 2
     if args.upload and args.offline:
@@ -311,7 +327,8 @@ def cmd_analyze(args):
         if target.resolve() != sample.resolve():
             case.add_input(target, "base_apk")
 
-    if not args.no_index:
+    # The code index is DEX-based; an IPA has no DEX, so skip it there.
+    if not args.no_index and sample.suffix.lower() not in IPA_INPUTS:
         _stage_index(target, case_dir, case)
     if not args.no_enrich:
         _stage_enrich(case_dir, case, offline=args.offline)
@@ -359,13 +376,38 @@ def cmd_findings(args):
     return 0
 
 
+def cmd_corpus(args):
+    try:
+        rows = corpus.load_manifest(args.manifest)
+    except (OSError, ValueError) as e:
+        print(f"reema: {e}", file=sys.stderr)
+        return 2
+    out = corpus.evaluate(rows, args.samples_dir)
+    m = out["metrics"]
+    passed, reasons = corpus.gate(m, max_fp_rate=args.max_fp_rate, min_recall=args.min_recall)
+
+    print(f"reema corpus: {m['scored']}/{m['samples']} scored "
+          f"({m['missing']} missing, {m['errors']} errors)")
+    print(f"  precision={m['precision']} recall={m['recall']} "
+          f"fp_rate={m['false_positive_rate']} accuracy={m['accuracy']} "
+          f"(tp={m['tp']} fp={m['fp']} tn={m['tn']} fn={m['fn']})")
+    if args.report:
+        Path(args.report).write_text(json.dumps(out, indent=2), encoding="utf-8")
+        print(f"  report -> {args.report}")
+    if passed:
+        print("reema corpus: GATE PASS")
+        return 0
+    print("reema corpus: GATE FAIL -- " + "; ".join(reasons), file=sys.stderr)
+    return 1
+
+
 def build_parser():
     p = argparse.ArgumentParser(prog="reema", description="Reema: Android malware analysis & forensics")
     p.add_argument("--version", action="version", version=f"reema {__version__}")
     sub = p.add_subparsers(dest="command", required=True)
 
     a = sub.add_parser("analyze", help="run a full static analysis on a sample")
-    a.add_argument("sample", help="path to .apk/.xapk/.apkm/.apks/.aab/.jar")
+    a.add_argument("sample", help="path to .apk/.xapk/.apkm/.apks/.aab/.jar/.ipa")
     a.add_argument("-y", "--yara", action="append", help="extra YARA rule file (repeatable)")
     a.add_argument("--analyst", help="name recorded in case.json (default: $REEMA_ANALYST or login)")
     a.add_argument("--case-dir", help="use this case directory instead of a new one")
@@ -382,6 +424,16 @@ def build_parser():
     f.add_argument("case_dir", help="case directory created by an analysis run")
     f.add_argument("--sample", help="analyzed file; its hashes are recorded in the document")
     f.set_defaults(func=cmd_findings)
+
+    c = sub.add_parser("corpus", help="measure the verdict against a labelled sample set")
+    c.add_argument("manifest", help="CSV/JSON of path,label rows (label: benign|malware|pua)")
+    c.add_argument("--samples-dir", required=True, help="directory the manifest paths resolve against")
+    c.add_argument("--report", help="write the full per-sample result JSON here")
+    c.add_argument("--max-fp-rate", type=float, default=0.0,
+                   help="fail if the benign false-positive rate exceeds this (default 0.0)")
+    c.add_argument("--min-recall", type=float, default=None,
+                   help="fail if recall falls below this (default: no floor)")
+    c.set_defaults(func=cmd_corpus)
     return p
 
 

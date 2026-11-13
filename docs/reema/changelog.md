@@ -2,6 +2,18 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.6.0 — P4 corpus gate, family classifier, iOS IPA (2026-11-13)
+
+### Added
+- `reema/corpus.py` and `reema corpus`: regression gate for rule/chain changes. Runs the verdict over a labelled corpus (CSV/JSON manifest, samples outside the repo), reports precision/recall/FP-rate, and exits non-zero when the benign false-positive rate exceeds `--max-fp-rate` (default 0.0) or recall drops below `--min-recall`.
+- `reema/classify.py`: family classifier that merges fired-chain families, the enrichment vote and `family:*` finding tags into one family with a confidence. Written to `findings.json` as `family`.
+- `reema/ios.py` and `.ipa` input: structural IPA intake (Info.plist, entitlements, frameworks) with App Transport Security / URL-scheme posture findings via the new `ios` adapter (axis `posture`). The code index is skipped for IPAs.
+- `tests/test_reema_p4.py` (18 tests).
+
+### Changed
+- `findings.json` gains a `family` block; `reema analyze` accepts `.ipa`.
+- Backlog: added B16 (local signature-based family classifier) and B17 (deep iOS: Mach-O, Swift, iOS capability rules).
+
 ## 0.5.1 — backlog B15 (2026-11-13)
 
 Cleared backlog B15. Remaining: B10 (native Python APK engine), B13 and B14

@@ -171,6 +171,25 @@ def signing(data, work_dir):
     return out
 
 
+def ios(data, work_dir):
+    """iOS Info.plist posture findings (reema/ios.py). All axis "posture":
+    these are build-configuration weaknesses, not evidence of malice."""
+    out = []
+    for item in data.get("findings", []) or []:
+        out.append(Finding(
+            source="ios",
+            rule=item.get("rule", item.get("category", "ios")),
+            title=item.get("title", "iOS finding"),
+            severity=item.get("severity", "info"),
+            axis="posture",
+            confidence="medium",
+            category=item.get("category", "ios"),
+            description=item.get("detail", ""),
+            evidence=[Evidence(file="Info.plist")],
+        ))
+    return out
+
+
 def rasp(data, work_dir):
     out = []
     for family in data.get("detected", []) or []:
@@ -389,6 +408,7 @@ ADAPTERS = {
     "entropy_analysis.json": entropy,
     "enrichment.json": enrichment,
     "ioc_enrichment.json": ioc_enrichment,
+    "ios_findings.json": ios,
 }
 
 

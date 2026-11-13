@@ -12,7 +12,7 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 ```json
 {
   "schema": "reema.findings/v1",
-  "reema_version": "0.4.0",
+  "reema_version": "0.6.0",
   "generated_at": "2026-11-13T08:03:10+00:00",
   "sample": {
     "file_name": "sample.apk", "size": 5063076,
@@ -43,7 +43,7 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 | Field | Type | Required | Meaning |
 |---|---|---|---|
 | `id` | string | auto | `<source>-<12 hex>`. Stable across runs for the same source, rule, title and first evidence location. Use it to diff, suppress and track. |
-| `source` | string | yes | Analyzer: `sast`, `yara`, `manifest`, `network`, `signing`, `rasp`, `dex_payload`, `entropy`, `enrichment`, `capability`. |
+| `source` | string | yes | Analyzer: `sast`, `yara`, `manifest`, `network`, `signing`, `rasp`, `dex_payload`, `entropy`, `enrichment`, `capability`, `ios`. |
 | `rule` | string | yes | Check id inside the source. |
 | `title` | string | yes | One-line human summary. |
 | `severity` | enum | yes | `critical` `high` `medium` `low` `info`. Legacy spellings are normalized. |
@@ -89,6 +89,21 @@ enrichment family vote. See [`capability-rules.md`](capability-rules.md).
 Only capabilities in **app** code drive the label; library-only capabilities
 are listed but do not escalate it. Enrichment can raise the label, never lower
 it. The posture score stays separate (ADR 0002).
+
+## Family
+
+`findings.json` also carries a top-level `family` block (added 0.6.0), from
+`reema/classify.py`, which merges every family signal into one:
+
+```json
+{"family": "GenericBanker", "confidence": "high",
+ "sources": {"chain": "GenericBanker", "enrichment": "genericbanker"},
+ "candidates": {"GenericBanker": 2}}
+```
+
+`confidence` is `high` when two or more independent sources (fired chain,
+enrichment vote, YARA `family:*` tag) agree, `medium` for one strong source,
+`low` for a weak single source, `none` when there is no family signal.
 
 ## Axes
 

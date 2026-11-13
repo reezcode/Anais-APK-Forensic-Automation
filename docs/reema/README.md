@@ -29,7 +29,7 @@ Reference for the current pipeline:
 ## Quick start
 
 ```bash
-# Full static run of an APK (or .xapk/.apkm/.apks/.aab) or a JAR
+# Full static run of an APK (.apk/.xapk/.apkm/.apks/.aab), a JAR, or an iOS IPA
 python3 -m reema analyze sample.apk
 
 # No data leaves the machine; cached enrichment is still used
@@ -37,6 +37,9 @@ python3 -m reema analyze --offline sample.jar
 
 # Rebuild findings.json for an existing case directory
 python3 -m reema findings ~/.anais/reports/<case_dir> --sample sample.apk
+
+# Gate rule changes against a labelled corpus (samples kept outside the repo)
+python3 -m reema corpus corpus.csv --samples-dir ./samples --max-fp-rate 0.0
 ```
 
 | Option | Effect |
@@ -86,6 +89,9 @@ Case directory:
 | `reema/verdict.py` | Behaviour chains and the verdict |
 | `reema/iocs.py` | IOC extraction and export |
 | `reema/vaccine.py` | Vaccine Pack generator |
+| `reema/ios.py` | iOS IPA intake (Info.plist posture) |
+| `reema/classify.py` | Family classifier (merges family signals) |
+| `reema/corpus.py` | Corpus gate (precision/recall over a labelled set) |
 | `reema/defenses/` | Defense catalog content (see [vaccine-pack.md](vaccine-pack.md)) |
 | `reema/_psl.py` | Bundled public-suffix list (domain validation) |
 | `reema/capabilities/`, `reema/chains.yaml` | Detection content (see [capability-rules.md](capability-rules.md)) |
