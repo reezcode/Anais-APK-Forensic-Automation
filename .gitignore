@@ -33,3 +33,6 @@ __pycache__/
 
 # corpus gate scratch
 .corpus_tmp/
+
+# quarantined malware corpus (deleted after use)
+.malware_tmp/

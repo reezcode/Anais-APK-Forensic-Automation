@@ -6,8 +6,9 @@ so it can be picked up without extra context. When an item is done, move it to
 
 Phase plan: [`roadmap.md`](roadmap.md). Target design: [`design.md`](design.md).
 
-**The backlog is empty — every designed item is implemented.** New work starts
-as a new `B<n>` row here.
+| Id | Item | Plugs into | Notes |
+|---|---|---|---|
+| B18 | **Fault-tolerant AXML manifest parsing** | `reema/apk.py`, `analysis_tools/apk_basic_info.py` | A corpus run on real Indonesian malware (2026-11-13) scored recall 0.75 (6/8). The two misses (CORETAX, Taspen) ship a deliberately malformed binary `AndroidManifest.xml` ("dummy data between elements", bad chunk header) that both androguard and apktool reject, so `basic_info.json` has 0 permissions and no capability (incl. `dangerous_permission_set`) can fire → verdict `clean`. Recover permissions/components from a tolerant AXML parser (the repo's `axml/` dir is a candidate) or an `aapt` fallback, so the permission constellation still fires on anti-analysis packed droppers. Without it these are a static blind spot (would need dynamic unpacking). |
 
 Cleared in 0.3.0 (see [`changelog.md`](changelog.md)): B1 reachability, B2 string table,
 B3 JVM-only JAR index (d8), B4 sample upload, B6 Koodous/Hybrid Analysis, B7 family
