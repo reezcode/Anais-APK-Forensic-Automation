@@ -19,6 +19,7 @@ All project documentation lives in this directory. Start here.
 | [`reema/README.md`](reema/README.md) | Feature overview and reading order |
 | [`reema/design.md`](reema/design.md) | Target architecture: pipeline, capability engine, Vaccine Pack, enrichment |
 | [`reema/roadmap.md`](reema/roadmap.md) | Phases P0–P4, status, known issues, next steps |
+| [`reema/backlog.md`](reema/backlog.md) | Designed but not implemented, ready to pick up |
 | [`reema/finding-schema.md`](reema/finding-schema.md) | `reema.findings/v1` contract |
 | [`reema/changelog.md`](reema/changelog.md) | What changed, per phase |
 | [`reema/decisions/`](reema/decisions/README.md) | Architecture decision records (ADRs) |

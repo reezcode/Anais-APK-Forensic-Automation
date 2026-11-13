@@ -7,7 +7,8 @@
 - `reports/*.md` — detailed per-section pages (SAST, manifest, network, YARA,
   entropy, recommendations).
 - `reports/report.sarif` — SAST as SARIF 2.1.0 for CI / code scanning.
-- `reports/findings.json` — all findings in the `reema.findings/v1` schema. Filter on `axis` (`malice` / `posture` / `context`) and `confidence`; most `malice` hits are still `low` confidence pattern matches.
+- `reports/findings.json` — all findings in the `reema.findings/v1` schema. Filter on `axis` (`malice` / `posture` / `context`), `confidence`, and `owner` (`app` vs `sdk:<name>`). Start triage from `summary.malice_by_owner.app`.
+- `case.json` (case root, `reema analyze` runs only) — input and artifact hashes, tool versions, online lookups, stage events.
 - `reports/frida_auto.js` — generated Frida script.
 
 ## report.json shape

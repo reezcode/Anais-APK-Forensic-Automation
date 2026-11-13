@@ -93,7 +93,7 @@ The index holds:
 - Classes, methods, strings and manifest components.
 - API call sites: caller method, callee signature, file and line.
 - **Code owner:** each class is tagged `app` or `sdk:<name>`, using `sdk_inventory`.
-- **Reachability:** whether a manifest entry point can reach the call site.
+- **Reachability:** whether a manifest entry point can reach the call site. *Not implemented yet: backlog B1.*
 
 Two rules use the owner and reachability tags:
 - A signal found only in SDK code, or in code no entry point reaches, is downgraded to `low` confidence.

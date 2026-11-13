@@ -46,6 +46,9 @@ class Finding:
     evidence: List[Evidence] = field(default_factory=list)
     attck: List[str] = field(default_factory=list)  # MITRE ATT&CK for Mobile IDs
     tags: List[str] = field(default_factory=list)
+    # Who wrote the code the evidence points at: "app", "sdk:<name>", or ""
+    # when the evidence is not code (manifest, assets, native libs).
+    owner: str = ""
     id: str = ""
 
     def __post_init__(self):
@@ -86,10 +89,16 @@ def build_document(findings, sample=None):
     by_severity = {s: 0 for s in SEVERITIES}
     by_axis = {a: 0 for a in AXES}
     by_source = {}
+    by_owner = {"app": 0, "sdk": 0, "unknown": 0}
+    malice_by_owner = {"app": 0, "sdk": 0, "unknown": 0}
     for f in findings:
         by_severity[f.severity] += 1
         by_axis[f.axis] += 1
         by_source[f.source] = by_source.get(f.source, 0) + 1
+        owner = "sdk" if f.owner.startswith("sdk:") else (f.owner or "unknown")
+        by_owner[owner] += 1
+        if f.axis == "malice":
+            malice_by_owner[owner] += 1
 
     order = {s: i for i, s in enumerate(SEVERITIES)}
     findings = sorted(findings, key=lambda f: (order[f.severity], f.source, f.rule))
@@ -103,6 +112,8 @@ def build_document(findings, sample=None):
             "by_severity": by_severity,
             "by_axis": by_axis,
             "by_source": by_source,
+            "by_owner": by_owner,
+            "malice_by_owner": malice_by_owner,
         },
         "findings": [f.to_dict() for f in findings],
     }

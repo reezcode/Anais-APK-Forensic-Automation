@@ -12,7 +12,7 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 ```json
 {
   "schema": "reema.findings/v1",
-  "reema_version": "0.1.0",
+  "reema_version": "0.2.0",
   "generated_at": "2026-11-13T08:03:10+00:00",
   "sample": {
     "file_name": "sample.apk", "size": 5063076,
@@ -24,13 +24,16 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
     "total": 636,
     "by_severity": {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0},
     "by_axis": {"malice": 0, "posture": 0, "context": 0},
-    "by_source": {"sast": 0}
+    "by_source": {"sast": 0},
+    "by_owner": {"app": 0, "sdk": 0, "unknown": 0},
+    "malice_by_owner": {"app": 0, "sdk": 0, "unknown": 0}
   },
   "findings": [ /* Finding, sorted by severity, then source, then rule */ ]
 }
 ```
 
 - `sample` hashes are computed by Reema in Python from the file passed with `--sample`.
+- `summary.malice_by_owner.app` is the headline triage number: malice findings in the sample author's own code.
 - `sources` lists the analyzer files that were present and parsed. A source
   that is missing or malformed is skipped, and this list shows the skip.
 
@@ -39,7 +42,7 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 | Field | Type | Required | Meaning |
 |---|---|---|---|
 | `id` | string | auto | `<source>-<12 hex>`. Stable across runs for the same source, rule, title and first evidence location. Use it to diff, suppress and track. |
-| `source` | string | yes | Analyzer: `sast`, `yara`, `manifest`, `network`, `signing`, `rasp`, `dex_payload`, `entropy`. |
+| `source` | string | yes | Analyzer: `sast`, `yara`, `manifest`, `network`, `signing`, `rasp`, `dex_payload`, `entropy`, `enrichment`. |
 | `rule` | string | yes | Check id inside the source. |
 | `title` | string | yes | One-line human summary. |
 | `severity` | enum | yes | `critical` `high` `medium` `low` `info`. Legacy spellings are normalized. |
@@ -50,7 +53,8 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 | `recommendation` | string | no | Analyst action. |
 | `evidence` | Evidence[] | no | Where it was seen. |
 | `attck` | string[] | no | MITRE ATT&CK for Mobile technique IDs, e.g. `T1407`. |
-| `tags` | string[] | no | Free labels, e.g. `ioc`, `protector`, `scan:jadx`. |
+| `tags` | string[] | no | Free labels, e.g. `ioc`, `protector`, `scan:jadx`, `family:<name>`. |
+| `owner` | string | no | Who wrote the code the first evidence points at: `app`, `sdk:<name>`, or empty when the evidence is not code. Set from `sdk_inventory.owner_of()`. A finding in SDK code is forced to `low` confidence. Added in 0.2.0; additive, schema stays v1. |
 
 ### Evidence
 
@@ -88,6 +92,7 @@ The axis decides which score a finding feeds. See
 | `rasp_report.json` | `rasp` | `context`, tagged `protector` |
 | `dex_payload_report.json` | `dex_payload` | stub/encrypted → `context`; DEX inside a container → `malice`, `T1407` |
 | `entropy_analysis.json` | `entropy` | `highly_suspicious` → `context` |
+| `enrichment.json` | `enrichment` | MalwareBazaar known sample → `malice`, `critical`, confidence `high`; VirusTotal detections → `malice`, severity and confidence by engine count (≥10 high, ≥3 medium, else low). Not-found and skipped lookups produce no finding. |
 
 In P0 most `malice` findings are low-confidence pattern matches. The P2
 capability engine raises or lowers confidence from code reachability and from

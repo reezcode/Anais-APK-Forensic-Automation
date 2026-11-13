@@ -12,6 +12,32 @@ from pathlib import Path
 from collections import defaultdict
 import argparse
 
+from sdk_inventory import owner_of
+
+# String/char literals are matched first so a "/*" inside a string is not
+# taken as a comment opener.
+_JAVA_TOKEN = re.compile(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'|/\*.*?\*/|//[^\n]*', re.S)
+
+
+def mask_java_comments(content):
+    """Blank out Java comments, keeping newlines so line numbers stay exact.
+
+    jadx writes comments such as "/* loaded from: classes.dex */" into every
+    file; matching patterns against them produced most SAST false positives.
+    """
+    def blank(m):
+        tok = m.group(0)
+        if tok[0] in '"\'':
+            return tok
+        return re.sub(r'[^\n]', ' ', tok)
+    return _JAVA_TOKEN.sub(blank, content)
+
+
+def app_first(files, root):
+    """Order files so app-owned code is scanned before SDK code under the file cap."""
+    return sorted(files, key=lambda f: (owner_of(str(f.relative_to(root))) != 'app', str(f)))
+
+
 class SASTScanner:
     def __init__(self, apk_path, decompiled_dir, jadx_dir):
         self.apk_path = apk_path
@@ -191,7 +217,7 @@ class SASTScanner:
         smali_dirs = [d for d in self.decompiled_dir.iterdir() if d.is_dir() and d.name.startswith('smali')]
         
         for smali_dir in smali_dirs:
-            smali_files = list(smali_dir.rglob('*.smali'))[:500]  # Limit to avoid too long processing
+            smali_files = app_first(smali_dir.rglob('*.smali'), self.decompiled_dir)[:500]  # Limit to avoid too long processing
             
             for smali_file in smali_files:
                 try:
@@ -226,11 +252,12 @@ class SASTScanner:
         
         print("Scanning Java source files...")
         
-        java_files = list(self.jadx_dir.rglob('*.java'))[:500]
+        java_files = app_first(self.jadx_dir.rglob('*.java'), self.jadx_dir)[:500]
         
         for java_file in java_files:
             try:
-                content = java_file.read_text(errors='ignore')
+                raw = java_file.read_text(errors='ignore')
+                content = mask_java_comments(raw)  # same length as raw, so offsets match
                 lines = content.split('\n')
                 
                 # Scan for all pattern categories
@@ -248,7 +275,7 @@ class SASTScanner:
                             if matches:
                                 for match in matches[:5]:  # Limit per file
                                     line_num = content[:match.start()].count('\n') + 1
-                                    snippet = self.extract_snippet(content, match.start(), match.end(), context_lines=3)
+                                    snippet = self.extract_snippet(raw, match.start(), match.end(), context_lines=3)
                                     
                                     self.add_finding(
                                         severity,

@@ -10,6 +10,7 @@ The legacy file names are the ones report_generator_modular.py loads.
 import json
 from pathlib import Path
 
+from reema._legacy import owner_of
 from reema.findings import Evidence, Finding
 
 # SAST categories that describe what malware does, not how a benign app is
@@ -257,6 +258,48 @@ def entropy(data, work_dir):
     return out
 
 
+def enrichment(data, work_dir):
+    """Online reputation (reema/enrich.py). Only "found" results become findings."""
+    out = []
+    providers = data.get("providers", {}) or {}
+    mb = providers.get("malwarebazaar", {})
+    if mb.get("status") == "found":
+        d = mb.get("data", {})
+        family = d.get("family")
+        out.append(Finding(
+            source="enrichment",
+            rule="malwarebazaar:known_sample",
+            title=f"Known malware sample (MalwareBazaar){': ' + family if family else ''}",
+            severity="critical",
+            axis="malice",
+            confidence="high",
+            category="reputation",
+            description=f"First seen {d.get('first_seen')}; tags: {', '.join(d.get('tags', []))}",
+            evidence=[Evidence(file=d.get("link", "malwarebazaar"))],
+            tags=[f"family:{family}"] if family else [],
+        ))
+    vt = providers.get("virustotal", {})
+    if vt.get("status") == "found":
+        d = vt.get("data", {})
+        hits = d.get("malicious", 0) or 0
+        if hits:
+            label = d.get("label")
+            out.append(Finding(
+                source="enrichment",
+                rule="virustotal:detections",
+                title=f"{hits} engines detect this sample (VirusTotal){': ' + label if label else ''}",
+                severity="critical" if hits >= 10 else "high" if hits >= 3 else "medium",
+                axis="malice",
+                confidence="high" if hits >= 10 else "medium" if hits >= 3 else "low",
+                category="reputation",
+                description=f"malicious={hits}, suspicious={d.get('suspicious', 0)}, "
+                            f"undetected={d.get('undetected', 0)}",
+                evidence=[Evidence(file=d.get("link", "virustotal"))],
+                tags=[f"family:{label}"] if label else [],
+            ))
+    return out
+
+
 # legacy file name in temp/ -> adapter
 ADAPTERS = {
     "sast_findings.json": sast,
@@ -267,17 +310,31 @@ ADAPTERS = {
     "rasp_report.json": rasp,
     "dex_payload_report.json": dex_payload,
     "entropy_analysis.json": entropy,
+    "enrichment.json": enrichment,
 }
 
 
-def collect(work_dir):
-    """Run every adapter over <work_dir>/temp. Returns (findings, sources_read)."""
+def tag_owner(finding):
+    """Set owner from the first evidence path. A finding in SDK code drops to low
+    confidence: it describes a library, not the sample author's own code."""
+    if finding.evidence and not finding.owner:
+        finding.owner = owner_of(finding.evidence[0].file)
+    if finding.owner.startswith("sdk:"):
+        finding.confidence = "low"
+    return finding
+
+
+def collect(work_dir, extra=None):
+    """Run every adapter over <work_dir>/temp. Returns (findings, sources_read).
+
+    extra maps more file names to adapters (e.g. enrichment), checked after ADAPTERS.
+    """
     temp = Path(work_dir) / "temp"
     findings, sources = [], []
-    for filename, adapter in ADAPTERS.items():
+    for filename, adapter in {**ADAPTERS, **(extra or {})}.items():
         data = _load(temp / filename)
         if not isinstance(data, dict):
             continue
         sources.append(filename)
-        findings.extend(adapter(data, work_dir))
+        findings.extend(tag_owner(f) for f in adapter(data, work_dir))
     return findings, sources

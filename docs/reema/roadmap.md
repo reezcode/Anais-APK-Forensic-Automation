@@ -4,13 +4,14 @@ Last updated: 2026-11-13.
 
 | Phase | Scope | Status |
 |---|---|---|
-| P0 | Package skeleton, Finding schema, cleanup | **Done** (2026-11-13, not yet committed) |
-| P1 | Intake and case record, JAR input, code index, enrichment and cache | Next |
-| P2 | Capability engine, verdict and posture split, IOC export | Planned |
+| P0 | Package skeleton, Finding schema, cleanup | **Done** (2026-11-13, commit `c397af94`) |
+| P1 | Intake and case record, JAR input, code index, enrichment and cache | **Done** (2026-11-13); reachability moved to backlog B1 |
+| P2 | Capability engine, verdict and posture split, IOC export | Next |
 | P3 | Vaccine Pack generator, STIX 2.1 / MISP export | Planned |
 | P4 | Test corpus gate, family classifier, iOS IPA | Planned |
 
 Target design for every phase: [`design.md`](design.md).
+Designed but unimplemented work, ready to pick up: [`backlog.md`](backlog.md).
 
 ## P0 — Foundation (done)
 
@@ -33,21 +34,33 @@ Target design for every phase: [`design.md`](design.md).
 - Result: 636 findings (malice 518, posture 116, context 2).
 - The malice count is inflated by K1.
 
-## P1 — Intake, index, enrichment (next)
+## P1 — Intake, index, enrichment (done)
 
-The steps are ordered. K1 comes first because every later number depends on it.
+| Item | Result |
+|---|---|
+| K1 fix | `sast_scanner.py` blanks Java comments before matching (line numbers kept) and scans app-owned files before SDK files under its 500-file cap. `sdk_inventory.owner_of()` tags every finding `app` / `sdk:<name>`; SDK findings drop to `low` confidence. SDK table gained AndroidX-adjacent libraries, libsu, and the Xposed API. |
+| Case record | `reema/case.py` writes `case.json` (`reema.case/v1`): inputs (md5/sha1/sha256, optional TLSH), artifacts (file hash or tree digest), tool versions, online lookups, stage events. |
+| JAR input | `reema/jar.py`: jadx, SAST, network, entropy, payload, YARA, report. No apktool. |
+| Code index | `reema/index.py` → `temp/code_index.db`: classes with owner, framework API call sites. APK and DEX-bearing JAR. Reachability → backlog B1. |
+| Enrichment | `reema/enrich.py`: MalwareBazaar and VirusTotal hash lookups, SQLite cache (7-day TTL found, 1-day not found), `--offline`, audit in `case.json`. Upload → backlog B4. |
+| CLI | `reema analyze` owns the case: creates the directory, passes it to `anais.sh` via `ANAIS_CASE_DIR`, then runs index, enrichment, findings, and artifact hashing. |
+| Tests | `tests/test_reema_p1.py`, 16 tests; suite total 69, all passing. |
 
-1. Fix K1: add code-owner tagging and drop matches inside decompiler comments.
-2. Write `case.json` (design §3.1): hash every input and artifact, record tool versions.
-3. Add JAR intake: jadx only, no apktool, with class-based analyzers.
-4. Build the code index with androguard: call sites, owner, reachability.
-5. Add enrichment providers behind `--offline` and `--upload`, with the SQLite cache.
-6. Report the counts on the SSLKiller reference sample before and after the K1 fix.
+**Verification on 2026-11-13** (same reference sample as P0):
 
-**Exit criteria:**
-- K1 is closed.
-- A JAR analyzes without errors.
-- A repeat run of the same sample makes no network calls.
+| Metric | P0 | P1 |
+|---|---|---|
+| Findings | 636 | 568 |
+| Malice | 518 | 218 |
+| Malice in app code (`malice_by_owner.app`) | n/a | **4** |
+
+The 4 remaining are the sample's own root-shell calls, which is correct for a
+root tool. JAR check: `gson-2.11.0.jar` ran every stage in 3.3 s; index
+reported "no DEX" as designed.
+
+**Exit criteria:** K1 closed ✔; a JAR analyzes without errors ✔; a repeat run
+of the same sample makes no network calls (cache hit, test
+`test_second_run_uses_cache_and_offline_sends_nothing`) ✔.
 
 ## P2 — Capabilities and verdict
 
@@ -71,9 +84,10 @@ The steps are ordered. K1 comes first because every later number depends on it.
 
 ## Known issues
 
+K1 (SAST matched jadx comments) was fixed in P1; see [`changelog.md`](changelog.md).
+
 | Id | Issue | Evidence | Fix in |
 |---|---|---|---|
-| K1 | The SAST `remote_code_execution` pattern `\.dex` matches the `/* loaded from: classes.dex */` comment that jadx writes in every file. | SSLKiller run: 506 of 518 malice findings, all under `androidx/`, `kotlin/` | P1 step 1 |
 | K2 | YARA severity is guessed from the rule name (`yara_enhanced_analyzer.get_severity`), not read from `meta.threat_level`. | `analysis_tools/yara_enhanced_analyzer.py` | P2 |
 | K3 | `network_analyzer.is_suspicious_url` flags any URL containing `api`, `upload` or `download`. | `analysis_tools/network_analyzer.py` | P2 |
 | K4 | The `Android_General_Malware` YARA rule fires on strings common in benign apps (`getMethod`, `.invoke(`, `Base64.decode`). | `rules/yara_general_rules.yar` | P2 |

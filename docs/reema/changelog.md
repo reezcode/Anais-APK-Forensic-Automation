@@ -2,6 +2,27 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.2.0 — P1 intake, index, enrichment (2026-11-13)
+
+### Added
+- `reema/case.py`: `case.json` (`reema.case/v1`) with input hashes (md5/sha1/sha256, TLSH if `py-tlsh` is installed), artifact hashes (file or tree digest), tool versions, enrichment audit trail, stage events.
+- `reema/index.py`: androguard code index in `temp/code_index.db` (classes with owner, framework API call sites); `api_usage()` query helper.
+- `reema/enrich.py`: MalwareBazaar and VirusTotal hash lookups, SQLite cache, `--offline`; keys from `REEMA_MALWAREBAZAAR_API_KEY`, `REEMA_VIRUSTOTAL_API_KEY`.
+- `reema/jar.py`: JAR engine.
+- `reema/_legacy.py`: bridge to `analysis_tools/`.
+- `enrichment` adapter; `Finding.owner`; `summary.by_owner`, `summary.malice_by_owner`.
+- `reema analyze` options: `--analyst`, `--case-dir`, `--offline`, `--no-enrich`, `--no-index`; `.jar` input.
+- `sdk_inventory.owner_of()`; SDK entries: Android Support Library, Material Components, Guava, kotlinx, JetBrains annotations, libsu, Xposed API.
+- `tests/test_reema_p1.py` (16 tests).
+- `docs/reema/backlog.md`.
+
+### Changed
+- `reema analyze` creates the case directory and passes it to `anais.sh` through `ANAIS_CASE_DIR`. Case directories are named `<stem>_<YYYYmmdd_HHMMSS>Z` (UTC).
+- `sast_scanner.py` scans app-owned files before SDK files under its 500-file cap.
+
+### Fixed
+- K1: `sast_scanner.py` matched patterns inside comments, including jadx's `/* loaded from: classes.dex */` header in every file. Comments are now blanked before matching; snippets still show the original source.
+
 ## 0.1.0 — P0 foundation (2026-11-13)
 
 ### Added

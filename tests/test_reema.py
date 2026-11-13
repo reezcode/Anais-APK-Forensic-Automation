@@ -133,11 +133,11 @@ class CliTest(unittest.TestCase):
         self.assertEqual(doc["summary"]["total"], 1)
         self.assertIn("ioc", doc["findings"][0]["tags"])
 
-    def test_analyze_rejects_jar_until_p1(self):
+    def test_analyze_rejects_unsupported_input(self):
         with tempfile.TemporaryDirectory() as d:
-            jar = Path(d) / "x.jar"
-            jar.write_bytes(b"PK")
-            self.assertEqual(cli.main(["analyze", str(jar)]), 2)
+            other = Path(d) / "x.exe"
+            other.write_bytes(b"MZ")
+            self.assertEqual(cli.main(["analyze", str(other)]), 2)
 
 
 class ContainerScanTest(unittest.TestCase):

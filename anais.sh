@@ -181,7 +181,8 @@ init_workspace() {
     local apk_name=$(basename "$apk_path")
     apk_name="${apk_name%.*}"
 
-    APK_WORK_DIR="${WORK_DIR}/${apk_name}_$(date +%Y%m%d_%H%M%S)"
+    # Reema creates the case directory itself and passes it in (ANAIS_CASE_DIR).
+    APK_WORK_DIR="${ANAIS_CASE_DIR:-${WORK_DIR}/${apk_name}_$(date +%Y%m%d_%H%M%S)}"
     DECOMPILED_DIR="${APK_WORK_DIR}/decompiled"
     JADX_OUTPUT="${APK_WORK_DIR}/jadx_output"
     TEMP_DIR="${APK_WORK_DIR}/temp"
