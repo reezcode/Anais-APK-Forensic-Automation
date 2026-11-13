@@ -696,8 +696,9 @@ class ContentDetectionTest(unittest.TestCase):
         call = next(x for x in findings if x.rule == "call_log_access")
         self.assertEqual(call.owner, "app")
 
-    def test_permission_constellation_needs_three_high_risk(self):
-        # Fix 2: dangerous_permission_set uses any_of_min: 3.
+    def test_permission_constellation_needs_two_abuse_perms(self):
+        # dangerous_permission_set: >=2 of the abuse perms (accessibility,
+        # overlay, device-admin, install). SMS/contacts (benign-common) don't count.
         rules, _ = capabilities.load_rules()
 
         def fired(perms):
@@ -706,9 +707,13 @@ class ContentDetectionTest(unittest.TestCase):
                 f.add("permission", "android.permission." + p, "manifest")
             return {m.rule.id for m in capabilities.match_rules(f, rules)}
 
-        self.assertNotIn("dangerous_permission_set", fired(["SEND_SMS", "RECEIVE_SMS"]))
+        # SMS perms are not abuse perms -> no constellation.
+        self.assertNotIn("dangerous_permission_set", fired(["SEND_SMS", "RECEIVE_SMS", "READ_SMS"]))
+        # One abuse perm is not enough.
+        self.assertNotIn("dangerous_permission_set", fired(["SYSTEM_ALERT_WINDOW"]))
+        # Two abuse perms fire it.
         self.assertIn("dangerous_permission_set",
-                      fired(["SEND_SMS", "RECEIVE_SMS", "SYSTEM_ALERT_WINDOW"]))
+                      fired(["SYSTEM_ALERT_WINDOW", "BIND_ACCESSIBILITY_SERVICE"]))
 
     def test_packed_profile_verdict_and_family(self):
         # A packed app: no api_calls, only dangerous permissions. The

@@ -138,8 +138,15 @@ class VerdictTest(unittest.TestCase):
         self.assertEqual(v["label"], "clean")
         self.assertEqual(v["capabilities_app"], [])
 
-    def test_single_app_capability_is_suspicious(self):
+    def test_single_app_capability_is_not_malice(self):
+        # Precision-first (0.8.4): a lone capability is not malice -- a benign
+        # messenger/camera/SMS app has the same capabilities as malware. Only a
+        # fired chain (or the dangerous-permission constellation) escalates.
         v = V.decide([self._cap("cap_a", "app")], [])
+        self.assertEqual(v["label"], "clean")
+
+    def test_constellation_capability_alone_is_suspicious(self):
+        v = V.decide([self._cap("dangerous_permission_set", "app")], [])
         self.assertEqual(v["label"], "suspicious")
 
     def test_clean_with_no_capabilities(self):

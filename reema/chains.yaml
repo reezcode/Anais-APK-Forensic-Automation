@@ -1,65 +1,81 @@
 # Behaviour chains combine capability ids into a known-profile verdict.
-# A chain fires when at least `min_match` of its capabilities were proven in the
-# sample's own (app-owned) code. Format: docs/reema/capability-rules.md.
+#
+# Precision-first (corpus-tuned against benign comms/camera/SMS apps, which share
+# a malware's sensor capabilities): every chain pivots on a `require` capability
+# that is a malware-specific discriminator -- an accessibility service that reads
+# the screen, a screen overlay, device-admin control, runtime code loading, or
+# the dangerous-permission constellation -- which a benign app with the same
+# microphone/camera/contacts capabilities does not have. `require` capabilities
+# must ALL be present; then at least `min_match` of the supporting `capabilities`.
 # Capability ids are defined in reema/capabilities/*.yaml.
 chains:
   - id: android_banker
-    title: Banking trojan (overlay + automation)
+    title: Banking trojan (overlay + abuse)
     family: Banker
     label: malicious
-    capabilities:
+    require:
       - overlay_phishing
+    capabilities:
       - accessibility_abuse
+      - device_admin
+      - dangerous_permission_set
       - sms_intercept
-    min_match: 2
+    min_match: 1
 
   - id: sms_fraud
-    title: SMS trojan (send + intercept with persistence)
+    title: SMS trojan (interception + abuse)
     family: SMSTrojan
     label: malicious
-    capabilities:
-      - sms_send
+    require:
       - sms_intercept
-      - boot_persistence
-    min_match: 2
+    capabilities:
+      - accessibility_abuse
+      - device_admin
+      - dangerous_permission_set
+    min_match: 1
 
   - id: spyware
-    title: Spyware / stalkerware (multi-sensor surveillance)
+    title: Spyware / stalkerware (accessibility-driven surveillance)
     family: Spyware
     label: malicious
+    require:
+      - accessibility_abuse
     capabilities:
-      - location_tracking
       - audio_record
-      - camera_capture
+      - location_tracking
       - contact_exfiltration
       - call_log_access
       - sms_intercept
-    min_match: 3
+      - screen_capture
+    min_match: 2
 
   - id: remote_access_trojan
-    title: RAT (live screen/audio/camera capture)
+    title: RAT (accessibility + live capture)
     family: RAT
     label: malicious
+    require:
+      - accessibility_abuse
     capabilities:
       - screen_capture
       - audio_record
       - camera_capture
-    min_match: 2
+    min_match: 1
 
   - id: dropper
     title: Dropper (runtime code load + install)
     family: Dropper
     label: malicious
-    capabilities:
+    require:
       - dynamic_code_loading
       - package_install
-    min_match: 2
 
   - id: ransomware
-    title: Locker/ransomware (device-admin lock + persistence)
+    title: Locker/ransomware (device-admin + persistence)
     family: Ransomware
     label: malicious
-    capabilities:
+    require:
       - device_admin
+    capabilities:
       - boot_persistence
-    min_match: 2
+      - overlay_phishing
+    min_match: 1
