@@ -12,7 +12,7 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 ```json
 {
   "schema": "reema.findings/v1",
-  "reema_version": "0.2.0",
+  "reema_version": "0.4.0",
   "generated_at": "2026-11-13T08:03:10+00:00",
   "sample": {
     "file_name": "sample.apk", "size": 5063076,
@@ -28,6 +28,7 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
     "by_owner": {"app": 0, "sdk": 0, "unknown": 0},
     "malice_by_owner": {"app": 0, "sdk": 0, "unknown": 0}
   },
+  "verdict": { /* see "Verdict" below */ },
   "findings": [ /* Finding, sorted by severity, then source, then rule */ ]
 }
 ```
@@ -42,7 +43,7 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 | Field | Type | Required | Meaning |
 |---|---|---|---|
 | `id` | string | auto | `<source>-<12 hex>`. Stable across runs for the same source, rule, title and first evidence location. Use it to diff, suppress and track. |
-| `source` | string | yes | Analyzer: `sast`, `yara`, `manifest`, `network`, `signing`, `rasp`, `dex_payload`, `entropy`, `enrichment`. |
+| `source` | string | yes | Analyzer: `sast`, `yara`, `manifest`, `network`, `signing`, `rasp`, `dex_payload`, `entropy`, `enrichment`, `capability`. |
 | `rule` | string | yes | Check id inside the source. |
 | `title` | string | yes | One-line human summary. |
 | `severity` | enum | yes | `critical` `high` `medium` `low` `info`. Legacy spellings are normalized. |
@@ -66,6 +67,28 @@ Source: `reema/findings.py`. Bump `SCHEMA_VERSION` on any breaking change.
 | `snippet` | string | Matched text or code. |
 
 Unset optional fields are omitted from the JSON.
+
+## Verdict
+
+`findings.json` carries a `verdict` block (added 0.4.0), built by
+`reema/verdict.py` from capability findings, behaviour chains and the
+enrichment family vote. See [`capability-rules.md`](capability-rules.md).
+
+```json
+{
+  "label": "malicious",        // malicious | suspicious | pua | clean
+  "family": "GenericBanker",   // or null
+  "confidence": "high",        // high | medium | low
+  "chains": [ {"chain": "...", "title": "...", "matched": ["cap_a"], "of": 2, "label": "malicious"} ],
+  "capabilities_app": ["cap_a"],   // capability ids proven in app code
+  "capabilities_all": ["cap_a"],   // including library-only
+  "reasons": ["chain ... : ...", "enrichment family ..."]
+}
+```
+
+Only capabilities in **app** code drive the label; library-only capabilities
+are listed but do not escalate it. Enrichment can raise the label, never lower
+it. The posture score stays separate (ADR 0002).
 
 ## Axes
 
@@ -93,6 +116,7 @@ The axis decides which score a finding feeds. See
 | `dex_payload_report.json` | `dex_payload` | stub/encrypted → `context`; DEX inside a container → `malice`, `T1407` |
 | `entropy_analysis.json` | `entropy` | `highly_suspicious` → `context` |
 | `enrichment.json` | `enrichment` | MalwareBazaar known sample → `malice`, `critical`, confidence `high`; VirusTotal detections → `malice`, severity and confidence by engine count (≥10 high, ≥3 medium, else low). Not-found and skipped lookups produce no finding. |
+| capability engine (not a temp file) | `capability` | One finding per matched rule in `reema/capabilities/`; `axis: malice`, severity from the rule, confidence from owner (app → high, library-only → low). Source label `capabilities` in `sources`. |
 
 In P0 most `malice` findings are low-confidence pattern matches. The P2
 capability engine raises or lowers confidence from code reachability and from

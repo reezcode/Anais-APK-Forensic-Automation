@@ -26,7 +26,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from reema import __version__, enrich, index, jar
+from reema import __version__, capabilities, enrich, index, iocs, jar, verdict
 from reema.adapters import collect
 from reema.case import Case, hash_file
 from reema.findings import build_document
@@ -51,13 +51,46 @@ def _sample_info(case_dir, sample=None):
     return info
 
 
+def _capability_findings(case_dir):
+    """Match the capability rules against the case facts. Returns (findings, errors)."""
+    rules, errors = capabilities.load_rules()
+    if not rules:
+        return [], errors
+    facts = capabilities.Facts.from_case(case_dir)
+    matches = capabilities.match_rules(facts, rules)
+    return [capabilities.match_to_finding(m) for m in matches], errors
+
+
+def _family(case_dir):
+    """Family vote from enrichment, or None when enrichment did not run."""
+    data = Path(case_dir) / "temp" / "enrichment.json"
+    try:
+        return enrich.normalize_family(json.loads(data.read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return None
+
+
 def write_findings(case_dir, sample=None):
-    """Build <case_dir>/reports/findings.json from the analyzer outputs. Returns (path, document)."""
+    """Build <case_dir>/reports/findings.json from the analyzer outputs, the capability
+    engine and the verdict. Returns (path, document)."""
     case_dir = Path(case_dir)
     findings, sources = collect(case_dir)
+    cap_findings, cap_errors = _capability_findings(case_dir)
+    findings.extend(cap_findings)
+    if cap_findings:
+        sources.append("capabilities")
+
     doc = build_document(findings, sample=_sample_info(case_dir, sample))
     doc["sources"] = sources
     doc["reema_version"] = __version__
+    if cap_errors:
+        doc["capability_rule_errors"] = cap_errors
+
+    chains, chain_errors = verdict.load_chains()
+    doc["verdict"] = verdict.decide(findings, chains, family=_family(case_dir))
+    if chain_errors:
+        doc["chain_errors"] = chain_errors
+
     out = case_dir / "reports" / "findings.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(doc, indent=2), encoding="utf-8")
@@ -277,14 +310,22 @@ def cmd_analyze(args):
 
     out, doc = write_findings(case_dir, sample=sample)
     case.log("findings", "ok", f"{doc['summary']['total']} findings")
+
+    ioc_sets, ioc_count = iocs.write(case_dir, sample=_sample_info(case_dir, sample))
+    case.log("iocs", "ok", f"{ioc_count} indicators")
+
     if args.extract_children and sample.suffix.lower() in APK_INPUTS:
         _stage_children(target, case_dir, case, args.yara)
     _record_artifacts(case_dir, case)
     case.complete()
 
+    v = doc["verdict"]
     s = doc["summary"]
+    family = f", family {v['family']}" if v.get("family") else ""
+    print(f"reema: verdict {v['label'].upper()} (confidence {v['confidence']}{family})")
     print(f"reema: {s['total']} findings (malice={s['by_axis']['malice']}, "
-          f"malice in app code={s['malice_by_owner']['app']}) -> {out}")
+          f"malice in app code={s['malice_by_owner']['app']}), "
+          f"{ioc_count} IOCs -> {out}")
     return 0
 
 

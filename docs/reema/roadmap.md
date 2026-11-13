@@ -6,8 +6,8 @@ Last updated: 2026-11-13.
 |---|---|---|
 | P0 | Package skeleton, Finding schema, cleanup | **Done** (2026-11-13, commit `c397af94`) |
 | P1 | Intake and case record, JAR input, code index, enrichment and cache | **Done** (2026-11-13); reachability shipped in 0.3.0 (B1) |
-| P2 | Capability engine, verdict and posture split, IOC export | Next |
-| P3 | Vaccine Pack generator, STIX 2.1 / MISP export | Planned |
+| P2 | Capability engine, verdict and posture split, IOC export | **Done** (2026-11-13); rule content → backlog B13 |
+| P3 | Vaccine Pack generator, STIX 2.1 / MISP export | Next |
 | P4 | Test corpus gate, family classifier, iOS IPA | Planned |
 
 Target design for every phase: [`design.md`](design.md).
@@ -62,13 +62,21 @@ reported "no DEX" as designed.
 of the same sample makes no network calls (cache hit, test
 `test_second_run_uses_cache_and_offline_sends_nothing`) ✔.
 
-## P2 — Capabilities and verdict
+## P2 — Capabilities and verdict (done)
 
-- YAML capability rules and the matching engine (design §3.4), with about 20 starter capabilities.
-- Behaviour chains and the `verdict` block (design §3.5).
-- Report reordered: the verdict and capabilities come first.
-- IOC extraction with JSON and CSV export.
-- YARA severity read from rule `meta`, not from the rule name (K2).
+| Item | Result |
+|---|---|
+| Capability engine | `reema/capabilities.py`: YAML rules in `reema/capabilities/`, matched against the code index (api/string) and manifest (permission/component). `requires` = AND, `any_of` = OR, case-insensitive substring. Owner/reachability set confidence. Load errors surface in `findings.json` `capability_rule_errors`. |
+| Behaviour chains + verdict | `reema/verdict.py`: chains in `reema/chains.yaml` combine capability ids; `decide()` writes the `verdict` block (label/family/confidence/chains/reasons). Only app-code capabilities escalate; enrichment family can raise, never lower. |
+| IOC export | `reema/iocs.py` → `reports/iocs.json` + `reports/iocs.csv`, defanged; URLs/IPs from the network analyzer and the code-index string table, domains from URL hosts (bare-domain harvest → backlog B12). Unblocks B5. |
+| Content split | Engine is content-free. The real capability rules and chains are backlog B13 (owner: reez); format in [`capability-rules.md`](capability-rules.md). Ships one neutral example rule (`process_exec`). |
+| Docs | [`capability-rules.md`](capability-rules.md) authoring guide; schema gains the `verdict` block. |
+| Tests | `tests/test_reema_p2.py`, 14 tests; suite total 105, all passing. |
+
+**Verification on 2026-11-13** (reference sample `SSLKiller-v1.2beta.apk`, `--no-enrich`):
+verdict `CLEAN` (confidence low); the one example capability (`process_exec`)
+matched only in the bundled `libsu` library, so it did not escalate — correct.
+57 IOCs exported (5 URLs incl. the sample's real `t.me/sslkiller` channel).
 
 ## P3 — Vaccine Pack
 

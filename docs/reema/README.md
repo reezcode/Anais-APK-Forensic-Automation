@@ -59,7 +59,8 @@ Case directory:
 | Path | Content |
 |---|---|
 | `case.json` | Case record: inputs with hashes, artifacts with hashes, tool versions, online lookups, stage events |
-| `reports/findings.json` | All findings (`reema.findings/v1`) |
+| `reports/findings.json` | All findings (`reema.findings/v1`) and the `verdict` block |
+| `reports/iocs.json`, `iocs.csv` | Extracted IOCs (defanged) |
 | `reports/report.md`, `report.json` | Human report |
 | `reports/report.sarif`, `frida_auto.js` | APK only |
 | `temp/code_index.db` | Code index (SQLite) |
@@ -76,6 +77,10 @@ Case directory:
 | `reema/index.py` | Code index (androguard → SQLite) |
 | `reema/enrich.py` | MalwareBazaar / VirusTotal hash lookups with SQLite cache |
 | `reema/jar.py` | JAR engine (jadx + code analyzers) |
+| `reema/capabilities.py` | Capability engine (YAML rules → findings) |
+| `reema/verdict.py` | Behaviour chains and the verdict |
+| `reema/iocs.py` | IOC extraction and export |
+| `reema/capabilities/`, `reema/chains.yaml` | Detection content (see [capability-rules.md](capability-rules.md)) |
 | `reema/_legacy.py` | Bridge to `analysis_tools/` during migration |
 | `analysis_tools/` | Legacy analyzers (migrated into `reema/` stage by stage) |
 | `rules/` | YARA rules |

@@ -4,4 +4,4 @@ Reema is the static half of Anais. Dynamic orchestration lives in Dyxon.
 See docs/reema/README.md.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

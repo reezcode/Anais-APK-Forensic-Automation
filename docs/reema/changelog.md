@@ -2,6 +2,20 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.4.0 — P2 capability engine, verdict, IOCs (2026-11-13)
+
+### Added
+- `reema/capabilities.py`: data-driven capability engine. YAML rules in `reema/capabilities/` match the code index (api/string facts) and manifest (permission/component facts); `requires` is AND, `any_of` is OR, patterns are case-insensitive substrings. Owner and reachability set finding confidence. Malformed rules are reported (`capability_rule_errors`) and skipped. One neutral example rule ships (`process_exec`).
+- `reema/verdict.py`: behaviour chains (`reema/chains.yaml`) and `decide()`, which writes the `verdict` block (label malicious/suspicious/pua/clean, family, confidence, fired chains, reasons). Only app-code capabilities escalate the label; the enrichment family vote can raise it, never lower it.
+- `reema/iocs.py`: IOC extraction and export to `reports/iocs.json` and `reports/iocs.csv`, defanged (`hxxp://`, `[.]`). URLs and IPs come from the network analyzer and the code-index string table; domains come from URL hosts.
+- `reema/cli.py`: `write_findings` runs the capability engine and verdict; `analyze` writes IOCs and prints the verdict line.
+- `docs/reema/capability-rules.md`: authoring guide for rules and chains.
+- `tests/test_reema_p2.py` (14 tests).
+
+### Changed
+- `findings.json` gains a `verdict` block and a `capability` finding source; `reema analyze` prints a verdict line.
+- Backlog: B5 (IOC enrichment) now unblocked; added B12 (trustworthy bare-domain IOCs) and B13 (capability rule content).
+
 ## 0.3.0 — backlog clearance (2026-11-13)
 
 Cleared backlog items B1, B2, B3, B4, B6, B7, B8, B9 and B11 (K2–K5). Remaining:
