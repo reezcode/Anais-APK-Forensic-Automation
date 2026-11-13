@@ -1,0 +1,69 @@
+# Dyxon Device-Broker Contract
+
+The public interface between Dyxon and its callers (Aegis, REA, the Reema
+Vaccine Pack runner). This is a versioned contract: a breaking change needs a
+version bump, like [`reema.findings/v1`](../reema/finding-schema.md).
+
+Contract id: `dyxon.session/v1`.
+
+## MCP tools
+
+Dyxon is an MCP server exposing five tools.
+
+| Tool | Input | Output | Purpose |
+|---|---|---|---|
+| `acquire_device` | `backend` (default `avd`), `android_version`, `ttl_seconds` | a session handle | Lease a ready, rooted device from the pool. |
+| `run_capability` | `session_id`, `apk` or `sample`, `capability` or Vaccine Pack ref | job id | Install the target and run a capability check or detonation on the leased device. |
+| `collect_runtime` | `session_id`, `job_id` | path to `dynamic_findings.json` | Gather runtime observations for a job into the findings contract. |
+| `reset` | `session_id` | ok | Restore the golden snapshot mid-lease without releasing. |
+| `release` | `session_id` | ok | End the lease; the broker restores the snapshot and returns the device to the pool. |
+
+`run_capability` and `collect_runtime` are optional conveniences. A caller that
+only needs a device (for example REA running its own ADB/Frida tools) calls
+`acquire_device`, works on the returned serial directly, then `release`.
+
+## Session handle (`dyxon.session/v1`)
+
+Returned by `acquire_device`:
+
+```json
+{
+  "contract": "dyxon.session/v1",
+  "session_id": "d3f1c0a2",
+  "backend": "avd",
+  "serial": "emulator-5554",
+  "frida_endpoint": "127.0.0.1:27042",
+  "android_version": "14",
+  "arch": "arm64-v8a",
+  "rooted": true,
+  "network": "none",
+  "ttl_seconds": 1800,
+  "expires_at": "2026-11-13T12:30:00Z"
+}
+```
+
+- `serial` — the ADB serial the caller targets. REA's `list_adb_devices` /
+  `instrument_with_frida` and any `adb -s <serial>` command use it.
+- `frida_endpoint` — where `frida-server` listens on the device, already
+  running and arch-matched.
+- `network` — `none` by default; a job may request a controlled sink
+  (`proxy`, `fake-services`) but not real egress without an explicit flag.
+- `ttl_seconds` / `expires_at` — the lease is reclaimed at expiry even if the
+  caller never calls `release`.
+
+## Runtime-findings contract
+
+`collect_runtime` writes `temp/dynamic_findings.json`. This is the **same**
+contract the pre-Dyxon bridge already uses; it is merged into
+`reports/findings.json` (`reema.findings/v1`) by the report step. Dyxon does not
+change the findings schema — it is a producer of findings, not an owner of the
+schema.
+
+## Error and contention behaviour
+
+- No device free and the pool is at capacity → `acquire_device` returns a
+  `pool_exhausted` error with a retry hint, never blocks forever.
+- A `session_id` that has expired or been released → tools return
+  `session_not_found`.
+- A backend that cannot provision (no AVD, no `frida-server`) → a startup error
+  naming the missing dependency, so the caller can report it.

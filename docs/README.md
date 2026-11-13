@@ -7,7 +7,7 @@ All project documentation lives in this directory. Start here.
 | Directory | Scope |
 |---|---|
 | [`reema/`](reema/README.md) | **Reema**: malware analysis and forensics. Static triage, capabilities, IOCs, Vaccine Pack. |
-| [`dyxon/`](dyxon/README.md) | **Dyxon**: dynamic orchestration. Device, Frida, runtime capture. Later integrated into Aegis. |
+| [`dyxon/`](dyxon/README.md) | **Dyxon**: Android sandbox broker. Provisions, leases and resets ready rooted devices for dynamic analysis. Later integrated into Aegis. |
 | [`platform/`](platform/) | Shared surface used by both features: MCP server, agent skill. |
 
 ## Documents
@@ -35,8 +35,13 @@ All project documentation lives in this directory. Start here.
 
 | Document | Purpose |
 |---|---|
-| [`dyxon/README.md`](dyxon/README.md) | Feature overview |
-| [`dyxon/dynamic-analysis.md`](dyxon/dynamic-analysis.md) | ADB/Frida runtime bridge runbook |
+| [`dyxon/README.md`](dyxon/README.md) | Feature overview and reading order |
+| [`dyxon/design.md`](dyxon/design.md) | Target architecture: device broker, AVD backend, warm pool, MCP tools, isolation |
+| [`dyxon/roadmap.md`](dyxon/roadmap.md) | Phases D0–D4, status |
+| [`dyxon/backlog.md`](dyxon/backlog.md) | Designed but not implemented: other backends, lifecycle modes, interfaces |
+| [`dyxon/device-broker-contract.md`](dyxon/device-broker-contract.md) | `dyxon.session/v1` MCP tool surface and session handle |
+| [`dyxon/decisions/`](dyxon/decisions/README.md) | Architecture decision records (ADRs) |
+| [`dyxon/dynamic-analysis.md`](dyxon/dynamic-analysis.md) | ADB/Frida runtime bridge runbook (pre-Dyxon prototype) |
 
 ### Platform
 
