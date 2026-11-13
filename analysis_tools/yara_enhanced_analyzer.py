@@ -37,10 +37,15 @@ def analyze_yara_results(temp_dir, output_file, rule_files=None):
         }
     }
     
+    # rule name -> severity read from each rule's meta.threat_level (K2). A rule
+    # whose meta sets the level wins over guessing the level from its name.
+    severity_by_rule = {}
+
     # Process multiple rule files
     for yara_rules_file in rule_files:
         if os.path.exists(yara_rules_file):
-            extract_rules_info(yara_rules_file, results)
+            extract_rules_info(yara_rules_file, results, severity_by_rule)
+    results['severity_by_rule'] = severity_by_rule
     
     # Parse results from different scans
     yara_files = [
@@ -51,8 +56,8 @@ def analyze_yara_results(temp_dir, output_file, rule_files=None):
     
     for scan_type, yara_file in yara_files:
         if os.path.exists(yara_file):
-            parse_yara_output(yara_file, scan_type, results)
-    
+            parse_yara_output(yara_file, scan_type, results, severity_by_rule)
+
     # Calculate summary statistics
     results['summary']['total_matches'] = len(results['findings'])
     results['summary']['rules_matched'] = len(set(f['rule_name'] for f in results['findings']))
@@ -60,16 +65,17 @@ def analyze_yara_results(temp_dir, output_file, rule_files=None):
     results['summary']['high_severity'] = sum(1 for f in results['findings'] if f['severity'] == 'HIGH')
     results['summary']['medium_severity'] = sum(1 for f in results['findings'] if f['severity'] == 'MEDIUM')
     results['summary']['low_severity'] = sum(1 for f in results['findings'] if f['severity'] == 'LOW')
-    
+    results['summary']['info_severity'] = sum(1 for f in results['findings'] if f['severity'] == 'INFO')
+
     # Mark rules as matched
     matched_rules = set(f['rule_name'] for f in results['findings'])
     for rule in results['rules_checked']:
         rule['matched'] = rule['name'] in matched_rules
         rule['match_count'] = sum(1 for f in results['findings'] if f['rule_name'] == rule['name'])
-    
+
     # Sort findings by severity
-    severity_order = {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3}
-    results['findings'].sort(key=lambda x: (severity_order[x['severity']], x['rule_name']))
+    severity_order = {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3, 'INFO': 4}
+    results['findings'].sort(key=lambda x: (severity_order.get(x['severity'], 5), x['rule_name']))
     
     # Save results
     with open(output_file, 'w') as f:
@@ -78,29 +84,35 @@ def analyze_yara_results(temp_dir, output_file, rule_files=None):
     return results
 
 
-def extract_rules_info(yara_rules_file, results):
-    """Extract information about all YARA rules"""
+# YARA meta.threat_level -> this analyzer's severity labels.
+THREAT_LEVELS = {'critical': 'CRITICAL', 'high': 'HIGH', 'medium': 'MEDIUM',
+                 'low': 'LOW', 'info': 'INFO', 'informational': 'INFO'}
+
+
+def extract_rules_info(yara_rules_file, results, severity_by_rule=None):
+    """Extract information about all YARA rules, including meta.threat_level (K2)."""
     try:
         with open(yara_rules_file, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
-        
+
         # Simple regex to extract rule names and metadata
         rule_pattern = r'rule\s+(\w+)\s*(?:\:\s*[\w\s]+)?\s*\{'
         meta_pattern = r'meta:\s*((?:.*?\n)*?)\s*(?:strings:|condition:)'
-        
+
         rules = re.finditer(rule_pattern, content)
         total_rules = 0
-        
+
         for rule_match in rules:
             rule_name = rule_match.group(1)
             total_rules += 1
-            
+
             # Try to extract description from metadata
             rule_start = rule_match.start()
             rule_block = content[rule_start:rule_start + 1000]  # Get next 1000 chars
-            
+
             description = get_description(rule_name)
-            
+            severity = get_severity(rule_name)
+
             # Extract meta tags if available
             meta_match = re.search(meta_pattern, rule_block, re.DOTALL)
             if meta_match:
@@ -108,23 +120,29 @@ def extract_rules_info(yara_rules_file, results):
                 desc_match = re.search(r'description\s*=\s*"([^"]+)"', meta_content)
                 if desc_match:
                     description = desc_match.group(1)
-            
+                # Severity comes from the rule's own meta, not a guess from its name.
+                level_match = re.search(r'threat_level\s*=\s*"([^"]+)"', meta_content)
+                if level_match:
+                    severity = THREAT_LEVELS.get(level_match.group(1).strip().lower(), severity)
+
+            if severity_by_rule is not None:
+                severity_by_rule[rule_name] = severity
             results['rules_checked'].append({
                 'name': rule_name,
                 'category': get_category(rule_name),
-                'severity': get_severity(rule_name),
+                'severity': severity,
                 'description': description,
                 'matched': False,
                 'match_count': 0
             })
-        
+
         results['summary']['total_rules_checked'] = total_rules
-        
+
     except Exception as e:
         print(f"Error extracting rules info: {e}", file=sys.stderr)
 
 
-def parse_yara_output(yara_file, scan_type, results):
+def parse_yara_output(yara_file, scan_type, results, severity_by_rule=None):
     """Parse YARA output file and extract findings"""
     try:
         with open(yara_file, 'r', encoding='utf-8', errors='ignore') as f:
@@ -154,7 +172,8 @@ def parse_yara_output(yara_file, scan_type, results):
                 # This is a new rule match: rule_name file_path
                 # Save previous finding if exists
                 if current_rule and current_file:
-                    save_finding(current_rule, current_file, scan_type, matched_strings, results, scan_detail)
+                    save_finding(current_rule, current_file, scan_type, matched_strings, results,
+                                 scan_detail, severity_by_rule)
                     matched_strings = []
                 
                 # Parse new rule match
@@ -179,25 +198,26 @@ def parse_yara_output(yara_file, scan_type, results):
         
         # Save last finding
         if current_rule and current_file:
-            save_finding(current_rule, current_file, scan_type, matched_strings, results, scan_detail)
-            
+            save_finding(current_rule, current_file, scan_type, matched_strings, results,
+                         scan_detail, severity_by_rule)
+
     except Exception as e:
         print(f"Error parsing YARA output {yara_file}: {e}", file=sys.stderr)
 
 
-def save_finding(rule_name, file_path, scan_type, matched_strings, results, scan_detail):
+def save_finding(rule_name, file_path, scan_type, matched_strings, results, scan_detail, severity_by_rule=None):
     """Save a YARA finding to results"""
     if file_path not in scan_detail['files']:
         scan_detail['files'].append(file_path)
     scan_detail['matches'] += 1
-    
+
     finding = {
         'rule_name': rule_name,
         'file': file_path,
         'scan_type': scan_type,
         'matched_strings': matched_strings.copy(),
         'string_count': len(matched_strings),
-        'severity': get_severity(rule_name),
+        'severity': get_severity(rule_name, severity_by_rule),
         'category': get_category(rule_name),
         'description': get_description(rule_name),
         'recommendation': get_recommendation(rule_name)
@@ -213,10 +233,12 @@ def save_finding(rule_name, file_path, scan_type, matched_strings, results, scan
     results['categories'][category].append(finding)
 
 
-def get_severity(rule_name):
-    """Determine severity based on rule name"""
+def get_severity(rule_name, severity_by_rule=None):
+    """Severity for a rule: its meta.threat_level when known (K2), else guessed from the name."""
+    if severity_by_rule and rule_name in severity_by_rule:
+        return severity_by_rule[rule_name]
     rule_lower = rule_name.lower()
-    
+
     # Critical threats
     if any(x in rule_lower for x in ['ransom', 'banker', 'trojan', 'rootkit', 'backdoor', 'keylogger']):
         return 'CRITICAL'

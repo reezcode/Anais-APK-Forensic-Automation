@@ -32,9 +32,14 @@ rule Android_General_Malware {
         $decrypt = /decrypt[A-Za-z]{0,20}\(/ ascii
         
     condition:
-        (3 of them) or
+        // K4: reflection, Base64 and crypto are ubiquitous in benign apps, so a
+        // bare "3 of them" fired everywhere. Require an actual code-execution or
+        // code-loading signal, on its own or paired with reflection/obfuscation.
         ($dex_loader and $load_class) or
-        ($runtime_exec and $process_builder)
+        ($runtime_exec and $process_builder) or
+        (($dex_loader or $path_loader) and ($load_library or $load_native)) or
+        (2 of ($runtime_exec, $process_builder, $dex_loader, $path_loader, $load_class)
+         and 2 of ($get_method, $invoke, $get_declared, $base64_decode, $cipher_instance, $decrypt))
 }
 
 rule Android_Accessibility_Abuse {

@@ -45,11 +45,14 @@ python3 -m reema findings ~/.anais/reports/<case_dir> --sample sample.apk
 | `--analyst NAME` | Name stored in `case.json` (default `$REEMA_ANALYST`, then login name) |
 | `--case-dir DIR` | Write into DIR instead of a new `<workspace>/<stem>_<UTC time>/` |
 | `--offline` | Send nothing online; use cached enrichment only |
+| `--upload` | Also upload the sample to providers that support it (opt-in, ADR 0004; refused with `--offline`) |
 | `--no-enrich` | Skip enrichment |
 | `--no-index` | Skip the code index |
+| `--extract-children` | Analyze DEX-bearing container payloads as linked child cases (B9) |
 
 Enrichment keys (optional; without a key the provider is skipped):
-`REEMA_MALWAREBAZAAR_API_KEY`, `REEMA_VIRUSTOTAL_API_KEY`. Only the SHA-256 is sent.
+`REEMA_MALWAREBAZAAR_API_KEY`, `REEMA_VIRUSTOTAL_API_KEY`, `REEMA_KOODOUS_API_KEY`,
+`REEMA_HYBRIDANALYSIS_API_KEY`. Only the SHA-256 is sent, unless `--upload` is given.
 
 Case directory:
 

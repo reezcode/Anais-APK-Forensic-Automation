@@ -5,7 +5,7 @@ Last updated: 2026-11-13.
 | Phase | Scope | Status |
 |---|---|---|
 | P0 | Package skeleton, Finding schema, cleanup | **Done** (2026-11-13, commit `c397af94`) |
-| P1 | Intake and case record, JAR input, code index, enrichment and cache | **Done** (2026-11-13); reachability moved to backlog B1 |
+| P1 | Intake and case record, JAR input, code index, enrichment and cache | **Done** (2026-11-13); reachability shipped in 0.3.0 (B1) |
 | P2 | Capability engine, verdict and posture split, IOC export | Next |
 | P3 | Vaccine Pack generator, STIX 2.1 / MISP export | Planned |
 | P4 | Test corpus gate, family classifier, iOS IPA | Planned |
@@ -84,11 +84,12 @@ of the same sample makes no network calls (cache hit, test
 
 ## Known issues
 
-K1 (SAST matched jadx comments) was fixed in P1; see [`changelog.md`](changelog.md).
+K1 (SAST matched jadx comments) was fixed in P1; K2–K5 were fixed in 0.3.0 (backlog
+B11). See [`changelog.md`](changelog.md). No open known issues.
 
-| Id | Issue | Evidence | Fix in |
+| Id | Issue | Evidence | Fixed in |
 |---|---|---|---|
-| K2 | YARA severity is guessed from the rule name (`yara_enhanced_analyzer.get_severity`), not read from `meta.threat_level`. | `analysis_tools/yara_enhanced_analyzer.py` | P2 |
-| K3 | `network_analyzer.is_suspicious_url` flags any URL containing `api`, `upload` or `download`. | `analysis_tools/network_analyzer.py` | P2 |
-| K4 | The `Android_General_Malware` YARA rule fires on strings common in benign apps (`getMethod`, `.invoke(`, `Base64.decode`). | `rules/yara_general_rules.yar` | P2 |
-| K5 | The suspicious TLD list is hardcoded in `network_analyzer.py` and duplicated in `analyzer_config.json`. | Both files | P2 |
+| K2 | YARA severity is guessed from the rule name (`yara_enhanced_analyzer.get_severity`), not read from `meta.threat_level`. | `analysis_tools/yara_enhanced_analyzer.py` | 0.3.0 |
+| K3 | `network_analyzer.is_suspicious_url` flags any URL containing `api`, `upload` or `download`. | `analysis_tools/network_analyzer.py` | 0.3.0 |
+| K4 | The `Android_General_Malware` YARA rule fires on strings common in benign apps (`getMethod`, `.invoke(`, `Base64.decode`). | `rules/yara_general_rules.yar` | 0.3.0 |
+| K5 | The suspicious TLD list is hardcoded in `network_analyzer.py` and duplicated in `analyzer_config.json`. | Both files | 0.3.0 |

@@ -8,14 +8,19 @@ Phase plan: [`roadmap.md`](roadmap.md). Target design: [`design.md`](design.md).
 
 | Id | Item | Plugs into | Notes |
 |---|---|---|---|
-| B1 | **Reachability in the code index** | `reema/index.py` | Add `methods(id, class_id, name, descriptor, reachable)`. Seed the walk from manifest components (activities, services, receivers, providers, application class) and their internal superclasses. Follow direct calls, overriding methods in subclasses, `<clinit>`, and callback methods of instantiated classes. For JAR input with no manifest, leave `reachable` NULL. Then downgrade findings in unreachable code to `low` confidence (`reema/adapters.tag_owner`). Expected gaps: reflection, native code, runtime-loaded code. |
-| B2 | **String table in the code index** | `reema/index.py` | `strings(class_id, method, value)` from `dx.get_strings()` xrefs. Needed by P2 rules that extract configuration values. |
-| B3 | **Index for JVM-only JARs** | `reema/index.py` `_analysis_for` | Androguard reads DEX only. A JAR with only `.class` files is skipped today (`dex_present: false`). Option: convert it with `d8` first, or add a class-file parser. |
-| B4 | **Sample upload** (`--upload`) | `reema/enrich.py` | ADR 0004 allows upload only on explicit opt-in. Not implemented. Record every upload in `case.json` `enrichment[]`. |
 | B5 | **IOC enrichment** (ThreatFox, URLhaus) | `reema/enrich.py` | Needs the P2 IOC extractor first. Query only extracted domains, URLs and IPs; cache like hash lookups. |
-| B6 | **More hash providers** (Koodous, Hybrid Analysis) | `reema/enrich.py` `PROVIDERS` | Add a class with `name`, `key_env`, `lookup(sha256, key)` returning `(status, data)`. |
-| B7 | **Family label normalization** | `reema/enrich.py` → verdict | Reduce labels from several engines to one family with a confidence (AVclass-style). Feeds the P2 verdict. |
-| B8 | **ssdeep fuzzy hash** | `reema/case.py` | TLSH is recorded when `py-tlsh` is installed. Add ssdeep behind the same optional import pattern. |
-| B9 | **Child samples** | `reema/cli.py`, `reema/case.py` | Analyze a payload extracted by `dex_payload_hunter.py --extract` as a child case linked from the parent `case.json`. |
 | B10 | **Native Python engine for APK** | `reema/cli.py` | `anais.sh` is still the APK engine. Port its stages to Python one at a time (ADR 0001). |
-| B11 | **Known issues K2–K5** | see [`roadmap.md`](roadmap.md#known-issues) | YARA severity from `meta`, noisy URL keywords, generic YARA rule, duplicated TLD list. |
+
+Cleared in 0.3.0 (see [`changelog.md`](changelog.md)): B1 reachability, B2 string table,
+B3 JVM-only JAR index (d8), B4 sample upload, B6 Koodous/Hybrid Analysis, B7 family
+normalization, B8 ssdeep, B9 child samples, B11 (K2–K5).
+
+Notes on what landed, for anyone extending it:
+- **B1 reachability** is best-effort and static: reflection, native code and
+  runtime-loaded code are not followed, so an unreachable tag means "no static path
+  found", not "provably dead". The downgrade is class-level (any reachable method
+  makes the class reachable).
+- **B3** needs `d8` (Android build-tools) on PATH; absent it, a JVM-only JAR is still
+  skipped. A class-file parser was not added.
+- **B4/B6** upload and the new providers are untested against the live APIs (no keys in
+  CI); parsing is covered by mocked-response tests only.

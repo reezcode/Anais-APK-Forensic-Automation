@@ -10,6 +10,7 @@ The legacy file names are the ones report_generator_modular.py loads.
 import json
 from pathlib import Path
 
+from reema import index
 from reema._legacy import owner_of
 from reema.findings import Evidence, Finding
 
@@ -297,6 +298,43 @@ def enrichment(data, work_dir):
                 evidence=[Evidence(file=d.get("link", "virustotal"))],
                 tags=[f"family:{label}"] if label else [],
             ))
+    ha = providers.get("hybridanalysis", {})
+    if ha.get("status") == "found":
+        d = ha.get("data", {})
+        if d.get("verdict") in ("malicious", "suspicious"):
+            score, family = d.get("threat_score"), d.get("family")
+            out.append(Finding(
+                source="enrichment",
+                rule="hybridanalysis:verdict",
+                title=f"Hybrid Analysis verdict: {d.get('verdict')}{': ' + family if family else ''}",
+                severity="critical" if d.get("verdict") == "malicious" else "medium",
+                axis="malice",
+                confidence="high" if d.get("verdict") == "malicious" else "low",
+                category="reputation",
+                description=f"threat_score={score}, av_detect={d.get('av_detect')}",
+                evidence=[Evidence(file=d.get("link", "hybridanalysis"))],
+                tags=[f"family:{family}"] if family else [],
+            ))
+    kd = providers.get("koodous", {})
+    if kd.get("status") == "found" and kd.get("data", {}).get("detected"):
+        d = kd.get("data", {})
+        out.append(Finding(
+            source="enrichment",
+            rule="koodous:detected",
+            title="Flagged by the Koodous community",
+            severity="high",
+            axis="malice",
+            confidence="medium",
+            category="reputation",
+            description=f"rating={d.get('rating')}, tags: {', '.join(d.get('tags', []))}",
+            evidence=[Evidence(file=d.get("link", "koodous"))],
+        ))
+    # Normalized family (B7): one tag the verdict can read, voted across engines.
+    fam = (data.get("family") or {}).get("family")
+    if fam:
+        for f in out:
+            if f"family:{fam}" not in f.tags:
+                f.tags.append(f"family:{fam}")
     return out
 
 
@@ -314,13 +352,49 @@ ADAPTERS = {
 }
 
 
-def tag_owner(finding):
-    """Set owner from the first evidence path. A finding in SDK code drops to low
-    confidence: it describes a library, not the sample author's own code."""
+def _class_key(path):
+    """Fragment "com/x/A" identifying the class a decompiled path belongs to, or None.
+
+    Handles jadx (.../sources/com/x/A.java) and apktool (.../smali*/com/x/A.smali);
+    inner classes collapse to their outer class.
+    """
+    if not path:
+        return None
+    parts = str(path).replace("\\", "/").split("/")
+    start = next((i + 1 for i, seg in enumerate(parts) if seg == "sources" or seg.startswith("smali")), None)
+    pkg = parts[start:] if start is not None else parts
+    if not pkg or not pkg[-1]:
+        return None
+    pkg = pkg[:-1] + [pkg[-1].rsplit(".", 1)[0]]
+    frag = "/".join(pkg).split("$", 1)[0]
+    return frag or None
+
+
+def _unreachable_keys(work_dir):
+    """Class fragments the code index marks unreachable (reachable = 0). Empty when
+    the index is absent or carries no reachability (a JAR has no manifest to seed it)."""
+    db = Path(work_dir) / "temp" / "code_index.db"
+    if not db.is_file():
+        return set()
+    try:
+        descriptors = index.unreachable_classes(db)
+    except Exception:
+        return set()
+    return {d[1:-1].split("$", 1)[0] for d in descriptors if d.startswith("L") and d.endswith(";")}
+
+
+def tag_owner(finding, unreachable=()):
+    """Set owner from the first evidence path. A finding in SDK code, or in code no
+    manifest entry point reaches, drops to low confidence: it describes a library or
+    dead code, not something the sample is proven to do."""
     if finding.evidence and not finding.owner:
         finding.owner = owner_of(finding.evidence[0].file)
     if finding.owner.startswith("sdk:"):
         finding.confidence = "low"
+    if unreachable and finding.evidence and _class_key(finding.evidence[0].file) in unreachable:
+        finding.confidence = "low"
+        if "unreachable" not in finding.tags:
+            finding.tags.append("unreachable")
     return finding
 
 
@@ -330,11 +404,12 @@ def collect(work_dir, extra=None):
     extra maps more file names to adapters (e.g. enrichment), checked after ADAPTERS.
     """
     temp = Path(work_dir) / "temp"
+    unreachable = _unreachable_keys(work_dir)
     findings, sources = [], []
     for filename, adapter in {**ADAPTERS, **(extra or {})}.items():
         data = _load(temp / filename)
         if not isinstance(data, dict):
             continue
         sources.append(filename)
-        findings.extend(tag_owner(f) for f in adapter(data, work_dir))
+        findings.extend(tag_owner(f, unreachable) for f in adapter(data, work_dir))
     return findings, sources

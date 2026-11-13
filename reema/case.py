@@ -46,6 +46,23 @@ def tlsh_hash(path):
     return value if value and value != "TNULL" else None
 
 
+def ssdeep_hash(path):
+    """ssdeep fuzzy hash when the ssdeep module is installed; None otherwise.
+
+    Kept behind the same optional-import pattern as TLSH: both are useful for
+    clustering related samples, and neither is a hard dependency.
+    """
+    try:
+        import ssdeep
+    except ImportError:
+        return None
+    try:
+        value = ssdeep.hash_from_file(str(path))
+    except Exception:
+        return None
+    return value or None
+
+
 def hash_tree(root):
     """Digest a directory as sha256 over sorted "relpath\\0sha256\\n" lines.
 
@@ -115,6 +132,7 @@ class Case:
             "artifacts": [],
             "enrichment": [],
             "events": [],
+            "children": [],
         }
         case = cls(case_dir, record)
         case.save()
@@ -130,9 +148,9 @@ class Case:
         path = Path(path)
         entry = {"role": role, "path": str(path.resolve()), "name": path.name,
                  "size": path.stat().st_size, "recorded_at": utc_now(), **hash_file(path)}
-        fuzzy = tlsh_hash(path)
-        if fuzzy:
-            entry["tlsh"] = fuzzy
+        for name, value in (("tlsh", tlsh_hash(path)), ("ssdeep", ssdeep_hash(path))):
+            if value:
+                entry[name] = value
         self.record["inputs"].append(entry)
         return entry
 
@@ -151,6 +169,20 @@ class Case:
         self.record["artifacts"] = [a for a in self.record["artifacts"] if a["path"] != entry["path"]]
         self.record["artifacts"].append(entry)
         return entry
+
+    def add_child(self, child_case, source):
+        """Link a child case (a payload extracted from this sample). source is where
+        inside the parent the payload came from, e.g. an APK asset path."""
+        entry = {"case_id": child_case.record["case_id"],
+                 "case_dir": str(child_case.dir.resolve()),
+                 "source": source, "at": utc_now()}
+        if child_case.record["inputs"]:
+            entry["sha256"] = child_case.record["inputs"][0]["sha256"]
+        self.record.setdefault("children", []).append(entry)
+        return entry
+
+    def set_parent(self, parent_case, source):
+        self.record["parent"] = {"case_id": parent_case.record["case_id"], "source": source}
 
     def add_enrichment(self, provider, sent, status, cached):
         """Audit trail for every online lookup (ADR 0004): what left the machine, and when."""

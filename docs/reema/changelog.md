@@ -2,6 +2,32 @@
 
 Format: newest first. Each entry lists what changed and where.
 
+## 0.3.0 — backlog clearance (2026-11-13)
+
+Cleared backlog items B1, B2, B3, B4, B6, B7, B8, B9 and B11 (K2–K5). Remaining:
+B5 (IOC enrichment, blocked on the P2 IOC extractor) and B10 (native Python APK
+engine). See `backlog.md`.
+
+### Added
+- **B2 — string table** (`reema/index.py`): `strings(class_id, method, value)` from `dx.get_strings()` xrefs, with a `strings_value` index. Needed by P2 configuration-value rules.
+- **B1 — reachability** (`reema/index.py`): `methods(id, class_id, name, descriptor, reachable)` and a `reachable` column on `classes`. The walk seeds from manifest components (activities, services, receivers, providers, application class) and their internal superclasses, then follows direct calls, overriding methods in subclasses, `<init>` of instantiated classes and `<clinit>` of reached classes. `reema/adapters.py` downgrades findings in unreachable classes to `low` confidence and tags them `unreachable`. JAR input (no manifest) leaves `reachable` NULL. Known gaps: reflection, native code, runtime-loaded code.
+- **B3 — JVM-only JAR index** (`reema/index.py`): a JAR holding only `.class` files is converted with `d8` before analysis (`dex_source: "d8"`); without `d8` on PATH the index is skipped as before.
+- **B8 — ssdeep** (`reema/case.py`): `ssdeep_hash()` records an ssdeep fuzzy hash on each input when the `ssdeep` module is installed, behind the same optional-import pattern as TLSH.
+- **B6 — more hash providers** (`reema/enrich.py`): `Koodous` and `HybridAnalysis`, keys from `REEMA_KOODOUS_API_KEY` and `REEMA_HYBRIDANALYSIS_API_KEY`; their `found` results become enrichment findings.
+- **B7 — family normalization** (`reema/enrich.py`): `normalize_family()` reduces every engine's label to one family with a confidence (AVclass-style majority vote after stripping category/platform tokens). Stored as `family` in `enrichment.json` and tagged on enrichment findings; feeds the P2 verdict.
+- **B4 — sample upload** (`reema/enrich.py`, `reema/cli.py`): `reema analyze --upload` uploads the sample to providers that support it (MalwareBazaar, VirusTotal). Opt-in only (ADR 0004), refused together with `--offline`; every upload is audited in `case.json` with `sample_uploaded: true`.
+- **B9 — child samples** (`reema/cli.py`, `reema/case.py`): `reema analyze --extract-children` extracts DEX-bearing container payloads the hunter found and analyzes each as a linked child case; parent and child `case.json` cross-reference via `children[]` / `parent`.
+- `tests/test_reema_backlog.py` (22 tests).
+
+### Fixed
+- **K2** (`analysis_tools/yara_enhanced_analyzer.py`): YARA severity now reads each rule's `meta.threat_level` instead of guessing from the rule name; the name heuristic is the fallback for rules without the meta field.
+- **K3** (`analysis_tools/network_analyzer.py`): `is_suspicious_url` no longer flags every URL containing `api`, `upload` or `download`; only C2-like whole path segments remain, so `robot` no longer matches `bot`.
+- **K4** (`rules/yara_general_rules.yar`): `Android_General_Malware` dropped the `3 of them` condition that fired on benign reflection/Base64/crypto strings; a match now needs a real code-execution or code-loading signal.
+- **K5** (`analysis_tools/network_analyzer.py`): the suspicious-TLD list is loaded from `analyzer_config.json` instead of being duplicated in code; the in-code list is only a fallback.
+
+### Changed
+- `reema/index.py` summary gains `dex_source`, `methods`, `reachable_methods`, `reachable_classes`, `strings`; `reema/cli.py` logs reachability and string counts.
+
 ## 0.2.0 — P1 intake, index, enrichment (2026-11-13)
 
 ### Added

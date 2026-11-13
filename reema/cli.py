@@ -16,10 +16,13 @@ engine run stops it. See docs/reema/README.md.
 """
 
 import argparse
+import io
 import json
 import os
+import re
 import subprocess
 import sys
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -117,9 +120,14 @@ def _stage_index(target, case_dir, case):
         return
     (case_dir / "temp" / "code_index.json").write_text(json.dumps(summary, indent=2))
     if not summary["dex_present"]:
-        case.log("index", "skipped", "no DEX in sample (JVM-only JAR, backlog B3)")
+        case.log("index", "skipped", "no DEX and no d8 to convert .class files (JVM-only JAR)")
     else:
-        case.log("index", "ok", f"{summary['classes']} classes, {summary['api_calls']} API calls")
+        detail = f"{summary['classes']} classes, {summary['api_calls']} API calls, {summary['strings']} strings"
+        if summary.get("dex_source") == "d8":
+            detail += " (via d8)"
+        if summary.get("reachable_classes") is not None:
+            detail += f"; {summary['reachable_classes']} reachable classes"
+        case.log("index", "ok", detail)
 
 
 def _stage_enrich(case_dir, case, offline):
@@ -127,7 +135,95 @@ def _stage_enrich(case_dir, case, offline):
     doc = enrich.run(sha256, offline=offline, case=case)
     (case_dir / "temp" / "enrichment.json").write_text(json.dumps(doc, indent=2))
     statuses = ", ".join(f"{k}={v['status']}" for k, v in doc["providers"].items())
-    case.log("enrich", "ok", statuses)
+    fam = (doc.get("family") or {}).get("family")
+    case.log("enrich", "ok", statuses + (f"; family={fam}" if fam else ""))
+
+
+def _stage_upload(sample, case):
+    """Upload the sample itself (ADR 0004: explicit opt-in only)."""
+    print(f"reema: --upload sends the sample ({sample.name}) to online providers", file=sys.stderr)
+    results = enrich.upload(sample, case=case)
+    statuses = ", ".join(f"{k}={v['status']}" for k, v in results.items()) or "no provider supports upload"
+    case.log("upload", "ok", statuses)
+
+
+MAX_CHILDREN = 5
+
+
+def _hidden_dex_containers(case_dir):
+    """Container payloads the hunter found that hold a DEX: (location, embedded_files)."""
+    try:
+        report = json.loads((case_dir / "temp" / "dex_payload_report.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    containers = report.get("container_payloads", {}) or {}
+    out = []
+    for key in ("zip_assets", "embedded_in_so"):
+        for c in containers.get(key, []) or []:
+            if c.get("contains_dex") and c.get("location"):
+                out.append((c["location"], c.get("embedded_files", [])))
+    return out
+
+
+def _as_jar(raw):
+    """Return bytes usable as a JAR input: the container as-is if it is a zip, else
+    a zip wrapping a bare DEX as classes.dex. None if neither."""
+    if zipfile.is_zipfile(io.BytesIO(raw)):
+        return raw
+    if raw[:4] == b"dex\n":
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            zf.writestr("classes.dex", raw)
+        return buf.getvalue()
+    return None
+
+
+def _analyze_child(child_sample, child_dir, parent_case, source, rules):
+    """Run the engine, index and findings on one extracted payload as a linked case."""
+    child = Case.create(child_dir)
+    child.set_parent(parent_case, source)
+    child.add_input(child_sample, "original")
+    child.save()
+    rc = _run_engine(child_sample, child_dir, rules, child)
+    if rc == 0:
+        _stage_index(child_sample, child_dir, child)
+        write_findings(child_dir, sample=child_sample)
+        _record_artifacts(child_dir, child)
+    else:
+        child.log("child", "error", f"engine exit {rc}")
+    child.complete()
+    parent_case.add_child(child, source)
+    return rc
+
+
+def _stage_children(apk, case_dir, parent_case, rules):
+    """Extract DEX-bearing container payloads and analyze each as a child case (B9)."""
+    containers = _hidden_dex_containers(case_dir)
+    if not containers:
+        return
+    children_root = case_dir / "children"
+    children_root.mkdir(exist_ok=True)
+    made = 0
+    with zipfile.ZipFile(apk) as zf:
+        names = set(zf.namelist())
+        for location, _ in containers:
+            if made >= MAX_CHILDREN:
+                break
+            if location not in names:
+                continue  # embedded_in_so payloads are not plain zip entries; skip for now
+            jar_bytes = _as_jar(zf.read(location))
+            if jar_bytes is None:
+                continue
+            stem = re.sub(r"[^A-Za-z0-9._-]", "_", Path(location).name) or "payload"
+            child_sample = children_root / f"{stem}.jar"
+            child_sample.write_bytes(jar_bytes)
+            child_dir = children_root / f"{stem}_case"
+            made += 1
+            try:
+                _analyze_child(child_sample, child_dir, parent_case, location, rules)
+            except Exception as e:
+                parent_case.log("children", "error", f"{location}: {e}")
+    parent_case.log("children", "ok", f"{made} child case(s)")
 
 
 def _record_artifacts(case_dir, case):
@@ -149,6 +245,9 @@ def cmd_analyze(args):
         return 2
     if sample.suffix.lower() not in APK_INPUTS | JAR_INPUTS:
         print(f"reema: unsupported input type {sample.suffix!r}", file=sys.stderr)
+        return 2
+    if args.upload and args.offline:
+        print("reema: --upload and --offline are mutually exclusive", file=sys.stderr)
         return 2
 
     case_dir = Path(args.case_dir) if args.case_dir else _new_case_dir(sample)
@@ -173,9 +272,13 @@ def cmd_analyze(args):
         _stage_index(target, case_dir, case)
     if not args.no_enrich:
         _stage_enrich(case_dir, case, offline=args.offline)
+    if args.upload:
+        _stage_upload(sample, case)
 
     out, doc = write_findings(case_dir, sample=sample)
     case.log("findings", "ok", f"{doc['summary']['total']} findings")
+    if args.extract_children and sample.suffix.lower() in APK_INPUTS:
+        _stage_children(target, case_dir, case, args.yara)
     _record_artifacts(case_dir, case)
     case.complete()
 
@@ -209,8 +312,12 @@ def build_parser():
     a.add_argument("--analyst", help="name recorded in case.json (default: $REEMA_ANALYST or login)")
     a.add_argument("--case-dir", help="use this case directory instead of a new one")
     a.add_argument("--offline", action="store_true", help="send nothing online; use cached enrichment only")
+    a.add_argument("--upload", action="store_true",
+                   help="also upload the sample to providers that support it (ADR 0004: opt-in)")
     a.add_argument("--no-enrich", action="store_true", help="skip enrichment entirely")
     a.add_argument("--no-index", action="store_true", help="skip the code index")
+    a.add_argument("--extract-children", action="store_true",
+                   help="analyze DEX payloads hidden in the sample as linked child cases (B9)")
     a.set_defaults(func=cmd_analyze)
 
     f = sub.add_parser("findings", help="build reports/findings.json for an existing case directory")
