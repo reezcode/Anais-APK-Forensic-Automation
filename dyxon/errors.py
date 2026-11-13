@@ -42,3 +42,20 @@ class ProvisionError(DyxonError):
 
 class BootError(DyxonError):
     """A device did not reach a usable state within the timeout."""
+
+
+class PoolExhausted(DyxonError):
+    """No device is free and the pool is at capacity.
+
+    The broker maps this to the `pool_exhausted` error code; it never blocks
+    waiting for a device, so the caller can retry on its own schedule.
+    """
+
+
+class SessionNotFound(DyxonError):
+    """The session id is unknown — it was never issued, or it has been released
+    or reclaimed at TTL expiry (the `session_not_found` error code)."""
+
+    def __init__(self, session_id):
+        self.session_id = session_id
+        super().__init__(f"no active session {session_id!r}")

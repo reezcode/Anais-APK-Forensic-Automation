@@ -9,7 +9,7 @@ Phases run in order; each is committed on its own. Target design:
 | Phase | Scope | Status |
 |---|---|---|
 | D0 | Package skeleton, AVD backend driver, provisioner | **Done** (2026-11-13) |
-| D1 | Broker + warm pool + snapshot reset, session handle (`dyxon.session/v1`) | Planned |
+| D1 | Warm pool + snapshot reset, session handle (`dyxon.session/v1`) | **Done** (2026-11-13) |
 | D2 | MCP server: `acquire_device`, `reset`, `release` (the generic device broker) | Planned |
 | D3 | Capability runner: `run_capability`, `collect_runtime`, `dynamic_findings.json` | Planned |
 | D4 | Aegis / REA integration pass; detonation profile | Planned |
@@ -34,13 +34,18 @@ same broker interface so callers never change. See
 Verified on 2026-11-13: 19 D0 tests pass; `dyxon doctor` reports ready on this
 host (emulator, AVDs, adb all present).
 
-## D1 — Pool and lifecycle (planned)
+## D1 — Pool and lifecycle (done, 2026-11-13)
 
-| Item | Target |
+| Item | Result |
 |---|---|
-| Pool manager | Keep N warm devices at the golden snapshot |
-| Lease / restore | `acquire` marks busy; `release` restores the snapshot; TTL reclaims a stuck lease |
-| Session handle | `dyxon.session/v1` per [`device-broker-contract.md`](device-broker-contract.md) |
+| Pool manager | `dyxon/pool.py`: `Pool` holds `DeviceSlot`s, lock-guarded; `warm_pool()` boots + readies N backends into a pool; `shutdown()` destroys all |
+| Lease / restore | `acquire` leases a free slot (or raises `PoolExhausted`), `release` restores the golden snapshot and frees it, `reset` restores mid-lease. Optional `backend` filter and `network` on acquire |
+| TTL reclaim | Each lease has a TTL; an expired lease is restored and freed on the next pool operation (`reap`, or lazily inside `acquire`/`free_count`). Clock is injectable for tests |
+| Session handle | `dyxon/session.py`: `Session` (`dyxon.session/v1`), `to_dict()` in contract key order, per [`device-broker-contract.md`](device-broker-contract.md) |
+| Errors | `PoolExhausted`, `SessionNotFound` added (map to the contract error codes) |
+
+Verified on 2026-11-13: 10 D1 tests pass (lease, exhaustion, release/reset
+restore counts, TTL reclaim, backend filter, shutdown). Suite total 191.
 
 ## D2 — MCP broker (planned) — the generic device broker
 

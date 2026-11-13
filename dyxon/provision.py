@@ -46,6 +46,9 @@ class Provisioner:
     def abi(self, serial: str) -> str:
         return self._adb(serial, "shell", "getprop", "ro.product.cpu.abi").check().stdout.strip()
 
+    def android_version(self, serial: str) -> str:
+        return self._adb(serial, "shell", "getprop", "ro.build.version.release").check().stdout.strip()
+
     def apply_settings(self, serial: str) -> None:
         for key in ("window_animation_scale", "transition_animation_scale", "animator_duration_scale"):
             self._adb(serial, "shell", "settings", "put", "global", key, "0").check()
@@ -105,7 +108,7 @@ class Provisioner:
         cert_path: Optional[str] = None,
         cert_hashed_name: Optional[str] = None,
     ) -> Dict[str, Optional[str]]:
-        info: Dict[str, Optional[str]] = {"abi": self.abi(serial)}
+        info: Dict[str, Optional[str]] = {"abi": self.abi(serial), "android_version": self.android_version(serial)}
         self.apply_settings(serial)
         info["frida_endpoint"] = self.push_frida(serial)
         info["cert"] = self.install_cert(serial, cert_path, cert_hashed_name) if cert_path else None
