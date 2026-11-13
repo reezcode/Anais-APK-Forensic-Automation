@@ -22,6 +22,30 @@ Dyxon is an MCP server exposing five tools.
 only needs a device (for example REA running its own ADB/Frida tools) calls
 `acquire_device`, works on the returned serial directly, then `release`.
 
+A fifth tool, `status`, reports pool size and free count.
+
+## Tool result envelope
+
+Every tool returns a JSON object with an `ok` flag, so a caller distinguishes
+success from a handled error without catching exceptions across the transport:
+
+```json
+{ "ok": true,  "session": { … dyxon.session/v1 … } }     // acquire_device
+{ "ok": true,  "session_id": "d3f1c0a2" }                 // reset / release
+{ "ok": false, "error": "pool_exhausted", "message": "…" }
+```
+
+`error` is one of the stable codes below; `message` is human-readable detail.
+
+| Error code | Raised when |
+|---|---|
+| `pool_exhausted` | no free device and the pool is at capacity |
+| `session_not_found` | unknown, released, or TTL-reclaimed `session_id` |
+| `precondition` | a required host dependency is missing |
+| `boot_error` | a device did not finish booting in time |
+| `provision_error` | a device booted but could not be made ready |
+| `error` | any other Dyxon error |
+
 ## Session handle (`dyxon.session/v1`)
 
 Returned by `acquire_device`:

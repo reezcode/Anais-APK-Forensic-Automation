@@ -70,10 +70,16 @@ real network path by default. See the design doc for the isolation model.
 
 ## Status
 
-D0 is done (2026-11-13): the `dyxon/` package exists with the AVD backend
-driver, the provisioner and `dyxon doctor`. Run `python3 -m dyxon doctor` to
-check host dependencies, and `python3 -m dyxon up <avd>` to boot, ready and
-snapshot a device. The pool and the MCP broker are next (D1–D2); see
-[`roadmap.md`](roadmap.md). The pre-Dyxon prototype
+D0–D2 are done (2026-11-13). The `dyxon/` package has the AVD backend driver and
+provisioner (D0), the warm pool with lease/restore and the `dyxon.session/v1`
+handle (D1), and the MCP device broker (D2). Commands:
+
+- `python3 -m dyxon doctor` — check host dependencies.
+- `python3 -m dyxon up <avd>` — boot, ready and snapshot one device.
+- `DYXON_AVDS=pixel:5554 python3 -m dyxon serve` — run the MCP broker (tools
+  `acquire_device`, `reset`, `release`, `status`) over stdio.
+
+Next is the capability runner (D3): `run_capability` / `collect_runtime`, which
+emit `dynamic_findings.json`. The pre-Dyxon prototype
 (`analysis_tools/dynamic_bridge.py`, `scripts/dynamic_analysis_helper.sh`)
 still exists and is superseded stage by stage.

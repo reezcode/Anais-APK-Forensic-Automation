@@ -48,6 +48,12 @@ def cmd_down(args) -> int:
     return 0
 
 
+def cmd_serve(args) -> int:
+    # Imported lazily so `doctor`/`up`/`down` work without the mcp SDK installed.
+    from dyxon.mcp_server import serve
+    return serve()
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="dyxon", description="Dyxon: Android sandbox broker for dynamic analysis")
     p.add_argument("--version", action="version", version=f"dyxon {__version__}")
@@ -71,6 +77,9 @@ def build_parser() -> argparse.ArgumentParser:
     w.add_argument("avd", help="AVD name (used only for logging)")
     w.add_argument("--port", type=int, default=5554, help="emulator console port (default: 5554)")
     w.set_defaults(func=cmd_down)
+
+    s = sub.add_parser("serve", help="run the MCP device broker over stdio (pool from $DYXON_AVDS)")
+    s.set_defaults(func=cmd_serve)
 
     return p
 

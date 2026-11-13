@@ -10,7 +10,7 @@ Phases run in order; each is committed on its own. Target design:
 |---|---|---|
 | D0 | Package skeleton, AVD backend driver, provisioner | **Done** (2026-11-13) |
 | D1 | Warm pool + snapshot reset, session handle (`dyxon.session/v1`) | **Done** (2026-11-13) |
-| D2 | MCP server: `acquire_device`, `reset`, `release` (the generic device broker) | Planned |
+| D2 | MCP server: `acquire_device`, `reset`, `release` (the generic device broker) | **Done** (2026-11-13) |
 | D3 | Capability runner: `run_capability`, `collect_runtime`, `dynamic_findings.json` | Planned |
 | D4 | Aegis / REA integration pass; detonation profile | Planned |
 
@@ -47,16 +47,21 @@ host (emulator, AVDs, adb all present).
 Verified on 2026-11-13: 10 D1 tests pass (lease, exhaustion, release/reset
 restore counts, TTL reclaim, backend filter, shutdown). Suite total 191.
 
-## D2 — MCP broker (planned) — the generic device broker
+## D2 — MCP broker (done, 2026-11-13) — the generic device broker
 
-| Item | Target |
+| Item | Result |
 |---|---|
-| MCP server | `acquire_device`, `reset`, `release` |
-| Contention | `pool_exhausted` / `session_not_found` behaviour, never block forever |
-| Hand-off | A caller (REA) can take `serial` and run its own ADB/Frida tools unchanged |
+| Broker core | `dyxon/broker.py`: `Broker` turns Pool ops into JSON dicts and maps every `DyxonError` to a stable code. Transport-free, so it is unit-tested without MCP |
+| MCP server | `dyxon/mcp_server.py` + `dyxon serve`: FastMCP tools `acquire_device`, `reset`, `release`, `status`. Long-lived process holding the pool; stdio transport. `mcp` SDK import is guarded |
+| Result envelope | `{ok, session|session_id}` or `{ok:false, error, message}` — see [`device-broker-contract.md`](device-broker-contract.md) |
+| Contention | `pool_exhausted` / `session_not_found` returned as handled errors; never blocks |
+| Config | Pool booted from `DYXON_AVDS` (plus `DYXON_FRIDA_DIR`, `DYXON_CERT`, `DYXON_CERT_HASH`) at server start |
+| Hand-off | A caller takes `serial` from the handle and runs its own ADB/Frida tools unchanged |
 
 This is the milestone chosen to build first. It unblocks REA and Aegis: they get
-a ready device without Dyxon doing any analysis.
+a ready device without Dyxon doing any analysis. Verified on 2026-11-13: 9 D2
+tests pass (broker success/error paths; MCP adapter registers all four tools;
+env config parse). Suite total 200.
 
 ## D3 — Capability runner (planned)
 
