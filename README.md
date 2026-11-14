@@ -34,7 +34,7 @@ Documentation index: [`docs/README.md`](docs/README.md).
 - Diffs two analyses to spot changes between app versions
 - Optional deep analysis via REA (decompilation, native exports, Flutter/Unity/.NET, call-flow) with an agent handoff file
 - Supports dynamic analysis with Frida
-- Runs as an **MCP server** with an **`anais-agent` skill** so agents (Claude Code, Codex, …) can drive the whole pipeline — see [`docs/platform/mcp-and-skill.md`](docs/platform/mcp-and-skill.md)
+- Runs as **MCP servers** with agent skills (`reema-agent` static, `dyxon-agent` dynamic, `anais-agent` router) so agents (Claude Code, Codex, …) can drive the whole pipeline — see [`docs/platform/mcp-and-skill.md`](docs/platform/mcp-and-skill.md)
 
 ## Installation
 
