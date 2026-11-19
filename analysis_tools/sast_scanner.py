@@ -33,6 +33,38 @@ def mask_java_comments(content):
     return _JAVA_TOKEN.sub(blank, content)
 
 
+_STRING_BODY = re.compile(r'"((?:\\.|[^"\\\n])*)"')
+
+
+def blank_string_bodies(content):
+    """Blank the *inside* of string literals, keeping the quotes and length.
+
+    For API-call rules (a logged call, a WebView setter), a pattern word that
+    appears inside a message string is noise: `Log.w("...retryPassword...")` is
+    not sensitive logging. Length is preserved so match offsets still line up.
+    Not used for secret/key/algorithm rules, whose evidence *is* the literal.
+    """
+    return _STRING_BODY.sub(lambda m: '"' + (' ' * len(m.group(1))) + '"', content)
+
+
+#: Rules whose pattern is a code construct, so string-literal bodies are blanked
+#: and import/package lines are skipped. Secret/key/crypto-algorithm rules keep
+#: their literals and are absent here.
+STRUCTURAL_CATEGORIES = frozenset({
+    'logging_sensitive_data', 'insecure_storage', 'intent_vulnerabilities',
+    'webview_vulnerabilities', 'insecure_network',
+})
+
+#: A log/store statement is only a finding when it also names sensitive data.
+SENSITIVE_RE = re.compile(
+    r'(?i)\b(pass(?:word|wd|phrase)?|pwd|secret|api[_-]?key|token|auth|bearer|'
+    r'session|cookie|credential|pin|otp|jwt|mnemonic|seed|private[_-]?key|'
+    r'card(?:[_-]?number)?|cvv|ssn|iban|account[_-]?number|location|latitude|'
+    r'longitude|imei|imsi|email|phone)\b')
+
+_IMPORT_RE = re.compile(r'^\s*(?:import|package)\s')
+
+
 def app_first(files, root):
     """Order files so app-owned code is scanned before SDK code under the file cap."""
     return sorted(files, key=lambda f: (owner_of(str(f.relative_to(root))) != 'app', str(f)))
@@ -95,13 +127,18 @@ class SASTScanner:
                 r'getDeviceId',
                 r'getLine1Number',
             ],
+            # Dynamic code loading and shell exec. Bare `loadClass` and `.dex`
+            # were dropped: reflection and "classes.dex" strings are everywhere
+            # and pinned 12+ framework false positives per app.
             'remote_code_execution': [
                 r'DexClassLoader',
-                r'PathClassLoader',
-                r'loadClass',
-                r'\.dex',
-                r'Runtime\.exec',
-                r'ProcessBuilder',
+                r'InMemoryDexClassLoader',
+                r'BaseDexClassLoader',
+                r'PathClassLoader\s*\(',
+                r'DexFile\s*\(',
+                r'createPackageContext',
+                r'Runtime\.getRuntime\(\)\.exec',
+                r'\bnew\s+ProcessBuilder\s*\(',
             ],
             'accessibility_abuse': [
                 r'AccessibilityService',
@@ -113,13 +150,18 @@ class SASTScanner:
         
         # High severity patterns
         self.high_patterns = {
+            # Each pattern needs crypto-API evidence: a whole quoted algorithm
+            # literal (JCA names are case-insensitive, as is the scan) or a call.
+            # Bare substrings (DES, ECB, MD5) used to hit identifiers such as
+            # IBitmapDescriptorFactory or deserialize, and Random() hit
+            # SecureRandom().
             'insecure_crypto': [
-                r'DES',
-                r'ECB',
-                r'MD5',
-                r'SHA1(?!SHA256)',
-                r'Random\(\)',
-                r'Cipher\.getInstance\("AES"\)',  # Without mode
+                r'"(?:DES|DESede|TripleDES|3DES|RC4|ARCFOUR|Blowfish)(?:/[A-Za-z0-9]+/[A-Za-z0-9]+)?"',
+                r'"[A-Za-z0-9]+/ECB/[A-Za-z0-9]+"',
+                r'"MD5"',
+                r'"SHA-?1"',
+                r'\bnew\s+(?:java\.util\.)?Random\s*\(',
+                r'Cipher\.getInstance\(\s*"AES"\s*\)',  # AES without mode defaults to ECB
             ],
             'hardcoded_secrets': [
                 r'password\s*=\s*["\'][\w]+["\']',
@@ -143,48 +185,51 @@ class SASTScanner:
                 r'https://[a-z0-9-]+\.firebaseio\.com',                                 # Firebase URL
             ],
             'insecure_network': [
-                r'setHostnameVerifier.*ALLOW_ALL',
-                r'TrustAllCertificates',
-                r'http://(?!localhost)',
+                # Disabled TLS verification, not merely "uses a socket factory".
+                r'setHostnameVerifier\s*\(\s*(?:[\w.]*ALLOW_ALL|[\w.]*\.NO_VERIFY|new\s+HostnameVerifier)',
+                r'\bTrustAll\w*',
                 r'trustAllHosts',
-                r'SSLSocketFactory',
+                r'checkServerTrusted\s*\([^)]*\)\s*\{\s*\}',  # empty trust manager
+                r'(?-i:X509TrustManager)',
             ],
             'webview_vulnerabilities': [
-                r'setJavaScriptEnabled\(true\)',
-                r'addJavascriptInterface',
-                r'setAllowFileAccess\(true\)',
-                r'setAllowContentAccess\(true\)',
+                r'setJavaScriptEnabled\(\s*true\s*\)',
+                r'addJavascriptInterface\s*\(',
+                r'setAllowFileAccess\(\s*true\s*\)',
+                r'setAllowUniversalAccessFromFileURLs\(\s*true\s*\)',
+                r'setAllowContentAccess\(\s*true\s*\)',
             ],
+            # Only genuinely risky runtime behaviour; plain requestPermissions() is
+            # normal and manifest `dangerous_permission` already covers the grant.
             'dynamic_permission_requests': [
-                r'requestPermissions',
-                r'READ_SMS',
-                r'RECEIVE_SMS',
-                r'READ_CONTACTS',
-                r'READ_CALL_LOG',
-                r'SYSTEM_ALERT_WINDOW',
-                r'REQUEST_INSTALL_PACKAGES',
+                r'(?-i:SYSTEM_ALERT_WINDOW)',
+                r'(?-i:REQUEST_INSTALL_PACKAGES)',
+                r'(?-i:MANAGE_EXTERNAL_STORAGE)',
             ],
         }
-        
+
         # Medium severity patterns
         self.medium_patterns = {
+            # Gated in _match_passes_gate: only when the logged statement also
+            # references a sensitive identifier (password, token, pin, ...).
             'logging_sensitive_data': [
-                r'Log\.[dviwe]\(',
-                r'printStackTrace',
+                r'Log\.[dviwe]\s*\(',
                 r'System\.out\.print',
             ],
+            # Bare getSharedPreferences/openFileOutput is normal; the risk is
+            # world-readable/writable mode or a sensitive key (gated below).
             'insecure_storage': [
                 r'MODE_WORLD_READABLE',
-                r'MODE_WORLD_WRITEABLE',
-                r'openFileOutput',
-                r'getSharedPreferences',
+                r'MODE_WORLD_WRITE?ABLE',
+                r'getSharedPreferences\s*\(',
+                r'openFileOutput\s*\(',
             ],
+            # Mutable/implicit PendingIntent and unprotected receivers; not plain
+            # startActivity or an import line.
             'intent_vulnerabilities': [
-                r'sendBroadcast',
-                r'startActivity',
-                r'startService',
-                r'getIntent\(\)',
-                r'PendingIntent',
+                r'(?-i:FLAG_MUTABLE)',
+                r'PendingIntent\.get\w+\s*\((?![^)]*FLAG_IMMUTABLE)',
+                r'registerReceiver\s*\(',
             ],
         }
     
@@ -206,86 +251,116 @@ class SASTScanner:
         
         self.findings[severity].append(finding)
     
+    @staticmethod
+    def _line_at(content, pos):
+        """The full source line containing offset `pos`."""
+        start = content.rfind('\n', 0, pos) + 1
+        end = content.find('\n', pos)
+        return content[start:end if end != -1 else len(content)]
+
+    def _match_passes_gate(self, category, line_text, snippet):
+        """Context rules that a regex match can't express on its own.
+
+        Returns False to drop a structurally-matched but benign hit:
+        - logging / sensitive storage only count when sensitive data is named;
+        - a bare `getSharedPreferences(...)` with no world-mode and no sensitive
+          key is normal and is dropped.
+        """
+        text = f'{line_text}\n{snippet or ""}'
+        if category == 'logging_sensitive_data':
+            return bool(SENSITIVE_RE.search(text))
+        if category == 'insecure_storage':
+            if re.search(r'MODE_WORLD_(?:READABLE|WRITE?ABLE)', text):
+                return True
+            if re.search(r'getSharedPreferences|openFileOutput', line_text):
+                return bool(SENSITIVE_RE.search(text))
+        return True
+
+    def _emit_matches(self, severity, category, patterns, search_text, snippet_src, rel_path,
+                      per_file_cap, detected_title, describe):
+        """Run one category's patterns over `search_text`, applying the import
+        skip and the context gate, and record each surviving match.
+
+        `search_text` is the text matched against (comments masked, and string
+        bodies also blanked for structural rules, so offsets map onto
+        `snippet_src`, the raw text shown to the user).
+        """
+        structural = category in STRUCTURAL_CATEGORIES
+        for pattern in patterns:
+            count = 0
+            for match in re.finditer(pattern, search_text, re.IGNORECASE):
+                if count >= per_file_cap:
+                    break
+                line_text = self._line_at(search_text, match.start())
+                if structural and _IMPORT_RE.match(line_text):
+                    continue
+                line_num = search_text.count('\n', 0, match.start()) + 1
+                snippet = self.extract_snippet(snippet_src, match.start(), match.end(), context_lines=3)
+                if not self._match_passes_gate(category, self._line_at(snippet_src, match.start()), snippet):
+                    continue
+                self.add_finding(severity, category, detected_title(category),
+                                 describe(match, pattern), rel_path, line_num, snippet)
+                count += 1
+
+    def _search_text_for(self, category, masked, blanked):
+        """Pick the text a category matches against: structural rules use the
+        string-body-blanked variant, literal rules keep their string contents."""
+        return blanked if category in STRUCTURAL_CATEGORIES else masked
+
     def scan_smali_files(self):
         """Scan SMALI files for security issues"""
         if not self.decompiled_dir:
             return
-        
+
         print("Scanning SMALI files...")
-        
+
         # Find all smali directories
         smali_dirs = [d for d in self.decompiled_dir.iterdir() if d.is_dir() and d.name.startswith('smali')]
-        
+
         for smali_dir in smali_dirs:
             smali_files = app_first(smali_dir.rglob('*.smali'), self.decompiled_dir)[:500]  # Limit to avoid too long processing
-            
+
             for smali_file in smali_files:
                 try:
                     content = smali_file.read_text(errors='ignore')
-                    
-                    # Check critical patterns
+                    rel = smali_file.relative_to(self.decompiled_dir)
                     for category, patterns in self.critical_patterns.items():
-                        for pattern in patterns:
-                            matches = list(re.finditer(pattern, content, re.IGNORECASE))
-                            if matches:
-                                for match in matches[:3]:  # Limit matches per file
-                                    line_num = content[:match.start()].count('\n') + 1
-                                    snippet = self.extract_snippet(content, match.start(), match.end())
-                                    
-                                    self.add_finding(
-                                        'critical',
-                                        category,
-                                        f'{category.replace("_", " ").title()} Detected',
-                                        f'Suspicious pattern found: {pattern}',
-                                        smali_file.relative_to(self.decompiled_dir),
-                                        line_num,
-                                        snippet
-                                    )
-                    
-                except Exception as e:
+                        self._emit_matches(
+                            'critical', category, patterns, content, content, rel,
+                            per_file_cap=3,
+                            detected_title=lambda c: f'{c.replace("_", " ").title()} Detected',
+                            describe=lambda m, p: f'Suspicious pattern found: {m.group(0)[:100]}')
+                except Exception:
                     continue
-    
+
     def scan_java_files(self):
         """Scan Java source files for security issues"""
         if not self.jadx_dir or not self.jadx_dir.exists():
             return
-        
+
         print("Scanning Java source files...")
-        
+
         java_files = app_first(self.jadx_dir.rglob('*.java'), self.jadx_dir)[:500]
-        
+
         for java_file in java_files:
             try:
                 raw = java_file.read_text(errors='ignore')
-                content = mask_java_comments(raw)  # same length as raw, so offsets match
-                lines = content.split('\n')
-                
-                # Scan for all pattern categories
-                all_patterns = [
-                    ('critical', self.critical_patterns),
-                    ('high', self.high_patterns),
-                    ('medium', self.medium_patterns)
-                ]
-                
-                for severity, pattern_dict in all_patterns:
+                masked = mask_java_comments(raw)        # comments blanked, offsets intact
+                blanked = blank_string_bodies(masked)   # + string bodies, for structural rules
+                rel = java_file.relative_to(self.jadx_dir)
+
+                for severity, pattern_dict in (('critical', self.critical_patterns),
+                                               ('high', self.high_patterns),
+                                               ('medium', self.medium_patterns)):
                     for category, patterns in pattern_dict.items():
-                        for pattern in patterns:
-                            matches = list(re.finditer(pattern, content, re.IGNORECASE))
-                            
-                            if matches:
-                                for match in matches[:5]:  # Limit per file
-                                    line_num = content[:match.start()].count('\n') + 1
-                                    snippet = self.extract_snippet(raw, match.start(), match.end(), context_lines=3)
-                                    
-                                    self.add_finding(
-                                        severity,
-                                        category,
-                                        f'{category.replace("_", " ").title()}',
-                                        f'Pattern detected: {match.group(0)[:100]}',
-                                        java_file.relative_to(self.jadx_dir),
-                                        line_num,
-                                        snippet
-                                    )
+                        self._emit_matches(
+                            severity, category, patterns,
+                            self._search_text_for(category, masked, blanked), raw, rel,
+                            per_file_cap=5,
+                            detected_title=lambda c: c.replace("_", " ").title(),
+                            describe=lambda m, p: f'Pattern detected: {m.group(0)[:100]}')
+            except Exception:
+                continue
                 
             except Exception as e:
                 continue
@@ -302,36 +377,40 @@ class SASTScanner:
             return
         
         so_files = list(lib_dir.rglob('*.so'))
-        
-        suspicious_strings = [
-            'curl',
-            'wget',
-            'http',
-            'socket',
-            'exec',
-            'system',
-            'popen',
-            'decrypt',
-            'encrypt',
+
+        # High-signal native strings only. The old list (http, socket, exec,
+        # system, encrypt...) appears in essentially every .so (libc, OpenSSL,
+        # the runtime) and produced pure noise. These are anti-analysis /
+        # tampering markers and embedded key material, reported as info.
+        native_markers = [
+            (re.compile(rb'(?<![A-Za-z])(?:/system/bin/su|/system/xbin/su|which su)\b'), 'Root-check path'),
+            (re.compile(rb'\bfrida|gum-js-loop|gmain\b'), 'Frida instrumentation marker'),
+            (re.compile(rb'\b(?:magisk|xposed|substrate|zygisk)\b', re.IGNORECASE), 'Hooking/root framework marker'),
+            (re.compile(rb'ptrace|/proc/self/status|TracerPid'), 'Anti-debug marker'),
+            (re.compile(rb'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----'), 'Embedded private key'),
         ]
-        
+
         for so_file in so_files:
             try:
                 # Read as binary and search for strings
                 with open(so_file, 'rb') as f:
                     content_bytes = f.read()
-                    
-                    for susp_str in suspicious_strings:
-                        if susp_str.encode() in content_bytes:
+
+                    seen = set()
+                    for rx, label in native_markers:
+                        m = rx.search(content_bytes)
+                        if m and label not in seen:
+                            seen.add(label)
+                            sev = 'high' if label == 'Embedded private key' else 'info'
                             self.add_finding(
-                                'medium',
+                                sev,
                                 'native_code',
-                                'Suspicious String in Native Library',
-                                f'Found: {susp_str}',
+                                'Native Anti-Analysis / Key Marker',
+                                f'{label}: {m.group(0)[:40].decode("latin-1", "ignore")}',
                                 so_file.relative_to(self.decompiled_dir),
-                                code_snippet=f'String: {susp_str}'
+                                code_snippet=f'Marker: {label}'
                             )
-                    
+
                     # Also scan for API keys by decoding to string (ignoring errors)
                     content_str = content_bytes.decode('utf-8', errors='ignore')
                     if 'api_keys' in self.high_patterns:
