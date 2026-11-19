@@ -100,3 +100,26 @@ seam, it maps `posture` → the matching MASVS control and drops the axis field.
 `status` per control group: `pass` (checked, no finding), `fail` (one or more
 findings), `needs_runtime` (a finding awaits dynamic confirmation),
 `not_applicable` (control out of scope for this app), `not_checked` (no rule ran).
+
+## Dynamic record — `peny.dynamic/v1`
+
+The P2 confirm pass (`peny confirm`) writes `reports/peny_dynamic.json` and
+rewrites `peny_findings.json` with the flipped `runtime_status` values.
+
+```json
+{
+  "schema": "peny.dynamic/v1",
+  "session": { "session_id": "...", "serial": "emulator-5554", "frida_endpoint": "..." },
+  "observations": [
+    {"source": "crypto", "script": "crypto_hooks.js", "check": "weak_cipher",
+     "error": null, "messages": [{"check": "weak_cipher", "confirmed": true, "detail": "..."}]}
+  ]
+}
+```
+
+`session` is the `dyxon.session/v1` handle the device was leased under. One
+observation per harness run; `source: "user_script"` carries a tier-1 run. The
+confirm engine reads each harness's `send()` messages and sets the matching
+finding's `runtime_status` to `confirmed` (a `confirmed:true` message),
+`refuted` (only `confirmed:false`), or leaves it `pending` (no signal / error),
+appending a runtime `Evidence` with `file: "device:<serial>"`.

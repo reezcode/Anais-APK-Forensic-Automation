@@ -5,8 +5,8 @@ Last updated: 2026-11-19.
 | Phase | Scope | Status |
 |---|---|---|
 | P0 | Package skeleton, one-way seam to the shared static core, contract test | **Done** (2026-11-19) |
-| P1 | Static lens: MASVS rule set, coverage matrix, `peny.findings/v1`, pentest report | Planned |
-| P2 | Dynamic confirm track: Dyxon lease + REA, tier-0 Frida harnesses, tier-1 user script | Planned |
+| P1 | Static lens: MASVS rule set, coverage matrix, `peny.findings/v1`, pentest report | **Done** (2026-11-19) |
+| P2 | Dynamic confirm track: Dyxon lease, tier-0 Frida harnesses, tier-1 user script | **Done** (2026-11-19) |
 | P3 | Business-logic track: proxied lease (Dyxon D-C1), traffic capture + replay/tamper helpers | Planned |
 
 Target design for every phase: [`design.md`](design.md).
@@ -26,23 +26,40 @@ Designed but unimplemented work, ready to pick up: [`backlog.md`](backlog.md).
 **Verification on 2026-11-19:** `python3 -m unittest discover -s tests` → 227
 passed, 1 skipped. `python3 -m peny --version` → `peny 0.1.0`.
 
-## P1 — Static lens (planned)
+## P1 — Static lens (done)
 
-- Run the shared extraction layer, collect raw facts + Reema `posture` findings.
-- `peny/rules/` maps each fact to a MASVS control, exploitability severity, CWE,
-  and a fix; flags `needs_runtime_confirmation`.
-- `peny/masvs.py` builds the coverage matrix.
-- `peny/report.py` renders `report.md` + the MASVS matrix.
-- Own case directory; never writes a Reema report file.
+| Item | Result |
+|---|---|
+| Extraction reuse | `peny/_shared.py` drives `reema.apk.run` (unpack + analyzers) and `reema.adapters.collect` (normalized findings) — lazy-imported, seam-safe |
+| MASVS rule set | `peny/rules/masvs_map.py`: data-driven `(source, category) → MapRule` table (MASVS, CWE, MASTG, severity override, impact, fix, needs_runtime). Covers crypto, secrets, network, WebView, IPC/platform, storage, logging, manifest, signing, RASP. Malware IOCs / neutral context skipped |
+| Coverage matrix | `peny/masvs.py`: `pass`/`fail`/`needs_runtime`/`not_checked` per control; a runtime-flagged group reads `needs_runtime` until confirmed; `STATIC_COVERAGE` separates statically-assessed groups from dynamic-only (AUTH) |
+| Schema | `peny.findings/v1` document + matrix (`peny/findings.py`) |
+| Report | `peny/report.py`: `report.md` (summary + matrix + findings by MASVS, each with impact/fix/evidence) and `masvs.md` |
+| Case | `peny/case.py`: own case dir + `case.json` (`peny.case/v1`), authorization note, hashes, tool versions. Never writes a Reema report file |
+| CLI | `peny analyze <apk> [--authorized-by --scope --offline --case-dir]` |
+| Tests | `tests/test_peny_p1.py`, 11 tests (mapping, skip, matrix coverage, hermetic end-to-end scan with patched extraction) |
 
-## P2 — Dynamic confirm (planned)
+**Verification on 2026-11-19:** full suite **238 pass**, 1 skipped (227 prior +
+11 P1). Hermetic scan asserts Peny writes `peny_findings.json`/`masvs.md`/
+`report.md` and **no** `findings.json`.
 
-- `peny/dynamic.py` leases from Dyxon, drives REA on the serial.
-- Tier-0 harnesses in `peny/harnesses/`: SSL-pinning bypass, crypto hooks,
-  root-detection bypass, storage dump.
-- Tier-1: load an operator-supplied `.js` through REA.
-- Flips `runtime_status` on `needs_runtime_confirmation` findings.
-- Runs on a stock Dyxon lease (`network = false`).
+## P2 — Dynamic confirm (done)
+
+| Item | Result |
+|---|---|
+| Confirm engine | `peny/dynamic.py`: `confirm()` runs a tier-0 harness per pending source (once each), reads its `send()` messages, and flips `runtime_status` to `confirmed`/`refuted`; no decisive signal or a runner error honestly leaves it `pending` |
+| Injectable runner | `FridaRunner` interface + `FridaBindingRunner` (real, over the `frida` Python binding) — so the confirm logic is unit-tested with a fake, the way Dyxon tests its shell Runner |
+| Tier-0 harnesses | `peny/harnesses/`: `crypto_hooks.js` (weak cipher/hash), `ssl_pinning_bypass.js` (permissive TrustManager / OkHttp pinner), `root_detection_bypass.js`, `storage_dump.js` (plaintext prefs). Each emits `{check, confirmed, detail, evidence}` |
+| Harness map | `HARNESS_MAP` keys Peny source → (script, check): crypto/network/storage/resilience. Sources without a tier-0 harness stay `pending` (manual / tier-1) |
+| Tier-1 | `--user-script` runs an operator `.js` as-is; its messages are recorded as an observation, not auto-flipped |
+| Lease reuse | `lease_and_confirm()` leases via `dyxon.provider.DyxonProvider` (lazy import; Peny does not hard-depend on Dyxon), then runs the pass on the serial |
+| Outputs | Rewrites `peny_findings.json` + matrix + `report.md`; writes `reports/peny_dynamic.json` (`peny.dynamic/v1`: session + observations) |
+| CLI | `peny confirm <case-dir> [--package --backend --user-script]` |
+| Tests | `tests/test_peny_p2.py`, 4 tests (flip + matrix update + runtime evidence, runner-error stays pending, user-script observation, from_dict id round-trip) |
+
+**Verification on 2026-11-19:** full suite **242 pass**, 1 skipped (238 prior +
+4 P2). Seam still clean with `peny.dynamic` imported (Dyxon imported only inside
+`lease_and_confirm`).
 
 ## P3 — Business logic (planned)
 

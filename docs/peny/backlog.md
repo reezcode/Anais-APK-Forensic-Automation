@@ -20,14 +20,20 @@ the roadmap and ADRs.
 
 ## Dynamic confirm
 
-- **PE-D1 — Tier-0 Frida harnesses.** SSL-pinning bypass, Cipher/SecretKeySpec/
-  PBEKeySpec/SecureRandom hooks, root-detection bypass, Log/clipboard hooks,
-  shared_prefs/DB dump. Driven through REA on a Dyxon serial.
-- **PE-D2 — Tier-1 user script loader.** Load an operator-supplied `.js` through
-  REA `load_frida_script`; attach its output to the relevant finding.
-- **PE-D3 — Runtime status merge.** Flip `runtime_status`
-  (`pending`→`confirmed`/`refuted`) on `needs_runtime_confirmation` findings and
-  re-render the report + matrix.
+- **PE-D1 — Tier-0 Frida harnesses.** *Done (P2):* `crypto_hooks.js`,
+  `ssl_pinning_bypass.js`, `root_detection_bypass.js`, `storage_dump.js`. Still to
+  add: `SecretKeySpec`/`PBEKeySpec`/`SecureRandom` IV-reuse hooks, Log/clipboard
+  hooks, DB (SQLite) dump, biometric-callback check.
+- **PE-D2 — Tier-1 user script loader.** *Done (P2):* `--user-script` runs an
+  operator `.js`; recorded as an observation. Still to add: bind a tier-1 script
+  to a specific finding so it auto-flips `runtime_status`.
+- **PE-D3 — Runtime status merge.** *Done (P2):* `confirm()` flips
+  `runtime_status` and re-renders the report + matrix.
+- **PE-D4 — Exported-component / IPC confirm.** `am`/`content` probing of exported
+  components and providers (not Frida) to confirm `exported_component` /
+  `intent_vulnerabilities` findings. Drive through REA's adb on the serial.
+- **PE-D5 — Real FridaBindingRunner on hardware.** Exercise `FridaBindingRunner`
+  end to end against a live Dyxon lease (hermetic tests cover the logic only).
 
 ## Business logic (Track 2)
 

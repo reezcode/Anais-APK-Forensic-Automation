@@ -76,6 +76,16 @@ class PenyFinding:
         digest = hashlib.sha1(f"{self.source}|{self.rule}|{self.title}|{location}".encode())
         return f"peny-{digest.hexdigest()[:12]}"
 
+    @classmethod
+    def from_dict(cls, d):
+        """Rebuild a PenyFinding from its serialized form (e.g. reloaded from
+        peny_findings.json for the dynamic confirm pass)."""
+        d = dict(d)
+        d.pop("id", None)  # recomputed, but stable for the same inputs
+        ev = [Evidence(**e) for e in d.pop("evidence", []) or []]
+        known = {f for f in cls.__dataclass_fields__ if f != "evidence"}
+        return cls(evidence=ev, **{k: v for k, v in d.items() if k in known})
+
     def to_dict(self):
         data = asdict(self)
         data["evidence"] = [{k: v for k, v in e.items() if v is not None} for e in data["evidence"]]

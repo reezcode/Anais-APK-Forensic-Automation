@@ -7,6 +7,7 @@ report + coverage matrix into Peny's own case directory. See docs/peny/design.md
 
 import argparse
 import sys
+from pathlib import Path
 
 from peny import __version__
 
@@ -34,6 +35,25 @@ def _cmd_analyze(args):
     return 0
 
 
+def _cmd_confirm(args):
+    from peny.dynamic import lease_and_confirm
+
+    case_dir = Path(args.case_dir)
+    if not (case_dir / "reports" / "peny_findings.json").is_file():
+        print(f"peny confirm: no peny_findings.json under {case_dir}; run `peny analyze` first.",
+              file=sys.stderr)
+        return 2
+    try:
+        summary = lease_and_confirm(case_dir, package=args.package, backend=args.backend,
+                                    user_script=args.user_script)
+    except Exception as exc:  # device/lease/dyxon failure -> clean message, not a traceback
+        print(f"peny confirm: dynamic pass failed: {exc}", file=sys.stderr)
+        return 1
+    print(f"peny: confirmed {summary['confirmed']}, {summary['needs_runtime']} still pending "
+          f"({summary['observations']} harness run(s)) -> {case_dir}/reports/peny_findings.json")
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="peny",
@@ -49,6 +69,14 @@ def build_parser():
     p_analyze.add_argument("--case-dir", default=None, help="Write into DIR instead of a new case directory")
     p_analyze.add_argument("--offline", action="store_true", help="Send nothing online during extraction")
     p_analyze.set_defaults(func=_cmd_analyze)
+
+    p_confirm = sub.add_parser(
+        "confirm", help="Confirm a case's runtime-flagged findings on a Dyxon-leased device")
+    p_confirm.add_argument("case_dir", help="A Peny case directory from `peny analyze`")
+    p_confirm.add_argument("--package", default=None, help="Override the app package to run (default: case's)")
+    p_confirm.add_argument("--backend", default=None, help="Dyxon backend to lease (default: pool default)")
+    p_confirm.add_argument("--user-script", default=None, help="Tier-1 Frida .js to run as-is (recorded as an observation)")
+    p_confirm.set_defaults(func=_cmd_confirm)
 
     return parser
 
