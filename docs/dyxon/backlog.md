@@ -44,5 +44,5 @@ The two first-build options not chosen are scheduled, not dropped:
 
 | Id | Item | Plugs into | Notes |
 |---|---|---|---|
-| D-C1 | **Controlled network sink** | provisioner, `run_capability` | Logged HTTP(S) proxy / fake-services host, so a job can observe egress without real internet. Off by default (see the isolation model in `design.md`). |
+| D-C1 | **Controlled network sink** — *done (2026-11-19)* | broker, provisioner | `acquire_device(network="proxy", proxy="host:port")` sets the device `http_proxy` (via `Provisioner.set_proxy`), so a job routes HTTP(S) through an operator Burp/mitmproxy; a system CA (provision time) reads TLS. Handle carries `proxy`; snapshot restore clears it. Off by default (`network="none"`). Peny's P3 business-logic track is the first consumer. Follow-up: true egress lockdown (block non-proxy routes) is backend-specific and still open; `fake-services` host not built. |
 | D-C2 | **Runtime capture set** | capability runner | Logcat, pcap, unpacked DEX dumps, Frida traces → `dynamic_findings.json`. Much of this is REA's job on the leased device; Dyxon only orchestrates. |

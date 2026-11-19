@@ -97,10 +97,13 @@ Malware executes on these devices. Defaults contain it:
 
 - **Clean every time.** A lease always starts from the golden snapshot; release
   always restores it. No sample residue crosses a lease.
-- **No real network by default.** The device has no route to the internet
-  unless a job explicitly requests a controlled sink (for example a logged HTTP
-  proxy or a fake-services host). Opening real egress is an explicit,
-  per-job decision.
+- **No real network by default.** A lease is `network="none"` unless a job
+  explicitly requests a controlled sink. `network="proxy"` (D-C1) points the
+  device's HTTP(S) at an operator proxy (Burp/mitmproxy) for traffic inspection;
+  a system CA cert installed at provision time lets the sink read TLS, and the
+  snapshot restore on release clears the proxy. Opening egress is an explicit,
+  per-job decision — never for malware detonation, only for an authorized app on
+  a disposable device.
 - **No host mounts.** The device cannot reach the analyst's filesystem.
 - **Bounded leases.** A TTL prevents a hung job from holding or contaminating a
   device forever.

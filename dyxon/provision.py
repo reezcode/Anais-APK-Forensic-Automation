@@ -55,6 +55,20 @@ class Provisioner:
         # Keep the screen on while plugged in, so a job does not stall on a lock screen.
         self._adb(serial, "shell", "svc", "power", "stayon", "true")
 
+    def set_proxy(self, serial: str, endpoint: str) -> None:
+        """Route the device's HTTP(S) traffic through `endpoint` ("host:port").
+
+        Applied per lease, not baked into the golden snapshot, so a snapshot
+        restore on release/reset clears it. Pair with a system CA cert (installed
+        at provision time) so the proxy can read TLS. Opening this egress is a
+        deliberate per-job decision — see the isolation model in design.md.
+        """
+        self._adb(serial, "shell", "settings", "put", "global", "http_proxy", endpoint).check()
+
+    def clear_proxy(self, serial: str) -> None:
+        """Remove the device HTTP proxy. (A snapshot restore also clears it.)"""
+        self._adb(serial, "shell", "settings", "delete", "global", "http_proxy").check()
+
     def _select_frida(self, abi: str) -> Optional[str]:
         if self.frida_servers:
             if abi in self.frida_servers:

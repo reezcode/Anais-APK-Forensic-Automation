@@ -27,13 +27,18 @@ class DyxonProvider:
         self.broker = broker
 
     @contextmanager
-    def lease(self, backend: Optional[str] = None, ttl_seconds: int = DEFAULT_TTL_SECONDS, network: str = "none"):
+    def lease(self, backend: Optional[str] = None, ttl_seconds: int = DEFAULT_TTL_SECONDS,
+              network: str = "none", proxy: Optional[str] = None):
         """Acquire a device, yield its session handle, release it on exit.
 
-        Raises PoolExhausted (or DyxonError) if no device could be leased, so a
-        caller uses a normal `with` and `try/except`, never the ok/error envelope.
+        network="proxy" (with `proxy`="host:port" or DYXON_PROXY) routes the
+        device's HTTP(S) through a controlled sink; the handle then carries a
+        `proxy` field. Raises PoolExhausted (or DyxonError) if no device could be
+        leased, so a caller uses a normal `with` and `try/except`, never the
+        ok/error envelope.
         """
-        result = self.broker.acquire_device(backend=backend, ttl_seconds=ttl_seconds, network=network)
+        result = self.broker.acquire_device(
+            backend=backend, ttl_seconds=ttl_seconds, network=network, proxy=proxy)
         if not result.get("ok"):
             message = result.get("message", "could not acquire a device")
             if result.get("error") == "pool_exhausted":
