@@ -12,7 +12,7 @@ Dyxon is an MCP server exposing five tools.
 
 | Tool | Input | Output | Purpose |
 |---|---|---|---|
-| `acquire_device` | `backend` (default `avd`), `android_version`, `ttl_seconds` | a session handle | Lease a ready, rooted device from the pool. |
+| `acquire_device` | `backend` (default `avd`), `android_version`, `ttl_seconds`, `network` (`none`\|`proxy`), `proxy` (`host:port`) | a session handle | Lease a ready, rooted device from the pool. `network="proxy"` routes the device's HTTP(S) through `proxy` (or `DYXON_PROXY`) — the controlled sink (D-C1). |
 | `run_capability` | `session_id`, `apk` or `sample`, `capability` or Vaccine Pack ref | job id | Install the target and run a capability check or detonation on the leased device. |
 | `collect_runtime` | `session_id`, `job_id` | path to `dynamic_findings.json` | Gather runtime observations for a job into the findings contract. |
 | `reset` | `session_id` | ok | Restore the golden snapshot mid-lease without releasing. |
@@ -66,12 +66,18 @@ Returned by `acquire_device`:
 }
 ```
 
+With `network="proxy"` the handle additionally carries `"proxy": "10.0.2.2:8080"`,
+the sink the device's HTTP(S) was pointed at.
+
 - `serial` — the ADB serial the caller targets. REA's `list_adb_devices` /
   `instrument_with_frida` and any `adb -s <serial>` command use it.
 - `frida_endpoint` — where `frida-server` listens on the device, already
   running and arch-matched.
-- `network` — `none` by default; a job may request a controlled sink
-  (`proxy`, `fake-services`) but not real egress without an explicit flag.
+- `network` — `none` by default. `proxy` (D-C1) points the device's HTTP(S) at an
+  operator sink (Burp/mitmproxy) for traffic inspection; the endpoint comes from
+  the `proxy` arg or `DYXON_PROXY`, and a system CA cert (installed at provision
+  time) lets the sink read TLS. The proxy is cleared by the snapshot restore on
+  release/reset. Opening egress is deliberate and per-job — see design.md.
 - `ttl_seconds` / `expires_at` — the lease is reclaimed at expiry even if the
   caller never calls `release`.
 

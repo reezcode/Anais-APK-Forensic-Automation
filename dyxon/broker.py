@@ -11,6 +11,7 @@ run_capability and collect_runtime arrive in D3.
 
 from __future__ import annotations
 
+import os
 import uuid
 from typing import Optional
 
@@ -23,6 +24,7 @@ from dyxon.errors import (
     SessionNotFound,
 )
 from dyxon.pool import DEFAULT_TTL_SECONDS, Pool
+from dyxon.provision import Provisioner
 from dyxon.runner import (
     CapabilityRunner,
     build_dynamic_findings,
@@ -45,6 +47,12 @@ def _error(e: DyxonError) -> dict:
     return {"ok": False, "error": _ERROR_CODES.get(type(e), "error"), "message": str(e)}
 
 
+#: Lease network modes. "none" is the default isolated lease; "proxy" routes the
+#: device's HTTP(S) through a controlled sink (operator's Burp/mitmproxy) so a job
+#: can observe egress. Opening egress is deliberate — see design.md isolation.
+VALID_NETWORKS = ("none", "proxy")
+
+
 class Broker:
     def __init__(self, pool: Pool, runner: Optional[Runner] = None, adb_bin: str = "adb"):
         self.pool = pool
@@ -57,13 +65,37 @@ class Broker:
         backend: Optional[str] = None,
         ttl_seconds: int = DEFAULT_TTL_SECONDS,
         network: str = "none",
+        proxy: Optional[str] = None,
     ) -> dict:
-        """Lease a ready device; on success return its dyxon.session/v1 handle."""
+        """Lease a ready device; on success return its dyxon.session/v1 handle.
+
+        network="proxy" routes the device's HTTP(S) through `proxy` ("host:port",
+        or the DYXON_PROXY env default) — the controlled sink (D-C1). The handle
+        then carries a `proxy` field. The proxy is cleared by the snapshot restore
+        on release/reset.
+        """
+        if network not in VALID_NETWORKS:
+            return _error(PreconditionError(
+                f"network must be one of {VALID_NETWORKS}, got {network!r}"))
         try:
             session = self.pool.acquire(ttl_seconds=ttl_seconds, backend=backend, network=network)
-            return {"ok": True, "session": session.to_dict()}
         except DyxonError as e:
             return _error(e)
+
+        handle = session.to_dict()
+        if network == "proxy":
+            endpoint = proxy or os.environ.get("DYXON_PROXY")
+            if not endpoint:
+                self.pool.release(handle["session_id"])
+                return _error(PreconditionError(
+                    "network='proxy' needs a proxy endpoint: pass proxy= or set DYXON_PROXY"))
+            try:
+                Provisioner(self.runner, self.adb_bin).set_proxy(handle["serial"], endpoint)
+            except DyxonError as e:
+                self.pool.release(handle["session_id"])
+                return _error(e)
+            handle["proxy"] = endpoint
+        return {"ok": True, "session": handle}
 
     def reset(self, session_id: str) -> dict:
         """Restore the leased device to its golden snapshot without releasing it."""

@@ -44,10 +44,14 @@ def build_server(broker: Broker, name: str = SERVER_NAME):
     server = FastMCP(name)
 
     @server.tool()
-    def acquire_device(backend: Optional[str] = None, ttl_seconds: int = 1800, network: str = "none") -> dict:
+    def acquire_device(backend: Optional[str] = None, ttl_seconds: int = 1800,
+                       network: str = "none", proxy: Optional[str] = None) -> dict:
         """Lease a ready, rooted Android device. Returns a dyxon.session/v1 handle
-        with the ADB serial and frida endpoint, or {ok:false, error:"pool_exhausted"}."""
-        return broker.acquire_device(backend=backend, ttl_seconds=ttl_seconds, network=network)
+        with the ADB serial and frida endpoint, or {ok:false, error:"pool_exhausted"}.
+        network="proxy" (with proxy="host:port" or DYXON_PROXY) routes the device's
+        HTTP(S) through a controlled sink; the handle then carries a `proxy` field."""
+        return broker.acquire_device(backend=backend, ttl_seconds=ttl_seconds,
+                                     network=network, proxy=proxy)
 
     @server.tool()
     def run_capability(session_id: str, package: str, capability: Optional[str] = None,
