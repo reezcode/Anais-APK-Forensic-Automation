@@ -9,4 +9,4 @@ imports the shared extraction primitives, never Reema's verdict/capability/
 vaccine code, and Reema never imports Peny.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

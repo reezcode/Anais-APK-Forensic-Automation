@@ -104,6 +104,7 @@ def build_document(findings, sample=None, authorization=None, sources=None,
     """
     from peny import __version__
     from peny.masvs import build_matrix
+    from peny.secrets import extract_secrets
 
     by_severity = {s: 0 for s in SEVERITIES}
     by_masvs = {g: 0 for g in MASVS_GROUPS}
@@ -119,6 +120,9 @@ def build_document(findings, sample=None, authorization=None, sources=None,
 
     order = {s: i for i, s in enumerate(SEVERITIES)}
     findings = sorted(findings, key=lambda f: (order[f.severity], f.masvs, f.rule))
+    finding_dicts = [f.to_dict() for f in findings]
+    # Derived from the findings, so every rebuild (confirm, business logic) keeps it.
+    secrets = extract_secrets(finding_dicts)
 
     return {
         "schema": SCHEMA_VERSION,
@@ -133,7 +137,9 @@ def build_document(findings, sample=None, authorization=None, sources=None,
             "by_masvs": by_masvs,
             "needs_runtime": needs_runtime,
             "confirmed": confirmed,
+            "secrets": len(secrets),
         },
         "masvs": matrix if matrix is not None else build_matrix(findings, coverage),
-        "findings": [f.to_dict() for f in findings],
+        "secrets": secrets,
+        "findings": finding_dicts,
     }

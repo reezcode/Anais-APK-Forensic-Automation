@@ -22,6 +22,7 @@ def _cmd_analyze(args):
             authorized_by=args.authorized_by,
             scope=args.scope,
             offline=args.offline,
+            flutter=args.flutter,
         )
     except FileNotFoundError as exc:
         print(f"peny analyze: no such file: {exc}", file=sys.stderr)
@@ -31,7 +32,8 @@ def _cmd_analyze(args):
     print(f"peny: {s['total']} findings "
           f"(critical {s['by_severity']['critical']}, high {s['by_severity']['high']}, "
           f"medium {s['by_severity']['medium']}, low {s['by_severity']['low']}), "
-          f"{s['needs_runtime']} need runtime -> {cdir}/reports/peny_findings.json")
+          f"{s['needs_runtime']} need runtime, {s.get('secrets', 0)} secret(s) extracted "
+          f"-> {cdir}/reports/peny_findings.json")
     return 0
 
 
@@ -89,6 +91,8 @@ def build_parser():
     p_analyze.add_argument("--scope", default="", help="Assessment scope/window note (recorded in case.json)")
     p_analyze.add_argument("--case-dir", default=None, help="Write into DIR instead of a new case directory")
     p_analyze.add_argument("--offline", action="store_true", help="Send nothing online during extraction")
+    p_analyze.add_argument("--flutter", action="store_true",
+                           help="For a Flutter app, run blutter to recover and scan the Dart (libapp.so) code")
     p_analyze.set_defaults(func=_cmd_analyze)
 
     p_confirm = sub.add_parser(
