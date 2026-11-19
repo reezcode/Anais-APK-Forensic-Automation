@@ -7,6 +7,7 @@ All project documentation lives in this directory. Start here.
 | Directory | Scope |
 |---|---|
 | [`reema/`](reema/README.md) | **Reema**: malware analysis and forensics. Static triage, capabilities, IOCs, Vaccine Pack. |
+| [`peny/`](peny/README.md) | **Peny**: mobile pentest / SAST suite. MASVS/MASTG vulnerability assessment of an authorized app; reuses Reema's static core, confirms on a Dyxon-leased device. |
 | [`dyxon/`](dyxon/README.md) | **Dyxon**: Android sandbox broker. Provisions, leases and resets ready rooted devices for dynamic analysis. Later integrated into Aegis. |
 | [`platform/`](platform/) | Shared surface used by both features: MCP server, agent skill. |
 
@@ -30,6 +31,18 @@ All project documentation lives in this directory. Start here.
 | [`reema/analyst-quick-reference.md`](reema/analyst-quick-reference.md) | Analyst workflow cheat sheet |
 | [`reema/custom-yara-and-api-keys.md`](reema/custom-yara-and-api-keys.md) | Custom YARA rules (`-y`) and API key tracking |
 | [`reema/rea-deep-pass.md`](reema/rea-deep-pass.md) | Optional REA deep pass contract |
+
+### Peny
+
+| Document | Purpose |
+|---|---|
+| [`peny/README.md`](peny/README.md) | Feature overview and reading order |
+| [`peny/methodology.md`](peny/methodology.md) | Full-surface Android pentest method; source of record for what Peny checks |
+| [`peny/design.md`](peny/design.md) | Target architecture: the one-way seam to Reema's core, static lens, dynamic tracks |
+| [`peny/roadmap.md`](peny/roadmap.md) | Phases P0–P3, status |
+| [`peny/finding-schema.md`](peny/finding-schema.md) | `peny.findings/v1` contract (findings + MASVS matrix) |
+| [`peny/backlog.md`](peny/backlog.md) | Designed but not implemented, ready to pick up |
+| [`peny/decisions/`](peny/decisions/README.md) | Architecture decision records (ADRs) |
 
 ### Dyxon
 
