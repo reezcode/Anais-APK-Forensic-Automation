@@ -7,7 +7,7 @@ Last updated: 2026-11-19.
 | P0 | Package skeleton, one-way seam to the shared static core, contract test | **Done** (2026-11-19) |
 | P1 | Static lens: MASVS rule set, coverage matrix, `peny.findings/v1`, pentest report | **Done** (2026-11-19) |
 | P2 | Dynamic confirm track: Dyxon lease, tier-0 Frida harnesses, tier-1 user script | **Done** (2026-11-19) |
-| P3 | Business-logic track: proxied lease (Dyxon D-C1), traffic capture + replay/tamper helpers | Planned |
+| P3 | Business-logic track: proxied lease (Dyxon D-C1), traffic capture + replay/tamper helpers | **Done** (2026-11-19) |
 
 Target design for every phase: [`design.md`](design.md).
 Designed but unimplemented work, ready to pick up: [`backlog.md`](backlog.md).
@@ -61,12 +61,26 @@ passed, 1 skipped. `python3 -m peny --version` → `peny 0.1.0`.
 4 P2). Seam still clean with `peny.dynamic` imported (Dyxon imported only inside
 `lease_and_confirm`).
 
-## P3 — Business logic (planned)
+## P3 — Business logic (done)
 
-- Depends on Dyxon **D-C1** (controlled-proxy lease profile). Logged as a
-  cross-module dependency in [`backlog.md`](backlog.md) and Dyxon's backlog.
-- CA + proxy on the leased device, egress only to the operator's proxy.
-- Traffic capture + replay/tamper helpers (price/IDOR, JWT, session, rate limit).
+Dyxon **D-C1** (controlled-proxy lease) shipped first (`acquire_device(
+network="proxy")`); Peny is its first consumer.
+
+| Item | Result |
+|---|---|
+| Traffic model | `peny/traffic.py`: tool-agnostic `Flow` + `load_flows` (HAR reader — the format every proxy exports) |
+| Passive analyzers | `peny/businesslogic.py`: `inspect_jwts` (alg=none → MASVS-AUTH critical, missing `exp` → medium), `cleartext_secrets` (secret on http:// → MASVS-NETWORK) |
+| Active replay | Injectable `ReplaySender` (`HttpReplaySender` real; fake in tests): `active_checks` (missing-auth — strip Authorization, still 2xx; IDOR — step a path id, different 2xx body) and `rate_limit_check` (no 429 over N replays). Only runs with `--active` |
+| Coverage | P3 fills MASVS-AUTH (+ NETWORK/PLATFORM) the static lens left `not_checked` |
+| Merge | `run_business_logic` merges P3 findings into the case (merge, not replace), rewrites reports, writes `reports/peny_traffic.json` (`peny.traffic/v1`) |
+| CLI | `peny businesslogic <case-dir> --flows <har> [--active] [--proxy host:port]` |
+| Tests | `tests/test_peny_p3.py`, 11 tests (HAR load, JWT/cleartext, missing-auth/IDOR/rate-limit, case merge) |
+
+Scope: Peny captures and assists; it does not claim full automated exploitation.
+Active replay only ever targets the authorized backend under test.
+
+**Verification on 2026-11-19:** full suite **261 pass**, 1 skipped (250 prior +
+11 P3). Seam clean with `peny.businesslogic` imported.
 
 ## Out of scope (for now)
 

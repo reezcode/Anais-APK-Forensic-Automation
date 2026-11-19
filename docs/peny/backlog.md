@@ -37,15 +37,15 @@ the roadmap and ADRs.
 
 ## Business logic (Track 2)
 
-- **PE-B1 — Proxied lease profile (depends on Dyxon D-C1).** CA installed, device
-  proxy set, egress only to the operator's Burp/mitmproxy. Peny is the first
-  consumer of Dyxon's controlled-network sink; log the dependency in Dyxon's
-  backlog.
-- **PE-B2 — Traffic capture.** Structure the proxied session into a request log
-  tied to the app flow.
-- **PE-B3 — Replay/tamper helpers.** Price/quantity/IDOR tampering, JWT
-  `alg=none`/weak-secret/missing-`exp`, session reuse after logout, rate-limit
-  probing. Assists; not full auto-exploitation.
+- **PE-B1 — Proxied lease profile.** *Done:* Dyxon **D-C1** shipped
+  (`acquire_device(network="proxy", proxy=...)`); Peny reads the captured export.
+- **PE-B2 — Traffic capture.** *Done (P3):* `peny/traffic.py` reads a HAR export
+  into `Flow`s. Still to add: direct mitmproxy flow-dump reader; auto-drive the
+  app so capture is not fully manual.
+- **PE-B3 — Replay/tamper helpers.** *Done (P3):* JWT `alg=none`/missing-`exp`,
+  cleartext secrets, missing-auth, IDOR, rate limiting. Still to add: price/
+  quantity tampering, session reuse after logout, weak-HMAC-secret brute
+  (`jwt_tool`/`hashcat`), hidden/debug-endpoint probing.
 
 ## Platform
 

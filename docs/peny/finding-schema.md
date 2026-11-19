@@ -123,3 +123,19 @@ confirm engine reads each harness's `send()` messages and sets the matching
 finding's `runtime_status` to `confirmed` (a `confirmed:true` message),
 `refuted` (only `confirmed:false`), or leaves it `pending` (no signal / error),
 appending a runtime `Evidence` with `file: "device:<serial>"`.
+
+## Traffic record — `peny.traffic/v1`
+
+The P3 business-logic track (`peny businesslogic --flows <har>`) reads a proxy
+export (HAR), emits findings on MASVS-AUTH / MASVS-NETWORK / MASVS-PLATFORM
+(JWT `alg=none`/no-`exp`, cleartext secrets, missing-auth, IDOR, no rate limit),
+**merges** them into `peny_findings.json`, and writes `reports/peny_traffic.json`:
+
+```json
+{"schema": "peny.traffic/v1", "flows": 42, "active": true, "added": ["peny-ab12…"]}
+```
+
+P3 findings carry `runtime_status: "confirmed"` (observed/active in real traffic)
+and `needs_runtime_confirmation: false`. Active replay (missing-auth / IDOR /
+rate-limit) runs only with `--active`, which sends live requests to the backend
+under test.

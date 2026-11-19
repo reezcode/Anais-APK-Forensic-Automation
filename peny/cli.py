@@ -54,6 +54,27 @@ def _cmd_confirm(args):
     return 0
 
 
+def _cmd_businesslogic(args):
+    from peny.businesslogic import HttpReplaySender, run_business_logic
+    from peny.traffic import load_flows
+
+    case_dir = Path(args.case_dir)
+    if not (case_dir / "reports" / "peny_findings.json").is_file():
+        print(f"peny businesslogic: no peny_findings.json under {case_dir}; run `peny analyze` first.",
+              file=sys.stderr)
+        return 2
+    flows = load_flows(args.flows)
+    if not flows:
+        print(f"peny businesslogic: no flows loaded from {args.flows} (expects a HAR export).",
+              file=sys.stderr)
+        return 2
+    sender = HttpReplaySender(proxy=args.proxy) if args.active else None
+    summary = run_business_logic(case_dir, flows, sender=sender, active=args.active)
+    print(f"peny: {summary['flows']} flows, {summary['added']} business-logic finding(s) "
+          f"(active={summary['active']}) -> {case_dir}/reports/peny_findings.json")
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="peny",
@@ -77,6 +98,15 @@ def build_parser():
     p_confirm.add_argument("--backend", default=None, help="Dyxon backend to lease (default: pool default)")
     p_confirm.add_argument("--user-script", default=None, help="Tier-1 Frida .js to run as-is (recorded as an observation)")
     p_confirm.set_defaults(func=_cmd_confirm)
+
+    p_biz = sub.add_parser(
+        "businesslogic", help="Assess captured traffic (JWT/auth/IDOR) from a proxied lease")
+    p_biz.add_argument("case_dir", help="A Peny case directory from `peny analyze`")
+    p_biz.add_argument("--flows", required=True, help="HAR export from the proxied session (Burp/mitmproxy)")
+    p_biz.add_argument("--active", action="store_true",
+                       help="Send tampered replays (missing-auth/IDOR/rate-limit) — live requests to the backend")
+    p_biz.add_argument("--proxy", default=None, help="Send replays through this proxy (host:port)")
+    p_biz.set_defaults(func=_cmd_businesslogic)
 
     return parser
 
