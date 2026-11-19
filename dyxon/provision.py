@@ -92,10 +92,26 @@ class Provisioner:
         dst = "/data/local/tmp/frida-server"
         self._adb(serial, "push", src, dst).check()
         self._adb(serial, "shell", "chmod", "755", dst).check()
-        # frida-server is long-running and needs root (already granted by the backend).
-        self.runner.spawn([self.adb_bin, "-s", serial, "shell", dst])
+        # frida-server is long-running and needs root (granted by the backend).
+        self.runner.spawn(self._root_shell_cmd(serial, dst))
         self._adb(serial, "forward", f"tcp:{self.frida_port}", f"tcp:{self.frida_port}").check()
         return f"127.0.0.1:{self.frida_port}"
+
+    def _root_shell_cmd(self, serial: str, remote_cmd: str) -> list:
+        """Build an adb command that runs `remote_cmd` on the device as root.
+
+        An `adb root`-ed image already gives a root shell (`id -u` == 0); a
+        `su`-rooted image (KernelSU/Magisk) needs `su -c`. Detected per call so
+        the provisioner does not have to know how the backend got root.
+        """
+        base = [self.adb_bin, "-s", serial, "shell"]
+        whoami = self._adb(serial, "shell", "id", "-u")
+        if whoami.ok and whoami.stdout.strip() == "0":
+            return base + [remote_cmd]
+        su = self._adb(serial, "shell", "su", "-c", "id")
+        if su.ok and "uid=0" in su.stdout:
+            return base + ["su", "-c", remote_cmd]
+        return base + [remote_cmd]  # best effort; no root detected
 
     def install_cert(self, serial: str, cert_path: str, hashed_name: Optional[str] = None) -> str:
         """Install a PEM CA certificate into the system trust store.
