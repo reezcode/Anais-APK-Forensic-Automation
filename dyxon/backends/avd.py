@@ -99,11 +99,28 @@ class AvdBackend(DeviceBackend):
             time.sleep(self.poll_interval)
 
     def root(self, serial: str) -> None:
-        # `adb root` restarts adbd, so wait for the device to come back before
-        # remounting the system partition.
-        self.runner.run([self.adb_bin, "-s", serial, "root"]).check()
-        self.runner.run([self.adb_bin, "-s", serial, "wait-for-device"])
-        self.runner.run([self.adb_bin, "-s", serial, "remount"]).check()
+        # Two ways an AVD grants root, tried in order:
+        #  1. `adb root` + remount — userdebug / `google_apis` images. `adb root`
+        #     restarts adbd, so wait for the device before remounting /system.
+        #  2. `su` — production `google_apis_playstore` images reject `adb root`
+        #     ("adbd cannot run as root in production builds") but a KernelSU- or
+        #     Magisk-patched AVD still has `su`. Root comes through it, and the
+        #     root solution already keeps /system writable, so no `adb remount`.
+        adb_root = self.runner.run([self.adb_bin, "-s", serial, "root"])
+        # `adb root` exits 0 even when it refuses, printing the refusal instead.
+        refused = "cannot run as root" in (adb_root.stdout + adb_root.stderr)
+        if adb_root.ok and not refused:
+            self.runner.run([self.adb_bin, "-s", serial, "wait-for-device"])
+            self.runner.run([self.adb_bin, "-s", serial, "remount"]).check()
+            return
+        su = self.runner.run([self.adb_bin, "-s", serial, "shell", "su", "-c", "id"])
+        if su.ok and "uid=0" in su.stdout:
+            return
+        raise BootError(
+            f"{serial}: no root path worked — `adb root` refused "
+            f"({(adb_root.stdout or adb_root.stderr).strip() or 'no output'!r}) "
+            f"and `su -c id` gave {su.stdout.strip() or 'no output'!r}"
+        )
 
     def snapshot(self, serial: str, name: str) -> None:
         self.runner.run([self.adb_bin, "-s", serial, "emu", "avd", "snapshot", "save", name]).check()

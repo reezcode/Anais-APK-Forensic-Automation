@@ -25,7 +25,8 @@ def _sample_block(target, hashes, basic_info):
     }
 
 
-def scan(target, case_dir=None, authorized_by="", scope="", offline=False, report=None):
+def scan(target, case_dir=None, authorized_by="", scope="", offline=False, report=None,
+         flutter=False, flutter_runner=None):
     """Run the static pentest lens over `target`. Returns the `peny.findings/v1`
     document and writes the case to disk.
 
@@ -52,6 +53,19 @@ def scan(target, case_dir=None, authorized_by="", scope="", offline=False, repor
 
     # --- re-lens to MASVS --------------------------------------------------
     peny_findings = [pf for pf in (to_peny(f) for f in raw_findings) if pf is not None]
+
+    # --- Flutter (Dart AOT) track ------------------------------------------
+    # A Flutter app's logic is invisible to jadx. With --flutter, run blutter to
+    # recover the Dart code and scan it; otherwise, if it is a Flutter app, add a
+    # single info finding so the empty Java layer is not mistaken for a clean app.
+    from peny import flutter as flutter_mod
+    if flutter:
+        flutter_findings, _status = flutter_mod.run_flutter_track(cdir, runner=flutter_runner)
+        peny_findings.extend(flutter_findings)
+    elif flutter_mod.is_flutter(cdir):
+        peny_findings.extend(flutter_mod._unanalyzed(
+            flutter_mod.find_flutter_libs(cdir), "run with --flutter to analyze the Dart code"))
+
     sources = sorted({pf.source for pf in peny_findings})
     matrix = build_matrix(peny_findings, STATIC_COVERAGE)
     doc = build_document(

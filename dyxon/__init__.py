@@ -12,4 +12,4 @@ and the preflight check. The pool, the session broker and the MCP server arrive
 in D1-D2 (see docs/dyxon/roadmap.md).
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

@@ -146,7 +146,59 @@ Mirrors Reema's layout but under Peny's own root, never overwriting a Reema case
 | `peny/rules/` | MASVS rule set (fact → control, severity, CWE, fix) |
 | `peny/masvs.py` | Coverage matrix builder |
 | `peny/findings.py` | `peny.findings/v1` (reuses Reema `Finding`/`Evidence`) |
+| `peny/flutter.py` | Flutter (Dart AOT) track: blutter recovers `libapp.so`, then secret/URL/crypto checks over the Dart strings |
+| `peny/secrets.py` | Extracted-secrets inventory (API keys/tokens/creds lifted from findings) |
 | `peny/dynamic.py` | Dyxon lease + REA driver for both tracks |
 | `peny/harnesses/` | Tier-0 Frida scripts; tier-1 user-script loader |
 | `peny/report.py` | Report + MASVS matrix render |
 | `peny/_shared.py` | The one-way seam: thin, documented bridge to the shared static core |
+
+## SAST precision (shared scanner)
+
+The static findings come from `analysis_tools/sast_scanner.py`, shared with Reema.
+Its rules were tightened so Peny's results represent real issues, not keyword
+hits:
+
+- **Code vs. literals.** Comments are blanked (jadx writes `/* ... */` headers
+  everywhere); for API-call rules (logging, storage, intent, WebView, network)
+  string *bodies* are also blanked, so a pattern word inside a message string is
+  not a finding. Secret/key/algorithm rules keep their literals. Import/`package`
+  lines are skipped for structural rules.
+- **Context gates.** `logging_sensitive_data` fires only when the statement also
+  names sensitive data (`SENSITIVE_RE`: password/token/pin/...); bare
+  `getSharedPreferences(...)` needs a world-readable mode or a sensitive key.
+- **MASTG-aligned matchers.** `insecure_crypto` needs a quoted algorithm
+  (`"DES/ECB/..."`, `"MD5"`) or `new Random(`/`Cipher.getInstance("AES")`, not a
+  substring; `intent_vulnerabilities` flags mutable/implicit `PendingIntent` and
+  `registerReceiver`, not plain `startActivity`; `remote_code_execution` flags
+  the `DexClassLoader` family and `Runtime.getRuntime().exec`, not bare
+  `loadClass`/`.dex`; native `.so` scanning flags anti-analysis/key markers, not
+  `http`/`socket`/`exec` (present in every binary).
+
+On a real Flutter banking app this cut the Peny-mapped SAST findings from ~162 to
+~14 with no loss of true positives (measured, regression-tested in
+`tests/test_reema_p1.py`).
+
+## Flutter (Dart AOT) track
+
+A Flutter app's logic lives in `lib/<abi>/libapp.so` as a Dart AOT snapshot that
+jadx cannot read, so Java-layer SAST alone understates it. With
+`peny analyze --flutter`, `peny/flutter.py` runs **blutter** on the
+libapp.so/libflutter.so pair to recover the Dart objects (`pp.txt`/`objs.txt`
+string pool), then runs the secret/URL/crypto checks over the recovered strings
+(source `flutter`, feeding the same secrets inventory and MASVS matrix). The
+track is opt-in because blutter builds a native tool and disassembles the whole
+snapshot; it runs through an injectable runner, so it is tested without blutter.
+
+Two analyzers run over blutter's output. `scan_dart_strings` is value-level
+(secrets, cleartext URLs, weak-crypto names, TLS-bypass hooks over the string
+pool). `analyze_dart_apis` is code-level: it enumerates the native platform
+channels / plugins the Dart code wires to (MethodChannel and pigeon identifiers,
+which survive obfuscation) and maps each to its MASVS attack-surface finding --
+WebView, deep links, biometric gate, sensitive-capability plugins, secure vs.
+plaintext storage, and app-custom channels (reviewed first). MIME types and
+framework-internal `flutter/*` channels are excluded; pigeon channels collapse to
+one finding per plugin.
+When an app is Flutter but the track is not run, one info finding records that
+the Dart code was not analyzed, so an empty Java layer is never mistaken for a
+clean app.

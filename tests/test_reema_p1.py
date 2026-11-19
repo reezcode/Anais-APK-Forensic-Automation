@@ -70,6 +70,97 @@ class SastMaskTest(unittest.TestCase):
             self.assertEqual(app_first(files, root)[0].name, "B.java")
 
 
+class InsecureCryptoPatternTest(unittest.TestCase):
+    """insecure_crypto must need crypto-API evidence, not a bare substring."""
+
+    def setUp(self):
+        import re
+
+        from sast_scanner import SASTScanner, mask_java_comments
+
+        pats = SASTScanner("x.apk", None, None).high_patterns["insecure_crypto"]
+        self.hits = lambda code: [
+            m.group(0) for p in pats for m in re.finditer(p, mask_java_comments(code), re.IGNORECASE)
+        ]
+
+    def test_identifiers_and_secure_api_do_not_match(self):
+        for clean in (
+            'C.i(x, "IBitmapDescriptorFactory is not initialized");',
+            "obj.deserialize(description);",
+            "SecureRandom r = new SecureRandom();",
+            "/* DES/ECB/PKCS5Padding */ run();",
+        ):
+            self.assertEqual(self.hits(clean), [], clean)
+
+    def test_weak_crypto_calls_match(self):
+        for weak in (
+            'Cipher.getInstance("DES/ECB/PKCS5Padding");',
+            'Cipher.getInstance("AES/ECB/PKCS7Padding");',
+            'MessageDigest.getInstance("md5");',
+            'MessageDigest.getInstance("SHA-1");',
+            "Random r = new Random();",
+            'Cipher.getInstance("AES");',
+            'SecretKeyFactory.getInstance("DESede");',
+        ):
+            self.assertTrue(self.hits(weak), weak)
+
+
+class GatedSastTest(unittest.TestCase):
+    """Noisy SAST rules (logging, intent, storage, permissions, native) must
+    need real evidence, not a bare keyword, import line, or string body."""
+
+    def setUp(self):
+        import re
+
+        from sast_scanner import (SASTScanner, STRUCTURAL_CATEGORIES,
+                                   blank_string_bodies, mask_java_comments)
+        self.sc = SASTScanner("x.apk", None, None)
+        self.cats = {**self.sc.high_patterns, **self.sc.medium_patterns, **self.sc.critical_patterns}
+
+        def hits(code, category):
+            masked = mask_java_comments(code)
+            text = blank_string_bodies(masked) if category in STRUCTURAL_CATEGORIES else masked
+            out = []
+            for p in self.cats[category]:
+                for m in re.finditer(p, text, re.IGNORECASE):
+                    line = self.sc._line_at(text, m.start())
+                    if category in STRUCTURAL_CATEGORIES and re.match(r"^\s*(import|package)\s", line):
+                        continue
+                    if not self.sc._match_passes_gate(category, self.sc._line_at(code, m.start()), code):
+                        continue
+                    out.append(m.group(0))
+            return out
+        self.hits = hits
+
+    def test_benign_dropped(self):
+        drop = [
+            ("logging_sensitive_data", 'Log.i("FirebaseMessaging", "App not initialized");'),
+            ("intent_vulnerabilities", "import android.app.PendingIntent;"),
+            ("intent_vulnerabilities", "context.startActivity(createChooser);"),
+            ("intent_vulnerabilities", "PendingIntent.getService(ctx, 0, i, FLAG_IMMUTABLE);"),
+            ("insecure_storage", 'context.getSharedPreferences("FirebaseHeartBeat", 0);'),
+            ("dynamic_permission_requests", "ActivityCompat.requestPermissions(a, p, 1);"),
+            ("insecure_network", "builder.sslSocketFactory(f, tm);"),
+            ("remote_code_execution", 'String n = "classes.dex";'),
+            ("remote_code_execution", "loader.loadClass(name);"),
+        ]
+        for cat, code in drop:
+            self.assertEqual(self.hits(code, cat), [], f"{cat}: {code}")
+
+    def test_real_issues_kept(self):
+        keep = [
+            ("logging_sensitive_data", "Log.d(TAG, \"password=\" + pwd);"),
+            ("intent_vulnerabilities", "PendingIntent.getActivity(ctx, 0, i, FLAG_MUTABLE);"),
+            ("insecure_storage", "openFileOutput(f, MODE_WORLD_READABLE);"),
+            ("dynamic_permission_requests", "ctx.startActivity(new Intent(SYSTEM_ALERT_WINDOW));"),
+            ("insecure_network", "conn.setHostnameVerifier(ALLOW_ALL_HOSTNAME_VERIFIER);"),
+            ("webview_vulnerabilities", "ws.setJavaScriptEnabled(true);"),
+            ("remote_code_execution", "new DexClassLoader(p, o, null, cl);"),
+        ]
+        for cat, code in keep:
+            self.assertTrue(self.hits(code, cat), f"{cat}: {code}")
+
+
 class CaseTest(unittest.TestCase):
     def test_record_inputs_artifacts_and_tree_digest(self):
         with tempfile.TemporaryDirectory() as d:

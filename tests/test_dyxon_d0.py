@@ -120,6 +120,20 @@ class BackendTest(unittest.TestCase):
         with self.assertRaises(CommandError):
             self._backend(r).root("emulator-5556")
 
+    def test_root_falls_back_to_su(self):
+        # Playstore image: `adb root` refuses, but KernelSU `su` gives uid 0.
+        r = (FakeRunner()
+             .on(" root", stdout="adbd cannot run as root in production builds")
+             .on("su -c id", stdout="uid=0(root) gid=0(root) context=u:r:ksu:s0"))
+        self._backend(r).root("emulator-5556")  # no raise
+        self.assertTrue(r.ran("su -c id"))
+        self.assertFalse(r.ran("remount"))  # su-rooted: no adb remount
+
+    def test_root_raises_when_no_root_path(self):
+        r = FakeRunner().on(" root", stdout="cannot run as root")  # su probe stays empty
+        with self.assertRaises(BootError):
+            self._backend(r).root("emulator-5556")
+
     def test_snapshot_restore_destroy(self):
         r = FakeRunner()
         b = self._backend(r)
@@ -156,6 +170,17 @@ class ProvisionerTest(unittest.TestCase):
         p = Provisioner(runner=r, frida_servers={"arm64-v8a": "/f/frida-arm64"})
         with self.assertRaises(ProvisionError):
             p.push_frida("emulator-5554")
+
+    def test_push_frida_launches_via_su_when_shell_not_root(self):
+        # su-rooted device: `id -u` from the plain shell is not 0, so frida-server
+        # must be started through `su -c`.
+        r = (FakeRunner()
+             .on("ro.product.cpu.abi", stdout="arm64-v8a")
+             .on("shell id -u", stdout="2000")
+             .on("su -c id", stdout="uid=0(root) gid=0(root)"))
+        p = Provisioner(runner=r, frida_servers={"arm64-v8a": "/f/frida-arm64"})
+        p.push_frida("emulator-5554")
+        self.assertIn("su -c /data/local/tmp/frida-server", " ".join(r.spawns[0]))
 
     def test_install_cert_without_openssl_requires_name(self):
         r = FakeRunner().on("subject_hash_old", returncode=127)

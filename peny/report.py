@@ -22,7 +22,7 @@ def render_matrix(matrix):
 
 
 def _finding_md(f):
-    out = [f"#### {f['severity'].upper()} — {f['title']}", ""]
+    out = [f"#### {f['severity'].upper()} · {f['title']}", ""]
     meta = [f"**MASVS:** {f['masvs']}"]
     if f.get("cwe"):
         meta.append(f"**CWE:** {', '.join(f['cwe'])}")
@@ -42,7 +42,7 @@ def _finding_md(f):
         loc = e.get("file", "")
         if e.get("line"):
             loc += f":{e['line']}"
-        snip = f" — `{e['snippet']}`" if e.get("snippet") else ""
+        snip = f": `{e['snippet']}`" if e.get("snippet") else ""
         out.append(f"- `{loc}`{snip}")
     if f.get("fix"):
         out.append(f"**Fix:** {f['fix']}")
@@ -50,17 +50,37 @@ def _finding_md(f):
     return "\n".join(out)
 
 
+def render_secrets(secrets):
+    """Markdown lines for the extracted-secrets table. Values are masked here;
+    the full values stay in reports/peny_findings.json."""
+    if not secrets:
+        return []
+    out = [
+        f"## Extracted secrets ({len(secrets)})",
+        "",
+        "| Type | Name | Value (masked) | Location |",
+        "|---|---|---|---|",
+    ]
+    for s in secrets:
+        loc = s.get("file", "")
+        if s.get("line"):
+            loc += f":{s['line']}"
+        out.append(f"| {s['type']} | `{s.get('name') or '-'}` | `{s['masked']}` | `{loc}` |")
+    out += ["", "_Full values: `reports/peny_findings.json` → `secrets`._", ""]
+    return out
+
+
 def render_report(doc):
     s = doc["summary"]
     auth = doc.get("authorization", {})
     sample = doc.get("sample", {})
     out = [
-        "# Peny — Mobile Pentest Report",
+        "# Peny · Mobile Pentest Report",
         "",
         f"**Target:** {sample.get('file_name', '')} "
         f"(`{sample.get('package_name', '')}` {sample.get('version_name', '')})",
         f"**SHA-256:** `{sample.get('sha256', '')}`",
-        f"**Authorized by:** {auth.get('authorized_by') or '—'} · **Scope:** {auth.get('scope') or '—'}",
+        f"**Authorized by:** {auth.get('authorized_by') or '-'} · **Scope:** {auth.get('scope') or '-'}",
         f"**Generated:** {doc.get('generated_at', '')} · peny {doc.get('peny_version', '')}",
         "",
         "## Summary",
@@ -73,6 +93,7 @@ def render_report(doc):
         "## MASVS coverage",
         "",
         render_matrix(doc.get("masvs", {})),
+        *render_secrets(doc.get("secrets") or []),
         "## Findings",
         "",
     ]

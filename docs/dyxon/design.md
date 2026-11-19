@@ -57,8 +57,16 @@ Chosen because arm64 system images run natively on Apple Silicon, it is free and
 local, and it roots without hardware.
 
 - Boot: `emulator -avd dyxon-clean -writable-system -no-window` (headless).
-- Root: a `userdebug`/`-eng` image gives `adb root`; `adb remount` for a
-  writable system partition.
+  The operator supplies the AVD; Dyxon boots and preps it but never creates one.
+- Root: two paths, tried in order (`AvdBackend.root`):
+  - `adb root` + `adb remount` for a `userdebug`/`-eng`/`google_apis` image
+    (the writable-system path).
+  - `su` for a production `google_apis_playstore` image, which refuses
+    `adb root` ("adbd cannot run as root in production builds") but may carry a
+    KernelSU-/Magisk-provided `su`. Root comes through `su -c`; the root
+    solution already keeps `/system` writable, so no `adb remount`. Detected by
+    falling back when `adb root` is refused; `peny confirm` then launches
+    `frida-server` via `su -c` (`Provisioner._root_shell_cmd`).
 - Ready: push `frida-server` (arch-matched), `adb install` the system CA
   certificate, `adb shell settings` toggles.
 - Snapshot: AVD snapshots (`emulator -snapshot <name>`, or the console
